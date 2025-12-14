@@ -1,8 +1,11 @@
 import { useState } from "react";
 import { InvestorDashboard as InvestorDashboardType } from "@/lib/investor-schema";
+import { useTimeHorizon } from "@/hooks/use-time-horizon";
 import { RunHeader } from "./RunHeader";
 import { DeltaSummary } from "./DeltaSummary";
 import { ExecutiveSummary } from "./ExecutiveSummary";
+import { TimeSeriesSection } from "./TimeSeriesSection";
+import { AIInsightsPanel } from "./AIInsightsPanel";
 import { FinancialsGrid } from "./FinancialsGrid";
 import { EventsTimeline } from "./EventsTimeline";
 import { ScenariosPanel } from "./ScenariosPanel";
@@ -15,6 +18,14 @@ interface InvestorDashboardProps {
 
 export function InvestorDashboard({ data }: InvestorDashboardProps) {
   const [mode, setMode] = useState<"public" | "private">(data.run_metadata.mode);
+  
+  // Time horizon state management
+  const { 
+    horizon, 
+    setHorizon, 
+    horizonData, 
+    isTransitioning 
+  } = useTimeHorizon(data);
 
   return (
     <div className="min-h-screen bg-background">
@@ -27,6 +38,26 @@ export function InvestorDashboard({ data }: InvestorDashboardProps) {
       <main>
         <DeltaSummary delta={data.delta_summary} />
         <ExecutiveSummary summary={data.executive_summary} />
+        
+        {/* Time-Series Section with functional horizon controls */}
+        {mode === "public" && horizonData && (
+          <TimeSeriesSection
+            horizonData={horizonData}
+            horizon={horizon}
+            onHorizonChange={setHorizon}
+            isTransitioning={isTransitioning}
+          />
+        )}
+        
+        {/* AI Insights Panel - stubbed for future AI integration */}
+        {horizonData?.ai_insights && (
+          <AIInsightsPanel
+            insights={horizonData.ai_insights}
+            horizon={horizon}
+            isTransitioning={isTransitioning}
+          />
+        )}
+        
         <FinancialsGrid data={data} mode={mode} />
         <EventsTimeline events={data.events} />
         <ScenariosPanel scenarios={data.scenarios} />
