@@ -17,7 +17,6 @@ export function ScenariosPanel({ scenarios }: ScenariosPanelProps) {
 
   const current = scenarios.find((s) => s.name === activeScenario) || scenarios[0];
 
-  // Calculate valuation range for visualization
   const valuations = scenarios.map((s) => s.outputs.valuation.value as number);
   const minVal = Math.min(...valuations);
   const maxVal = Math.max(...valuations);
@@ -31,7 +30,6 @@ export function ScenariosPanel({ scenarios }: ScenariosPanelProps) {
             Scenario Analysis
           </h2>
 
-          {/* Scenario tabs */}
           <div className="flex items-center border border-foreground">
             {scenarios.map((scenario) => (
               <button
@@ -65,7 +63,7 @@ export function ScenariosPanel({ scenarios }: ScenariosPanelProps) {
           <div className="relative h-8 bg-secondary border border-border">
             {scenarios.map((scenario) => {
               const val = scenario.outputs.valuation.value as number;
-              const position = ((val - minVal) / range) * 100;
+              const position = range > 0 ? ((val - minVal) / range) * 100 : 50;
 
               return (
                 <div
@@ -103,12 +101,7 @@ export function ScenariosPanel({ scenarios }: ScenariosPanelProps) {
                   key={i}
                   className="flex items-start justify-between py-2 border-b border-border/50"
                 >
-                  <div>
-                    <span className="text-sm font-medium">{assumption.key}</span>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      {assumption.rationale}
-                    </p>
-                  </div>
+                  <span className="text-sm font-medium">{assumption.key}</span>
                   <span className="font-mono text-sm bg-secondary px-2 py-1">
                     {assumption.value}
                   </span>

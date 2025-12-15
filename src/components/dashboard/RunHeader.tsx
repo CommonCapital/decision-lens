@@ -1,8 +1,8 @@
-import { RunMetadata } from "@/lib/investor-schema";
+import { InvestorDashboard } from "@/lib/investor-schema";
 import { cn } from "@/lib/utils";
 
 interface RunHeaderProps {
-  metadata: RunMetadata;
+  metadata: InvestorDashboard["run_metadata"];
   mode: "public" | "private";
   onModeChange: (mode: "public" | "private") => void;
 }
@@ -20,31 +20,13 @@ export function RunHeader({ metadata, mode, onModeChange }: RunHeaderProps) {
           <span>
             Cut:{" "}
             <span className="text-foreground">
-              {new Date(metadata.data_cut_timestamp).toLocaleString()}
-            </span>
-          </span>
-          <span className="w-px h-3 bg-border" />
-          <span>
-            Status:{" "}
-            <span
-              className={cn(
-                "uppercase",
-                metadata.status === "published"
-                  ? "text-foreground"
-                  : "text-muted-foreground"
-              )}
-            >
-              {metadata.status}
+              {new Date(metadata.timestamp).toLocaleString()}
             </span>
           </span>
         </div>
         <div className="flex items-center gap-4 text-micro font-mono uppercase tracking-wide text-muted-foreground">
           <span>
             Owner: <span className="text-foreground">{metadata.owner}</span>
-          </span>
-          <span>
-            Reviewer:{" "}
-            <span className="text-foreground">{metadata.reviewer}</span>
           </span>
         </div>
       </div>
@@ -57,9 +39,9 @@ export function RunHeader({ metadata, mode, onModeChange }: RunHeaderProps) {
               <span className="text-micro uppercase tracking-ultra-wide text-muted-foreground font-sans">
                 Entity
               </span>
-              {metadata.entity_ticker && (
+              {metadata.ticker && (
                 <span className="px-2 py-0.5 bg-foreground text-background text-micro font-mono uppercase">
-                  {metadata.entity_ticker}
+                  {metadata.ticker}
                 </span>
               )}
             </div>

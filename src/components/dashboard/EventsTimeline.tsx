@@ -5,7 +5,6 @@ import {
   TrendingUp,
   Newspaper,
   Users,
-  Calendar,
   BarChart3,
   Building,
   ExternalLink,
@@ -15,27 +14,19 @@ interface EventsTimelineProps {
   events: Event[];
 }
 
-const eventTypeConfig: Record<
-  Event["type"],
-  { icon: typeof FileText; label: string }
-> = {
+const eventTypeConfig: Record<Event["type"], { icon: typeof FileText; label: string }> = {
   earnings: { icon: TrendingUp, label: "Earnings" },
   filing: { icon: FileText, label: "Filing" },
   guidance: { icon: BarChart3, label: "Guidance" },
   corporate_action: { icon: Building, label: "Corp Action" },
   news: { icon: Newspaper, label: "News" },
   analyst_update: { icon: Users, label: "Analyst" },
-  covenant_test: { icon: Calendar, label: "Covenant" },
-  valuation_mark: { icon: TrendingUp, label: "Mark" },
-  refinancing: { icon: Building, label: "Refi" },
-  board_meeting: { icon: Users, label: "Board" },
 };
 
 const impactStyles: Record<Event["impact"], string> = {
   positive: "border-l-foreground",
   negative: "border-l-muted-foreground",
   neutral: "border-l-border",
-  mixed: "border-l-foreground/50",
 };
 
 export function EventsTimeline({ events }: EventsTimelineProps) {
@@ -53,7 +44,7 @@ export function EventsTimeline({ events }: EventsTimelineProps) {
         <div className="space-y-0">
           {sortedEvents.map((event, index) => {
             const config = eventTypeConfig[event.type];
-            const Icon = config.icon;
+            const Icon = config?.icon || FileText;
 
             return (
               <div
@@ -75,7 +66,7 @@ export function EventsTimeline({ events }: EventsTimelineProps) {
                     })}
                   </span>
                   <span className="px-2 py-0.5 text-[10px] uppercase tracking-ultra-wide font-sans border border-border">
-                    {config.label}
+                    {config?.label || event.type}
                   </span>
                 </div>
 
@@ -102,20 +93,6 @@ export function EventsTimeline({ events }: EventsTimelineProps) {
                       </a>
                     )}
                   </div>
-
-                  {/* Evidence */}
-                  {event.evidence.length > 0 && (
-                    <div className="mt-2 flex items-center gap-2 text-[10px] text-muted-foreground">
-                      <span className="uppercase tracking-wide">Sources:</span>
-                      {event.evidence.map((ev, i) => (
-                        <span key={i} className="font-mono">
-                          {ev.source}
-                          {ev.confidence < 1 &&
-                            ` (${Math.round(ev.confidence * 100)}%)`}
-                        </span>
-                      ))}
-                    </div>
-                  )}
                 </div>
               </div>
             );

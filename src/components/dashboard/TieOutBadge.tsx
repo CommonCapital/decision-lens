@@ -19,10 +19,6 @@ const statusConfig: Record<TieOutStatus, { label: string; className: string }> =
     label: "FLAGGED",
     className: "status-flagged",
   },
-  overridden: {
-    label: "OVERRIDDEN",
-    className: "status-overridden",
-  },
 };
 
 export function TieOutBadge({ status, className }: TieOutBadgeProps) {

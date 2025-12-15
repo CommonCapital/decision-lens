@@ -1,6 +1,6 @@
 import { Risk } from "@/lib/investor-schema";
 import { cn } from "@/lib/utils";
-import { AlertTriangle, Eye } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 
 interface RisksPanelProps {
   risks: Risk[];
@@ -17,14 +17,11 @@ const categoryLabels: Record<Risk["category"], string> = {
   market: "Market",
   operational: "Operational",
   financial: "Financial",
-  covenant: "Covenant",
   liquidity: "Liquidity",
-  refinancing: "Refinancing",
   governance: "Governance",
 };
 
 export function RisksPanel({ risks }: RisksPanelProps) {
-  // Sort by severity
   const severityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
   const sortedRisks = [...risks].sort(
     (a, b) => severityOrder[a.severity] - severityOrder[b.severity]
@@ -80,39 +77,11 @@ export function RisksPanel({ risks }: RisksPanelProps) {
                     {risk.description}
                   </p>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-micro uppercase tracking-ultra-wide text-muted-foreground block mb-1">
-                        Trigger Condition
-                      </span>
-                      <span className="font-light">{risk.trigger_condition}</span>
-                    </div>
-                    <div>
-                      <span className="text-micro uppercase tracking-ultra-wide text-muted-foreground block mb-1">
-                        Current Distance
-                      </span>
-                      <span className="font-light">{risk.current_distance}</span>
-                    </div>
-                  </div>
-
-                  {/* Watch metrics */}
-                  <div className="mt-4 pt-4 border-t border-border">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Eye className="w-3 h-3 text-muted-foreground" />
-                      <span className="text-micro uppercase tracking-ultra-wide text-muted-foreground">
-                        Watch Metrics
-                      </span>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {risk.watch_metrics.map((metric, i) => (
-                        <span
-                          key={i}
-                          className="px-2 py-1 text-xs bg-secondary border border-border font-mono"
-                        >
-                          {metric}
-                        </span>
-                      ))}
-                    </div>
+                  <div className="text-sm">
+                    <span className="text-micro uppercase tracking-ultra-wide text-muted-foreground block mb-1">
+                      Trigger
+                    </span>
+                    <span className="font-light">{risk.trigger}</span>
                   </div>
 
                   {risk.mitigation && (

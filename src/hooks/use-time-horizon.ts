@@ -21,15 +21,15 @@ export function useTimeHorizon(dashboardData: InvestorDashboard): UseTimeHorizon
   
   // Build time-series dataset from base metrics
   const dataset = useMemo(() => {
-    if (!dashboardData.public_data) return null;
+    if (!dashboardData.market_data) return null;
     
     return buildTimeSeriesDataset(
       dashboardData.run_metadata.entity,
       {
-        stock_price: dashboardData.public_data.stock_price,
+        stock_price: dashboardData.market_data.stock_price,
         revenue: dashboardData.financials.revenue,
         ebitda: dashboardData.financials.ebitda,
-        volume: dashboardData.public_data.volume,
+        volume: dashboardData.market_data.market_cap, // Using market_cap as proxy
       }
     );
   }, [dashboardData]);
@@ -45,11 +45,9 @@ export function useTimeHorizon(dashboardData: InvestorDashboard): UseTimeHorizon
     
     setIsTransitioning(true);
     
-    // Brief delay to allow exit animation
     setTimeout(() => {
       setHorizonState(newHorizon);
       
-      // Allow enter animation
       setTimeout(() => {
         setIsTransitioning(false);
       }, 50);

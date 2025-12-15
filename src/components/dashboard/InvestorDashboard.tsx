@@ -2,7 +2,6 @@ import { useState } from "react";
 import { InvestorDashboard as InvestorDashboardType } from "@/lib/investor-schema";
 import { useTimeHorizon } from "@/hooks/use-time-horizon";
 import { RunHeader } from "./RunHeader";
-import { DeltaSummary } from "./DeltaSummary";
 import { ExecutiveSummary } from "./ExecutiveSummary";
 import { TimeSeriesSection } from "./TimeSeriesSection";
 import { AIInsightsPanel } from "./AIInsightsPanel";
@@ -19,7 +18,6 @@ interface InvestorDashboardProps {
 export function InvestorDashboard({ data }: InvestorDashboardProps) {
   const [mode, setMode] = useState<"public" | "private">(data.run_metadata.mode);
   
-  // Time horizon state management
   const { 
     horizon, 
     setHorizon, 
@@ -36,7 +34,6 @@ export function InvestorDashboard({ data }: InvestorDashboardProps) {
       />
 
       <main>
-        <DeltaSummary delta={data.delta_summary} />
         <ExecutiveSummary summary={data.executive_summary} />
         
         {/* Time-Series Section with functional horizon controls */}
@@ -49,7 +46,7 @@ export function InvestorDashboard({ data }: InvestorDashboardProps) {
           />
         )}
         
-        {/* AI Insights Panel - stubbed for future AI integration */}
+        {/* AI Insights Panel */}
         {horizonData?.ai_insights && (
           <AIInsightsPanel
             insights={horizonData.ai_insights}
@@ -62,7 +59,7 @@ export function InvestorDashboard({ data }: InvestorDashboardProps) {
         <EventsTimeline events={data.events} />
         <ScenariosPanel scenarios={data.scenarios} />
         <RisksPanel risks={data.risks} />
-        <DataLineage lineage={data.data_lineage} />
+        <DataLineage sources={data.sources} />
       </main>
 
       {/* Footer */}
@@ -73,7 +70,7 @@ export function InvestorDashboard({ data }: InvestorDashboardProps) {
             {data.run_metadata.run_id}
           </span>
           <span className="font-mono">
-            Hash: {data.run_metadata.immutable_hash}
+            {new Date(data.run_metadata.timestamp).toLocaleString()}
           </span>
         </div>
       </footer>

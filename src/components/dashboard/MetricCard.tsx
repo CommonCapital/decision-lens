@@ -66,19 +66,7 @@ export function MetricCard({
               <span className="text-background/60 uppercase tracking-wide text-[10px]">
                 Source
               </span>
-              <p className="font-medium">{metric.primary_source}</p>
-            </div>
-            <div>
-              <span className="text-background/60 uppercase tracking-wide text-[10px]">
-                Tie-out Method
-              </span>
-              <p>{metric.tie_out_method}</p>
-            </div>
-            <div>
-              <span className="text-background/60 uppercase tracking-wide text-[10px]">
-                Owner
-              </span>
-              <p>{metric.owner}</p>
+              <p className="font-medium">{metric.source}</p>
             </div>
             {metric.last_updated && (
               <div>
