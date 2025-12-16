@@ -1,13 +1,10 @@
 // Uncertainty and Decision Sufficiency Types
-// These types overlay the existing schema to add decision-awareness
+// These types work with the schema's built-in uncertainty fields
 
-export type DataAvailability = 
-  | "available"      // Data present and validated
-  | "pending"        // Expected but not yet received
-  | "unavailable"    // Source doesn't provide this
-  | "restricted"     // Behind paywall or access limited
-  | "stale"          // Data exists but outdated
-  | "conflicting";   // Multiple sources disagree
+import { AvailabilityStatus, Metric } from "./investor-schema";
+
+// Re-export for convenience
+export type DataAvailability = AvailabilityStatus;
 
 export type SufficiencyLevel = 
   | "sufficient"     // Enough to decide with confidence
@@ -17,7 +14,8 @@ export type SufficiencyLevel =
 
 export interface UncertaintyReason {
   field: string;
-  status: DataAvailability;
+  status: AvailabilityStatus;
+  confidence: number;
   explanation: string;
   impact: "critical" | "material" | "minor";
   workaround?: string;
@@ -34,30 +32,53 @@ export interface DecisionAssessment {
   recommendation: string;
 }
 
-// Helper to compute sufficiency from data completeness
-export function computeSufficiency(
-  requiredFields: string[],
-  availableFields: string[],
-  criticalFields: string[]
+// Helper to compute sufficiency from metrics
+export function computeSufficiencyFromMetrics(
+  metrics: { name: string; metric?: Metric | null; critical?: boolean }[]
 ): DecisionAssessment {
-  const missingFields = requiredFields.filter(f => !availableFields.includes(f));
-  const missingCritical = criticalFields.filter(f => !availableFields.includes(f));
-  
-  const completeness = availableFields.length / requiredFields.length;
-  
+  const available: string[] = [];
+  const unavailable: string[] = [];
+  const blockers: string[] = [];
+  const caveats: string[] = [];
+  let totalConfidence = 0;
+  let metricCount = 0;
+
+  for (const { name, metric, critical } of metrics) {
+    if (metric && metric.availability === "available" && metric.value !== null) {
+      available.push(name);
+      totalConfidence += metric.confidence;
+      metricCount++;
+      
+      if (metric.confidence < 70) {
+        caveats.push(`${name} has low confidence (${metric.confidence}%)`);
+      }
+    } else {
+      unavailable.push(name);
+      if (critical) {
+        blockers.push(name);
+      }
+      if (metric?.unavailable_reason) {
+        caveats.push(`${name}: ${metric.unavailable_reason}`);
+      }
+    }
+  }
+
+  const completeness = metrics.length > 0 ? available.length / metrics.length : 0;
+  const avgConfidence = metricCount > 0 ? totalConfidence / metricCount : 0;
+
   let sufficiency: SufficiencyLevel;
   let confidence: number;
   let recommendation: string;
-  
-  if (missingCritical.length > 0) {
+
+  if (blockers.length > 0) {
     sufficiency = "blocked";
     confidence = Math.min(100, Math.round(completeness * 30));
-    recommendation = `Cannot proceed: missing critical data (${missingCritical.join(", ")})`;
-  } else if (completeness >= 0.9) {
+    recommendation = `Cannot proceed: missing critical data (${blockers.join(", ")})`;
+  } else if (completeness >= 0.9 && avgConfidence >= 75) {
     sufficiency = "sufficient";
-    confidence = Math.min(100, Math.round(75 + (completeness * 25)));
+    confidence = Math.min(100, Math.round(avgConfidence));
     recommendation = "Sufficient data to make informed decision";
-  } else if (completeness >= 0.6) {
+  } else if (completeness >= 0.6 || avgConfidence >= 60) {
     sufficiency = "partial";
     confidence = Math.min(100, Math.round(40 + (completeness * 35)));
     recommendation = "Can proceed with documented caveats";
@@ -66,18 +87,16 @@ export function computeSufficiency(
     confidence = Math.min(100, Math.round(completeness * 40));
     recommendation = "Recommend sourcing additional data before decision";
   }
-  
+
   return {
     sufficiency,
     confidence,
-    known: availableFields,
-    unknown: missingFields,
-    blockers: missingCritical,
-    caveats: missingFields.length > 0 
-      ? [`${missingFields.length} data points unavailable`]
-      : [],
-    wouldChangeConclusion: missingCritical.length > 0
-      ? missingCritical.map(f => `Availability of ${f}`)
+    known: available,
+    unknown: unavailable,
+    blockers,
+    caveats,
+    wouldChangeConclusion: blockers.length > 0
+      ? blockers.map(f => `Availability of ${f}`)
       : [],
     recommendation,
   };
@@ -85,79 +104,89 @@ export function computeSufficiency(
 
 // Assess a dashboard for decision readiness
 export function assessDashboardSufficiency(data: any): DecisionAssessment {
-  const requiredFields = [
-    "revenue", "ebitda", "free_cash_flow", "revenue_growth",
-    "stock_price", "market_cap", "events", "risks", "scenarios"
+  const metrics: { name: string; metric?: Metric | null; critical?: boolean }[] = [
+    { name: "Revenue", metric: data?.financials?.revenue, critical: true },
+    { name: "EBITDA", metric: data?.financials?.ebitda, critical: true },
+    { name: "Free Cash Flow", metric: data?.financials?.free_cash_flow },
+    { name: "Revenue Growth", metric: data?.financials?.revenue_growth },
+    { name: "Stock Price", metric: data?.market_data?.stock_price },
+    { name: "Market Cap", metric: data?.market_data?.market_cap },
   ];
-  
-  const criticalFields = [
-    "revenue", "ebitda", "thesis_status"
-  ];
-  
-  const availableFields: string[] = [];
-  
-  // Check financials
-  if (data?.financials?.revenue?.value) availableFields.push("revenue");
-  if (data?.financials?.ebitda?.value) availableFields.push("ebitda");
-  if (data?.financials?.free_cash_flow?.value) availableFields.push("free_cash_flow");
-  if (data?.financials?.revenue_growth?.value) availableFields.push("revenue_growth");
-  
-  // Check market data
-  if (data?.market_data?.stock_price?.value) availableFields.push("stock_price");
-  if (data?.market_data?.market_cap?.value) availableFields.push("market_cap");
-  
-  // Check arrays
-  if (data?.events?.length > 0) availableFields.push("events");
-  if (data?.risks?.length > 0) availableFields.push("risks");
-  if (data?.scenarios?.length > 0) availableFields.push("scenarios");
-  
+
   // Check executive summary
-  if (data?.executive_summary?.thesis_status) availableFields.push("thesis_status");
-  
-  return computeSufficiency(requiredFields, availableFields, criticalFields);
+  if (data?.executive_summary?.thesis_status) {
+    metrics.push({ 
+      name: "Thesis Status", 
+      metric: { 
+        value: data.executive_summary.thesis_status,
+        formatted: data.executive_summary.thesis_status,
+        source: "Analysis",
+        tie_out_status: "final",
+        last_updated: new Date().toISOString(),
+        confidence: 100,
+        availability: "available"
+      }, 
+      critical: true 
+    });
+  }
+
+  return computeSufficiencyFromMetrics(metrics);
 }
 
-// Get uncertainty reasons for missing/problematic data
+// Get uncertainty reasons from metrics
 export function getUncertaintyReasons(data: any): UncertaintyReason[] {
   const reasons: UncertaintyReason[] = [];
   
-  // Check for provisional data
-  const checkMetric = (obj: any, path: string, label: string, impact: "critical" | "material" | "minor") => {
-    if (!obj) {
+  const checkMetric = (metric: Metric | undefined, label: string, impact: "critical" | "material" | "minor") => {
+    if (!metric) {
       reasons.push({
         field: label,
         status: "unavailable",
+        confidence: 0,
         explanation: `${label} not available from current data sources`,
         impact,
         workaround: "Consider alternative data providers or direct company inquiry"
       });
-    } else if (obj.tie_out_status === "provisional") {
+    } else if (metric.availability !== "available") {
       reasons.push({
         field: label,
-        status: "pending",
-        explanation: `${label} is provisional - awaiting confirmation`,
-        impact: impact === "critical" ? "material" : "minor",
-        workaround: "Value usable with noted uncertainty"
+        status: metric.availability,
+        confidence: metric.confidence,
+        explanation: metric.unavailable_reason || `${label} is ${metric.availability}`,
+        impact: metric.availability === "conflicting" ? "critical" : impact,
+        workaround: getWorkaroundForStatus(metric.availability)
       });
-    } else if (obj.tie_out_status === "flagged") {
+    } else if (metric.confidence < 70) {
       reasons.push({
         field: label,
-        status: "conflicting",
-        explanation: `${label} has conflicting source data`,
-        impact,
-        workaround: "Manual reconciliation required"
+        status: metric.availability,
+        confidence: metric.confidence,
+        explanation: `${label} has low confidence (${metric.confidence}%)`,
+        impact: "minor",
+        workaround: "Verify with additional sources"
       });
     }
   };
-  
+
   // Check key metrics
-  checkMetric(data?.financials?.revenue, "financials.revenue", "Revenue", "critical");
-  checkMetric(data?.financials?.ebitda, "financials.ebitda", "EBITDA", "critical");
-  checkMetric(data?.financials?.free_cash_flow, "financials.free_cash_flow", "Free Cash Flow", "material");
-  checkMetric(data?.market_data?.stock_price, "market_data.stock_price", "Stock Price", "material");
-  checkMetric(data?.market_data?.target_price, "market_data.target_price", "Target Price", "minor");
-  checkMetric(data?.market_data?.pe_ratio, "market_data.pe_ratio", "P/E Ratio", "minor");
-  checkMetric(data?.market_data?.ev_ebitda, "market_data.ev_ebitda", "EV/EBITDA", "material");
-  
+  checkMetric(data?.financials?.revenue, "Revenue", "critical");
+  checkMetric(data?.financials?.ebitda, "EBITDA", "critical");
+  checkMetric(data?.financials?.free_cash_flow, "Free Cash Flow", "material");
+  checkMetric(data?.market_data?.stock_price, "Stock Price", "material");
+  checkMetric(data?.market_data?.target_price, "Target Price", "minor");
+  checkMetric(data?.market_data?.pe_ratio, "P/E Ratio", "minor");
+  checkMetric(data?.market_data?.ev_ebitda, "EV/EBITDA", "material");
+
   return reasons;
+}
+
+function getWorkaroundForStatus(status: AvailabilityStatus): string {
+  switch (status) {
+    case "pending": return "Value usable with noted uncertainty; verify when confirmed";
+    case "restricted": return "Consider premium data access or alternative sources";
+    case "stale": return "Use with caution; factor potential changes since last update";
+    case "conflicting": return "Manual reconciliation required";
+    case "unavailable": return "Consider alternative data providers";
+    default: return "Assess importance to your investment thesis";
+  }
 }

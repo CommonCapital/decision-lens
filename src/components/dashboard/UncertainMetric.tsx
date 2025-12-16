@@ -1,7 +1,6 @@
 import { cn } from "@/lib/utils";
-import { Metric } from "@/lib/investor-schema";
+import { Metric, AvailabilityStatus } from "@/lib/investor-schema";
 import { TieOutBadge } from "./TieOutBadge";
-import { DataAvailability } from "@/lib/uncertainty-types";
 import {
   Tooltip,
   TooltipContent,
@@ -12,7 +11,8 @@ import {
   Clock, 
   Lock, 
   AlertTriangle,
-  Ban
+  Ban,
+  CheckCircle2
 } from "lucide-react";
 
 interface UncertainMetricProps {
@@ -20,21 +20,19 @@ interface UncertainMetricProps {
   metric?: Metric | null;
   size?: "sm" | "md" | "lg";
   className?: string;
-  unavailableReason?: string;
-  availability?: DataAvailability;
 }
 
-const AVAILABILITY_CONFIG: Record<DataAvailability, {
+const AVAILABILITY_CONFIG: Record<AvailabilityStatus, {
   icon: typeof HelpCircle;
   label: string;
   color: string;
   bgColor: string;
 }> = {
   available: {
-    icon: HelpCircle,
+    icon: CheckCircle2,
     label: "Available",
     color: "text-emerald-600",
-    bgColor: "bg-emerald-50 dark:bg-emerald-950/30",
+    bgColor: "bg-card",
   },
   pending: {
     icon: Clock,
@@ -68,13 +66,25 @@ const AVAILABILITY_CONFIG: Record<DataAvailability, {
   },
 };
 
+function getConfidenceColor(confidence: number): string {
+  if (confidence >= 90) return "text-emerald-600";
+  if (confidence >= 70) return "text-amber-600";
+  if (confidence >= 50) return "text-orange-600";
+  return "text-red-600";
+}
+
+function getConfidenceLabel(confidence: number): string {
+  if (confidence >= 90) return "High";
+  if (confidence >= 70) return "Medium";
+  if (confidence >= 50) return "Low";
+  return "Very Low";
+}
+
 export function UncertainMetric({
   label,
   metric,
   size = "md",
   className,
-  unavailableReason,
-  availability = metric ? "available" : "unavailable",
 }: UncertainMetricProps) {
   const sizeClasses = {
     sm: "text-lg",
@@ -82,8 +92,38 @@ export function UncertainMetric({
     lg: "text-4xl",
   };
 
-  // If we have a metric with a value, render normally
-  if (metric?.value !== undefined && metric?.value !== null) {
+  // If no metric provided at all, show unavailable state
+  if (!metric) {
+    return (
+      <div
+        className={cn(
+          "group relative p-4 border border-border transition-all duration-150 bg-muted/50",
+          className
+        )}
+      >
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-micro uppercase tracking-ultra-wide text-muted-foreground font-sans">
+            {label}
+          </span>
+          <div className="flex items-center gap-1 text-micro uppercase tracking-wide text-muted-foreground">
+            <Ban className="w-3 h-3" />
+            <span>Not Available</span>
+          </div>
+        </div>
+        <div className={cn("font-mono tracking-tight text-muted-foreground/50", sizeClasses[size])}>
+          —
+        </div>
+      </div>
+    );
+  }
+
+  const availability = metric.availability;
+  const confidence = metric.confidence;
+  const config = AVAILABILITY_CONFIG[availability];
+  const Icon = config.icon;
+
+  // If metric has a value and is available, render with full context
+  if (metric.value !== null && metric.value !== undefined && availability === "available") {
     return (
       <div
         className={cn(
@@ -95,7 +135,15 @@ export function UncertainMetric({
           <span className="text-micro uppercase tracking-ultra-wide text-muted-foreground font-sans">
             {label}
           </span>
-          <TieOutBadge status={metric.tie_out_status} />
+          <div className="flex items-center gap-2">
+            <span className={cn(
+              "text-micro uppercase tracking-wide",
+              getConfidenceColor(confidence)
+            )}>
+              {confidence}%
+            </span>
+            <TieOutBadge status={metric.tie_out_status} />
+          </div>
         </div>
 
         <Tooltip>
@@ -116,6 +164,14 @@ export function UncertainMetric({
             className="max-w-xs p-4 bg-foreground text-background border-0"
           >
             <div className="space-y-2 text-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-background/60 uppercase tracking-wide text-[10px]">
+                  Confidence
+                </span>
+                <span className={cn("font-medium", getConfidenceColor(confidence))}>
+                  {confidence}% ({getConfidenceLabel(confidence)})
+                </span>
+              </div>
               <div>
                 <span className="text-background/60 uppercase tracking-wide text-[10px]">
                   Source
@@ -141,10 +197,8 @@ export function UncertainMetric({
     );
   }
 
-  // Render uncertainty state
-  const config = AVAILABILITY_CONFIG[availability];
-  const Icon = config.icon;
-  const reason = unavailableReason || getDefaultReason(availability, label);
+  // Render uncertainty state for non-available metrics
+  const reason = metric.unavailable_reason || getDefaultReason(availability, label);
 
   return (
     <div
@@ -176,7 +230,7 @@ export function UncertainMetric({
               "text-muted-foreground/50"
             )}
           >
-            <span>—</span>
+            <span>{metric.formatted || "—"}</span>
             <Icon className={cn("w-5 h-5", config.color)} />
           </div>
         </TooltipTrigger>
@@ -186,6 +240,14 @@ export function UncertainMetric({
           className="max-w-xs p-4 bg-foreground text-background border-0"
         >
           <div className="space-y-2 text-xs">
+            <div className="flex items-center justify-between">
+              <span className="text-background/60 uppercase tracking-wide text-[10px]">
+                Confidence
+              </span>
+              <span className={cn("font-medium", getConfidenceColor(confidence))}>
+                {confidence}%
+              </span>
+            </div>
             <div>
               <span className="text-background/60 uppercase tracking-wide text-[10px]">
                 Status
@@ -194,7 +256,7 @@ export function UncertainMetric({
             </div>
             <div>
               <span className="text-background/60 uppercase tracking-wide text-[10px]">
-                Why
+                Reason
               </span>
               <p>{reason}</p>
             </div>
@@ -221,7 +283,7 @@ export function UncertainMetric({
   );
 }
 
-function getDefaultReason(availability: DataAvailability, label: string): string {
+function getDefaultReason(availability: AvailabilityStatus, label: string): string {
   switch (availability) {
     case "pending":
       return `${label} data is being processed or awaiting source confirmation`;
@@ -238,7 +300,7 @@ function getDefaultReason(availability: DataAvailability, label: string): string
   }
 }
 
-function getDecisionImpact(availability: DataAvailability, label: string): string {
+function getDecisionImpact(availability: AvailabilityStatus, label: string): string {
   switch (availability) {
     case "pending":
       return "May proceed with caution; verify when available";

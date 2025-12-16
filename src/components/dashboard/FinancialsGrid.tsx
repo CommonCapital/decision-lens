@@ -1,5 +1,4 @@
 import { InvestorDashboard } from "@/lib/investor-schema";
-import { MetricCard } from "./MetricCard";
 import { UncertainMetric } from "./UncertainMetric";
 
 interface FinancialsGridProps {
@@ -22,32 +21,27 @@ export function FinancialsGrid({ data, mode }: FinancialsGridProps) {
             metric={data.financials?.revenue}
             size="lg"
             className="bg-card"
-            unavailableReason="Revenue data not yet available from SEC filings"
           />
           <UncertainMetric
             label="Revenue Growth"
             metric={data.financials?.revenue_growth}
             className="bg-card"
-            unavailableReason="Requires prior period data for calculation"
           />
           <UncertainMetric
             label="EBITDA"
             metric={data.financials?.ebitda}
             size="lg"
             className="bg-card"
-            unavailableReason="EBITDA not disclosed or requires manual calculation"
           />
           <UncertainMetric
             label="EBITDA Margin"
             metric={data.financials?.ebitda_margin}
             className="bg-card"
-            unavailableReason="Derived metric - requires EBITDA and revenue"
           />
           <UncertainMetric
             label="Free Cash Flow"
             metric={data.financials?.free_cash_flow}
             className="bg-card"
-            unavailableReason="Cash flow statement data pending"
           />
         </div>
 
@@ -63,32 +57,26 @@ export function FinancialsGrid({ data, mode }: FinancialsGridProps) {
                 metric={data.market_data?.stock_price}
                 size="lg"
                 className="bg-card"
-                unavailableReason="Real-time price feed unavailable"
               />
               <UncertainMetric
                 label="Market Cap"
                 metric={data.market_data?.market_cap}
                 className="bg-card"
-                unavailableReason="Requires stock price and shares outstanding"
               />
               <UncertainMetric
                 label="P/E Ratio"
                 metric={data.market_data?.pe_ratio}
                 className="bg-card"
-                unavailableReason="Earnings data pending or company unprofitable"
               />
               <UncertainMetric
                 label="EV/EBITDA"
                 metric={data.market_data?.ev_ebitda}
                 className="bg-card"
-                unavailableReason="Enterprise value calculation in progress"
               />
               <UncertainMetric
                 label="Target Price"
                 metric={data.market_data?.target_price}
                 className="bg-card"
-                availability="restricted"
-                unavailableReason="Analyst consensus requires premium data subscription"
               />
             </div>
           </>
@@ -105,26 +93,21 @@ export function FinancialsGrid({ data, mode }: FinancialsGridProps) {
                 metric={data.private_data?.valuation_mark}
                 size="lg"
                 className="bg-card"
-                unavailableReason="Internal valuation model pending review"
               />
               <UncertainMetric
                 label="Net Leverage"
                 metric={data.private_data?.net_leverage}
                 className="bg-card"
-                unavailableReason="Debt schedule data incomplete"
               />
               <UncertainMetric
                 label="Liquidity Runway"
                 metric={data.private_data?.liquidity_runway}
                 className="bg-card"
-                unavailableReason="Cash flow projection in progress"
               />
               <UncertainMetric
                 label="Covenant Headroom"
                 metric={data.private_data?.covenant_headroom}
                 className="bg-card"
-                availability="restricted"
-                unavailableReason="Credit agreement details confidential"
               />
             </div>
           </>
