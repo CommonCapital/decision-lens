@@ -10,6 +10,7 @@ import { EventsTimeline } from "./EventsTimeline";
 import { ScenariosPanel } from "./ScenariosPanel";
 import { RisksPanel } from "./RisksPanel";
 import { DataLineage } from "./DataLineage";
+import { DecisionSufficiency } from "./DecisionSufficiency";
 
 interface InvestorDashboardProps {
   data: InvestorDashboardType;
@@ -34,6 +35,11 @@ export function InvestorDashboard({ data }: InvestorDashboardProps) {
       />
 
       <main>
+        {/* Decision Sufficiency Assessment - Always visible */}
+        <section className="py-6 px-6 border-b border-border">
+          <DecisionSufficiency data={data} />
+        </section>
+        
         <ExecutiveSummary summary={data.executive_summary} />
         
         {/* Time-Series Section with functional horizon controls */}

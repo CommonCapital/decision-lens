@@ -1,6 +1,7 @@
 import { Scenario } from "@/lib/investor-schema";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import { EmptySection } from "./EmptySection";
 
 interface ScenariosPanelProps {
   scenarios: Scenario[];
@@ -14,6 +15,26 @@ export function ScenariosPanel({ scenarios }: ScenariosPanelProps) {
     downside: "Downside",
     upside: "Upside",
   };
+
+  // Handle empty scenarios
+  if (!scenarios || scenarios.length === 0) {
+    return (
+      <section className="py-8 border-b border-border animate-fade-in">
+        <div className="px-6">
+          <h2 className="text-micro uppercase tracking-ultra-wide text-muted-foreground font-sans mb-6">
+            Scenario Analysis
+          </h2>
+          <EmptySection
+            title="Scenario Analysis"
+            type="unavailable"
+            reason="No scenario models have been constructed. Without scenarios, you cannot stress-test the investment thesis against different market conditions or assumptions."
+            impact="Single-point estimates create false precision. Consider what happens if growth is 50% lower or multiples compress 2-3 turns."
+            suggestion="Build Base/Downside/Upside cases with explicit probability weights and assumption deltas."
+          />
+        </div>
+      </section>
+    );
+  }
 
   const current = scenarios.find((s) => s.name === activeScenario) || scenarios[0];
 

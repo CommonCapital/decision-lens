@@ -1,5 +1,6 @@
 import { InvestorDashboard } from "@/lib/investor-schema";
 import { MetricCard } from "./MetricCard";
+import { UncertainMetric } from "./UncertainMetric";
 
 interface FinancialsGridProps {
   data: InvestorDashboard;
@@ -16,107 +17,115 @@ export function FinancialsGrid({ data, mode }: FinancialsGridProps) {
 
         {/* Core financials */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-px bg-border mb-6">
-          <MetricCard
+          <UncertainMetric
             label="Revenue"
-            metric={data.financials.revenue}
+            metric={data.financials?.revenue}
             size="lg"
             className="bg-card"
+            unavailableReason="Revenue data not yet available from SEC filings"
           />
-          <MetricCard
+          <UncertainMetric
             label="Revenue Growth"
-            metric={data.financials.revenue_growth}
+            metric={data.financials?.revenue_growth}
             className="bg-card"
+            unavailableReason="Requires prior period data for calculation"
           />
-          <MetricCard
+          <UncertainMetric
             label="EBITDA"
-            metric={data.financials.ebitda}
+            metric={data.financials?.ebitda}
             size="lg"
             className="bg-card"
+            unavailableReason="EBITDA not disclosed or requires manual calculation"
           />
-          <MetricCard
+          <UncertainMetric
             label="EBITDA Margin"
-            metric={data.financials.ebitda_margin}
+            metric={data.financials?.ebitda_margin}
             className="bg-card"
+            unavailableReason="Derived metric - requires EBITDA and revenue"
           />
-          <MetricCard
+          <UncertainMetric
             label="Free Cash Flow"
-            metric={data.financials.free_cash_flow}
+            metric={data.financials?.free_cash_flow}
             className="bg-card"
+            unavailableReason="Cash flow statement data pending"
           />
         </div>
 
         {/* Mode-specific metrics */}
-        {mode === "public" && data.market_data && (
+        {mode === "public" && (
           <>
             <h3 className="text-micro uppercase tracking-ultra-wide text-muted-foreground font-sans mb-4 mt-8">
               Market Data
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-px bg-border">
-              <MetricCard
+              <UncertainMetric
                 label="Stock Price"
-                metric={data.market_data.stock_price}
+                metric={data.market_data?.stock_price}
                 size="lg"
                 className="bg-card"
+                unavailableReason="Real-time price feed unavailable"
               />
-              <MetricCard
+              <UncertainMetric
                 label="Market Cap"
-                metric={data.market_data.market_cap}
+                metric={data.market_data?.market_cap}
                 className="bg-card"
+                unavailableReason="Requires stock price and shares outstanding"
               />
-              {data.market_data.pe_ratio && (
-                <MetricCard
-                  label="P/E Ratio"
-                  metric={data.market_data.pe_ratio}
-                  className="bg-card"
-                />
-              )}
-              {data.market_data.ev_ebitda && (
-                <MetricCard
-                  label="EV/EBITDA"
-                  metric={data.market_data.ev_ebitda}
-                  className="bg-card"
-                />
-              )}
-              {data.market_data.target_price && (
-                <MetricCard
-                  label="Target Price"
-                  metric={data.market_data.target_price}
-                  className="bg-card"
-                />
-              )}
+              <UncertainMetric
+                label="P/E Ratio"
+                metric={data.market_data?.pe_ratio}
+                className="bg-card"
+                unavailableReason="Earnings data pending or company unprofitable"
+              />
+              <UncertainMetric
+                label="EV/EBITDA"
+                metric={data.market_data?.ev_ebitda}
+                className="bg-card"
+                unavailableReason="Enterprise value calculation in progress"
+              />
+              <UncertainMetric
+                label="Target Price"
+                metric={data.market_data?.target_price}
+                className="bg-card"
+                availability="restricted"
+                unavailableReason="Analyst consensus requires premium data subscription"
+              />
             </div>
           </>
         )}
 
-        {mode === "private" && data.private_data && (
+        {mode === "private" && (
           <>
             <h3 className="text-micro uppercase tracking-ultra-wide text-muted-foreground font-sans mb-4 mt-8">
               Private Metrics
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-border">
-              <MetricCard
+              <UncertainMetric
                 label="Valuation Mark"
-                metric={data.private_data.valuation_mark}
+                metric={data.private_data?.valuation_mark}
                 size="lg"
                 className="bg-card"
+                unavailableReason="Internal valuation model pending review"
               />
-              <MetricCard
+              <UncertainMetric
                 label="Net Leverage"
-                metric={data.private_data.net_leverage}
+                metric={data.private_data?.net_leverage}
                 className="bg-card"
+                unavailableReason="Debt schedule data incomplete"
               />
-              <MetricCard
+              <UncertainMetric
                 label="Liquidity Runway"
-                metric={data.private_data.liquidity_runway}
+                metric={data.private_data?.liquidity_runway}
                 className="bg-card"
+                unavailableReason="Cash flow projection in progress"
               />
-              {data.private_data.covenant_headroom && (
-                <MetricCard
-                  label="Covenant Headroom"
-                  metric={data.private_data.covenant_headroom}
-                  className="bg-card"
-                />
-              )}
+              <UncertainMetric
+                label="Covenant Headroom"
+                metric={data.private_data?.covenant_headroom}
+                className="bg-card"
+                availability="restricted"
+                unavailableReason="Credit agreement details confidential"
+              />
             </div>
           </>
         )}
