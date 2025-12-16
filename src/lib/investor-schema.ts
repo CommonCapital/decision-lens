@@ -5,14 +5,28 @@ import { z } from "zod";
 // Tie-out status for reconciliation
 const tieOutStatusSchema = z.enum(["final", "provisional", "flagged"]);
 
-// Simplified metric with essential provenance
+// Data availability status
+const availabilityStatusSchema = z.enum([
+  "available",      // Data present and validated
+  "pending",        // Expected but not yet received  
+  "unavailable",    // Source doesn't provide this
+  "restricted",     // Behind paywall or access limited
+  "stale",          // Data exists but outdated
+  "conflicting",    // Multiple sources disagree
+]);
+
+// Metric with uncertainty awareness
 const metricSchema = z.object({
-  value: z.union([z.number(), z.string()]),
+  value: z.union([z.number(), z.string()]).nullable(),
   formatted: z.string(),
   unit: z.string().optional(),
   source: z.string(),
   tie_out_status: tieOutStatusSchema,
   last_updated: z.string(),
+  // Uncertainty fields - required for decision-readiness
+  confidence: z.number().min(0).max(100),           // 0-100 reliability score
+  availability: availabilityStatusSchema,           // Current data status
+  unavailable_reason: z.string().optional(),        // Why missing, if applicable
 });
 
 // Event in timeline
@@ -121,6 +135,7 @@ export const investorDashboardSchema = z.object({
 export type InvestorDashboard = z.infer<typeof investorDashboardSchema>;
 export type Metric = z.infer<typeof metricSchema>;
 export type TieOutStatus = z.infer<typeof tieOutStatusSchema>;
+export type AvailabilityStatus = z.infer<typeof availabilityStatusSchema>;
 export type Event = z.infer<typeof eventSchema>;
 export type Scenario = z.infer<typeof scenarioSchema>;
 export type Risk = z.infer<typeof riskSchema>;
