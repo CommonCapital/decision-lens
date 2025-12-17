@@ -1,6 +1,13 @@
 import { z } from "zod";
 
-// === SIMPLIFIED CORE TYPES ===
+// === EVIDENCE SCHEMA ===
+export const evidenceSchema = z.object({
+  url: z.string(),
+  quote: z.string().nullable(),
+  relevance_score: z.number().min(0).max(1),
+}).partial();
+
+// === CORE TYPES ===
 
 // Tie-out status for reconciliation
 const tieOutStatusSchema = z.enum(["final", "provisional", "flagged"]);
@@ -15,18 +22,79 @@ const availabilityStatusSchema = z.enum([
   "conflicting",    // Multiple sources disagree
 ]);
 
+// Decision context per metric
+const decisionContextSchema = z.object({
+  confidence_level: z.enum(["high", "medium", "low"]),
+  sufficiency_status: z.enum(["sufficient", "insufficient"]),
+  knowns: z.array(z.string()),
+  unknowns: z.array(z.string()),
+  what_changes_conclusion: z.array(z.string()),
+});
+
 // Metric with uncertainty awareness
 const metricSchema = z.object({
   value: z.union([z.number(), z.string()]).nullable(),
-  formatted: z.string(),
-  unit: z.string().optional(),
-  source: z.string(),
+  formatted: z.string().nullable(),
+  unit: z.string().optional().nullable(),
+  source: z.string().nullable(),
   tie_out_status: tieOutStatusSchema,
-  last_updated: z.string(),
+  last_updated: z.string().nullable(),
   // Uncertainty fields - required for decision-readiness
   confidence: z.number().min(0).max(100),           // 0-100 reliability score
   availability: availabilityStatusSchema,           // Current data status
-  unavailable_reason: z.string().optional(),        // Why missing, if applicable
+  unavailable_reason: z.string().optional().nullable(),        // Why missing, if applicable
+  decision_context: decisionContextSchema.optional().nullable(),
+});
+
+// === TIME-SERIES SCHEMA ===
+
+// Quarterly data slices
+const quarterlySeriesSchema = z.object({
+  Q1: z.number().nullable(),
+  Q2: z.number().nullable(),
+  Q3: z.number().nullable(),
+  Q4: z.number().nullable(),
+});
+
+// Time-series data point
+const timeSeriesPointSchema = z.object({
+  timestamp: z.string(),
+  value: z.number().nullable(),
+  formatted: z.string(),
+  unit: z.string().optional(),
+  confidence: z.number().min(0).max(100),
+  availability: availabilityStatusSchema,
+  unavailable_reason: z.string().optional(),
+});
+
+// Horizon statistics with quarterly breakdown
+const horizonStatsSchema = z.object({
+  quarters: quarterlySeriesSchema,
+  high: z.number().nullable(),
+  low: z.number().nullable(),
+  average: z.number().nullable(),
+  volatility: z.number().nullable(),
+  change_percent: z.number().nullable(),
+});
+
+// Time-series metric with full historical data
+const timeSeriesMetricSchema = z.object({
+  series: z.array(timeSeriesPointSchema),
+  horizons: z.record(
+    z.enum(["1H", "1D", "1W", "1M", "1Y", "5Y", "10Y"]),
+    horizonStatsSchema
+  ).optional(),
+  availability: availabilityStatusSchema,
+  confidence: z.number().min(0).max(100),
+  unavailable_reason: z.string().optional(),
+  source: z.string(),
+  decision_context: decisionContextSchema.optional().nullable(),
+});
+
+// Metric with current value and optional history
+const metricWithHistorySchema = z.object({
+  current: metricSchema,
+  history: timeSeriesMetricSchema.nullable(),
 });
 
 // Event in timeline
@@ -37,7 +105,7 @@ const eventSchema = z.object({
   title: z.string(),
   description: z.string(),
   impact: z.enum(["positive", "negative", "neutral"]),
-  source_url: z.string().optional(),
+  source_url: z.string().optional().nullable(),
 });
 
 // Scenario definition
@@ -45,8 +113,8 @@ const scenarioSchema = z.object({
   name: z.enum(["base", "downside", "upside"]),
   probability: z.number().min(0).max(1),
   assumptions: z.array(z.object({
-    key: z.string(),
-    value: z.string(),
+    key: z.string().nullable(),
+    value: z.string().nullable(),
   })),
   outputs: z.object({
     revenue: metricSchema,
@@ -62,8 +130,8 @@ const riskSchema = z.object({
   title: z.string(),
   description: z.string(),
   severity: z.enum(["critical", "high", "medium", "low"]),
-  trigger: z.string(),
-  mitigation: z.string().optional(),
+  trigger: z.string().nullable(),
+  mitigation: z.string().optional().nullable(),
 });
 
 // === MAIN SCHEMA ===
@@ -88,30 +156,30 @@ export const investorDashboardSchema = z.object({
     thesis_status: z.enum(["intact", "challenged", "broken"]),
   }),
 
-  // Core financials
+  // Core financials with history
   financials: z.object({
-    revenue: metricSchema,
-    revenue_growth: metricSchema,
-    ebitda: metricSchema,
-    ebitda_margin: metricSchema,
-    free_cash_flow: metricSchema,
+    revenue: metricWithHistorySchema,
+    revenue_growth: metricWithHistorySchema,
+    ebitda: metricWithHistorySchema,
+    ebitda_margin: metricWithHistorySchema,
+    free_cash_flow: metricWithHistorySchema,
   }),
 
-  // Market data (public mode)
+  // Market data (public mode) with history
   market_data: z.object({
-    stock_price: metricSchema,
-    market_cap: metricSchema,
-    pe_ratio: metricSchema.optional(),
-    ev_ebitda: metricSchema.optional(),
-    target_price: metricSchema.optional(),
+    stock_price: metricWithHistorySchema,
+    market_cap: metricWithHistorySchema,
+    pe_ratio: metricWithHistorySchema.optional(),
+    ev_ebitda: metricWithHistorySchema.optional(),
+    target_price: metricWithHistorySchema.optional(),
   }).optional(),
 
   // Private data (private mode)
   private_data: z.object({
-    valuation_mark: metricSchema,
-    net_leverage: metricSchema,
-    liquidity_runway: metricSchema,
-    covenant_headroom: metricSchema.optional(),
+    valuation_mark: metricWithHistorySchema,
+    net_leverage: metricWithHistorySchema,
+    liquidity_runway: metricWithHistorySchema,
+    covenant_headroom: metricWithHistorySchema.optional(),
   }).optional(),
 
   // Events timeline
@@ -134,6 +202,12 @@ export const investorDashboardSchema = z.object({
 // Type exports
 export type InvestorDashboard = z.infer<typeof investorDashboardSchema>;
 export type Metric = z.infer<typeof metricSchema>;
+export type MetricWithHistory = z.infer<typeof metricWithHistorySchema>;
+export type TimeSeriesMetric = z.infer<typeof timeSeriesMetricSchema>;
+export type TimeSeriesPoint = z.infer<typeof timeSeriesPointSchema>;
+export type HorizonStats = z.infer<typeof horizonStatsSchema>;
+export type QuarterlySeries = z.infer<typeof quarterlySeriesSchema>;
+export type DecisionContext = z.infer<typeof decisionContextSchema>;
 export type TieOutStatus = z.infer<typeof tieOutStatusSchema>;
 export type AvailabilityStatus = z.infer<typeof availabilityStatusSchema>;
 export type Event = z.infer<typeof eventSchema>;

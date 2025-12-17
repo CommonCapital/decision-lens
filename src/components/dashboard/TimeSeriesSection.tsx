@@ -1,14 +1,24 @@
-import { HorizonData, TimeHorizon, HORIZON_LABELS } from "@/lib/time-series-data";
+import { HorizonData, TimeHorizon, HORIZON_LABELS, LegacyTimeSeriesMetric } from "@/lib/time-series-data";
 import { TimeSeriesChart } from "./TimeSeriesChart";
 import { TimeHorizonTabs } from "./TimeHorizonSelector";
 import { cn } from "@/lib/utils";
-import { Calendar, TrendingUp, Activity } from "lucide-react";
+import { Calendar, TrendingUp, Activity, AlertCircle } from "lucide-react";
 
 interface TimeSeriesSectionProps {
   horizonData: HorizonData;
   horizon: TimeHorizon;
   onHorizonChange: (h: TimeHorizon) => void;
   isTransitioning?: boolean;
+}
+
+// Helper to check if a metric is available for charting
+function isMetricAvailable(metric?: LegacyTimeSeriesMetric): metric is LegacyTimeSeriesMetric {
+  return !!(
+    metric &&
+    metric.current.availability === "available" &&
+    metric.series &&
+    metric.series.length > 0
+  );
 }
 
 export function TimeSeriesSection({
@@ -18,6 +28,16 @@ export function TimeSeriesSection({
   isTransitioning,
 }: TimeSeriesSectionProps) {
   const { metrics, start_date, end_date, events_count, key_events } = horizonData;
+
+  // Check which metrics are available
+  const availableMetrics = {
+    stock_price: isMetricAvailable(metrics.stock_price),
+    revenue: isMetricAvailable(metrics.revenue),
+    ebitda: isMetricAvailable(metrics.ebitda),
+    volume: isMetricAvailable(metrics.volume),
+  };
+
+  const hasAnyCharts = Object.values(availableMetrics).some(Boolean);
 
   return (
     <section
@@ -90,8 +110,8 @@ export function TimeSeriesSection({
             )}
           </div>
 
-          {/* Quick Stats */}
-          {metrics.stock_price && (
+          {/* Quick Stats - only show if available */}
+          {availableMetrics.stock_price && metrics.stock_price && (
             <div className="flex items-center gap-4">
               <span
                 className={cn(
@@ -110,41 +130,53 @@ export function TimeSeriesSection({
           )}
         </div>
 
-        {/* Charts Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-border">
-          {metrics.stock_price && (
-            <TimeSeriesChart
-              metric={metrics.stock_price}
-              horizon={horizon}
-              label="Stock Price"
-              isTransitioning={isTransitioning}
-            />
-          )}
-          {metrics.revenue && (
-            <TimeSeriesChart
-              metric={metrics.revenue}
-              horizon={horizon}
-              label="Revenue"
-              isTransitioning={isTransitioning}
-            />
-          )}
-          {metrics.ebitda && (
-            <TimeSeriesChart
-              metric={metrics.ebitda}
-              horizon={horizon}
-              label="EBITDA"
-              isTransitioning={isTransitioning}
-            />
-          )}
-          {metrics.volume && (
-            <TimeSeriesChart
-              metric={metrics.volume}
-              horizon={horizon}
-              label="Volume"
-              isTransitioning={isTransitioning}
-            />
-          )}
-        </div>
+        {/* Charts Grid - only render available metrics */}
+        {hasAnyCharts ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-border">
+            {availableMetrics.stock_price && metrics.stock_price && (
+              <TimeSeriesChart
+                metric={metrics.stock_price}
+                horizon={horizon}
+                label="Stock Price"
+                isTransitioning={isTransitioning}
+              />
+            )}
+            {availableMetrics.revenue && metrics.revenue && (
+              <TimeSeriesChart
+                metric={metrics.revenue}
+                horizon={horizon}
+                label="Revenue"
+                isTransitioning={isTransitioning}
+              />
+            )}
+            {availableMetrics.ebitda && metrics.ebitda && (
+              <TimeSeriesChart
+                metric={metrics.ebitda}
+                horizon={horizon}
+                label="EBITDA"
+                isTransitioning={isTransitioning}
+              />
+            )}
+            {availableMetrics.volume && metrics.volume && (
+              <TimeSeriesChart
+                metric={metrics.volume}
+                horizon={horizon}
+                label="Volume"
+                isTransitioning={isTransitioning}
+              />
+            )}
+          </div>
+        ) : (
+          <div className="bg-muted/30 border border-border p-8 text-center">
+            <AlertCircle className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
+            <p className="text-sm text-muted-foreground">
+              No time-series data available for the selected horizon.
+            </p>
+            <p className="text-xs text-muted-foreground/70 mt-1">
+              Historical data may be pending, restricted, or unavailable from sources.
+            </p>
+          </div>
+        )}
       </div>
     </section>
   );

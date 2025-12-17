@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { Metric, AvailabilityStatus } from "@/lib/investor-schema";
+import { Metric, MetricWithHistory, AvailabilityStatus } from "@/lib/investor-schema";
 import { TieOutBadge } from "./TieOutBadge";
 import {
   Tooltip,
@@ -17,7 +17,7 @@ import {
 
 interface UncertainMetricProps {
   label: string;
-  metric?: Metric | null;
+  metric?: MetricWithHistory | Metric | null;
   size?: "sm" | "md" | "lg";
   className?: string;
 }
@@ -80,6 +80,17 @@ function getConfidenceLabel(confidence: number): string {
   return "Very Low";
 }
 
+// Helper to extract the current metric from MetricWithHistory or plain Metric
+function extractCurrentMetric(metric: MetricWithHistory | Metric | null | undefined): Metric | null {
+  if (!metric) return null;
+  // Check if it's MetricWithHistory (has 'current' property)
+  if ('current' in metric && metric.current) {
+    return metric.current;
+  }
+  // It's a plain Metric
+  return metric as Metric;
+}
+
 export function UncertainMetric({
   label,
   metric,
@@ -92,8 +103,10 @@ export function UncertainMetric({
     lg: "text-4xl",
   };
 
+  const currentMetric = extractCurrentMetric(metric);
+
   // If no metric provided at all, show unavailable state
-  if (!metric) {
+  if (!currentMetric) {
     return (
       <div
         className={cn(
@@ -117,13 +130,13 @@ export function UncertainMetric({
     );
   }
 
-  const availability = metric.availability;
-  const confidence = metric.confidence;
+  const availability = currentMetric.availability;
+  const confidence = currentMetric.confidence;
   const config = AVAILABILITY_CONFIG[availability];
   const Icon = config.icon;
 
   // If metric has a value and is available, render with full context
-  if (metric.value !== null && metric.value !== undefined && availability === "available") {
+  if (currentMetric.value !== null && currentMetric.value !== undefined && availability === "available") {
     return (
       <div
         className={cn(
@@ -142,7 +155,7 @@ export function UncertainMetric({
             )}>
               {confidence}%
             </span>
-            <TieOutBadge status={metric.tie_out_status} />
+            <TieOutBadge status={currentMetric.tie_out_status} />
           </div>
         </div>
 
@@ -155,7 +168,7 @@ export function UncertainMetric({
               )}
               data-metric
             >
-              {metric.formatted}
+              {currentMetric.formatted}
             </div>
           </TooltipTrigger>
           <TooltipContent
@@ -176,16 +189,36 @@ export function UncertainMetric({
                 <span className="text-background/60 uppercase tracking-wide text-[10px]">
                   Source
                 </span>
-                <p className="font-medium">{metric.source}</p>
+                <p className="font-medium">{currentMetric.source}</p>
               </div>
-              {metric.last_updated && (
+              {currentMetric.last_updated && (
                 <div>
                   <span className="text-background/60 uppercase tracking-wide text-[10px]">
                     Updated
                   </span>
                   <p className="font-mono text-[10px]">
-                    {new Date(metric.last_updated).toLocaleString()}
+                    {new Date(currentMetric.last_updated).toLocaleString()}
                   </p>
+                </div>
+              )}
+              {/* Decision Context */}
+              {currentMetric.decision_context && (
+                <div className="pt-2 border-t border-background/20">
+                  <span className="text-background/60 uppercase tracking-wide text-[10px]">
+                    Decision Context
+                  </span>
+                  <div className="mt-1 space-y-1">
+                    {currentMetric.decision_context.knowns.length > 0 && (
+                      <p className="text-[10px]">
+                        <span className="text-emerald-400">Known:</span> {currentMetric.decision_context.knowns.join(", ")}
+                      </p>
+                    )}
+                    {currentMetric.decision_context.unknowns.length > 0 && (
+                      <p className="text-[10px]">
+                        <span className="text-amber-400">Unknown:</span> {currentMetric.decision_context.unknowns.join(", ")}
+                      </p>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
@@ -198,7 +231,7 @@ export function UncertainMetric({
   }
 
   // Render uncertainty state for non-available metrics
-  const reason = metric.unavailable_reason || getDefaultReason(availability, label);
+  const reason = currentMetric.unavailable_reason || getDefaultReason(availability, label);
 
   return (
     <div
@@ -230,7 +263,7 @@ export function UncertainMetric({
               "text-muted-foreground/50"
             )}
           >
-            <span>{metric.formatted || "—"}</span>
+            <span>{currentMetric.formatted || "—"}</span>
             <Icon className={cn("w-5 h-5", config.color)} />
           </div>
         </TooltipTrigger>
@@ -268,6 +301,19 @@ export function UncertainMetric({
                 {getDecisionImpact(availability, label)}
               </p>
             </div>
+            {/* Decision Context */}
+            {currentMetric.decision_context && (
+              <div className="pt-2 border-t border-background/20">
+                <span className="text-background/60 uppercase tracking-wide text-[10px]">
+                  What Changes Conclusion
+                </span>
+                <ul className="mt-1 list-disc list-inside text-[10px]">
+                  {currentMetric.decision_context.what_changes_conclusion.map((item, i) => (
+                    <li key={i}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         </TooltipContent>
       </Tooltip>

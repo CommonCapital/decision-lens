@@ -1,4 +1,4 @@
-import { Metric } from "./investor-schema";
+import { Metric, TimeSeriesMetric } from "@/lib/investor-schema";
 
 // Time horizons
 export type TimeHorizon = "1D" | "1W" | "1M" | "1Y" | "5Y" | "10Y";
@@ -14,15 +14,15 @@ export const HORIZON_LABELS: Record<TimeHorizon, string> = {
   "10Y": "10 Year",
 };
 
-// Time-series data point
+// Time-series data point (for compatibility with existing components)
 export interface TimeSeriesDataPoint {
   timestamp: string;
   value: number;
   formatted: string;
 }
 
-// Time-series metric with full historical data
-export interface TimeSeriesMetric {
+// Time-series metric with full historical data (legacy format for existing charts)
+export interface LegacyTimeSeriesMetric {
   current: Metric;
   series: TimeSeriesDataPoint[];
   change: {
@@ -36,24 +36,6 @@ export interface TimeSeriesMetric {
     average: number;
     volatility: number;
   };
-}
-
-// Aggregated metrics per horizon
-export interface HorizonData {
-  horizon: TimeHorizon;
-  start_date: string;
-  end_date: string;
-  metrics: {
-    stock_price?: TimeSeriesMetric;
-    revenue?: TimeSeriesMetric;
-    ebitda?: TimeSeriesMetric;
-    volume?: TimeSeriesMetric;
-    margin?: TimeSeriesMetric;
-    fcf?: TimeSeriesMetric;
-  };
-  events_count: number;
-  key_events: string[];
-  ai_insights?: AIInsight[];
 }
 
 // AI Insight structure (stubbed for future AI integration)
@@ -72,11 +54,76 @@ export interface AIInsight {
   supporting_metrics?: string[];
 }
 
+// Aggregated metrics per horizon
+export interface HorizonData {
+  horizon: TimeHorizon;
+  start_date: string;
+  end_date: string;
+  metrics: {
+    stock_price?: LegacyTimeSeriesMetric;
+    revenue?: LegacyTimeSeriesMetric;
+    ebitda?: LegacyTimeSeriesMetric;
+    volume?: LegacyTimeSeriesMetric;
+    margin?: LegacyTimeSeriesMetric;
+    fcf?: LegacyTimeSeriesMetric;
+  };
+  events_count: number;
+  key_events: string[];
+  ai_insights?: AIInsight[];
+}
+
 // Full time-series dataset
 export interface TimeSeriesDataset {
   entity: string;
   last_updated: string;
   horizons: Record<TimeHorizon, HorizonData>;
+}
+
+// Convert schema TimeSeriesMetric to legacy format for chart compatibility
+export function convertToLegacyMetric(
+  current: Metric,
+  history: TimeSeriesMetric | null
+): LegacyTimeSeriesMetric | null {
+  if (!history || history.availability !== "available" || history.series.length === 0) {
+    return null;
+  }
+
+  const series: TimeSeriesDataPoint[] = history.series
+    .filter(p => p.value !== null)
+    .map(p => ({
+      timestamp: p.timestamp,
+      value: p.value as number,
+      formatted: p.formatted,
+    }));
+
+  if (series.length === 0) return null;
+
+  const values = series.map(s => s.value);
+  const firstValue = values[0];
+  const lastValue = values[values.length - 1];
+  const change = lastValue - firstValue;
+  const changePercent = (change / firstValue) * 100;
+
+  const high = Math.max(...values);
+  const low = Math.min(...values);
+  const average = values.reduce((a, b) => a + b, 0) / values.length;
+  const variance = values.reduce((a, b) => a + Math.pow(b - average, 2), 0) / values.length;
+
+  return {
+    current,
+    series,
+    change: {
+      absolute: change,
+      percent: changePercent,
+      formatted: `${changePercent >= 0 ? "+" : ""}${changePercent.toFixed(1)}%`,
+    },
+    horizon_stats: {
+      high,
+      low,
+      average,
+      volatility: Math.sqrt(variance) / average,
+    },
+  };
 }
 
 // Generate mock time series for a horizon
@@ -121,7 +168,7 @@ function calculateTimeSeriesMetric(
   baseMetric: Metric,
   horizon: TimeHorizon,
   volatility: number = 0.15
-): TimeSeriesMetric {
+): LegacyTimeSeriesMetric {
   const baseValue = typeof baseMetric.value === "number" ? baseMetric.value : 100;
   const series = generateMockSeries(horizon, baseValue, volatility);
   
@@ -185,19 +232,6 @@ const MOCK_AI_INSIGHTS: Record<TimeHorizon, AIInsight[]> = {
       action_required: false,
       supporting_metrics: ["RSI", "MACD", "Volume"],
     },
-    {
-      id: "ai-1w-002",
-      type: "recommendation",
-      confidence: 0.81,
-      title: "Consider Position Sizing",
-      summary: "Volatility contraction observed. Options premiums may be underpriced for event risk.",
-      source: "pending_ai_integration",
-      generated_at: new Date().toISOString(),
-      horizon_relevance: ["1W"],
-      impact_score: 0.2,
-      action_required: true,
-      supporting_metrics: ["Implied Vol", "Historical Vol"],
-    },
   ],
   "1M": [
     {
@@ -229,19 +263,6 @@ const MOCK_AI_INSIGHTS: Record<TimeHorizon, AIInsight[]> = {
       impact_score: 0.45,
       action_required: false,
       supporting_metrics: ["Sector ETF flows", "PMI data"],
-    },
-    {
-      id: "ai-1y-002",
-      type: "recommendation",
-      confidence: 0.78,
-      title: "Margin Expansion Thesis Intact",
-      summary: "Operating leverage should drive 150-200bps margin improvement over 4 quarters.",
-      source: "pending_ai_integration",
-      generated_at: new Date().toISOString(),
-      horizon_relevance: ["1Y", "5Y"],
-      impact_score: 0.55,
-      action_required: false,
-      supporting_metrics: ["EBITDA Margin", "SG&A ratio"],
     },
   ],
   "5Y": [
@@ -278,7 +299,7 @@ const MOCK_AI_INSIGHTS: Record<TimeHorizon, AIInsight[]> = {
   ],
 };
 
-// Build mock dataset
+// Build mock dataset from base metrics
 export function buildTimeSeriesDataset(
   entity: string,
   baseMetrics: {
