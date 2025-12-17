@@ -8,11 +8,11 @@ import {
   Tooltip,
   ReferenceLine,
 } from "recharts";
-import { TimeSeriesMetric, TimeHorizon, HORIZON_LABELS } from "@/lib/time-series-data";
+import { LegacyTimeSeriesMetric, TimeHorizon, HORIZON_LABELS } from "@/lib/time-series-data";
 import { cn } from "@/lib/utils";
 
 interface TimeSeriesChartProps {
-  metric: TimeSeriesMetric;
+  metric: LegacyTimeSeriesMetric;
   horizon: TimeHorizon;
   label: string;
   isTransitioning?: boolean;

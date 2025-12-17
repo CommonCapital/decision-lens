@@ -104,13 +104,18 @@ export function computeSufficiencyFromMetrics(
 
 // Assess a dashboard for decision readiness
 export function assessDashboardSufficiency(data: any): DecisionAssessment {
+  // Extract current metrics from MetricWithHistory structure
+  const getMetric = (metricWithHistory: any): Metric | null => {
+    return metricWithHistory?.current || null;
+  };
+
   const metrics: { name: string; metric?: Metric | null; critical?: boolean }[] = [
-    { name: "Revenue", metric: data?.financials?.revenue, critical: true },
-    { name: "EBITDA", metric: data?.financials?.ebitda, critical: true },
-    { name: "Free Cash Flow", metric: data?.financials?.free_cash_flow },
-    { name: "Revenue Growth", metric: data?.financials?.revenue_growth },
-    { name: "Stock Price", metric: data?.market_data?.stock_price },
-    { name: "Market Cap", metric: data?.market_data?.market_cap },
+    { name: "Revenue", metric: getMetric(data?.financials?.revenue), critical: true },
+    { name: "EBITDA", metric: getMetric(data?.financials?.ebitda), critical: true },
+    { name: "Free Cash Flow", metric: getMetric(data?.financials?.free_cash_flow) },
+    { name: "Revenue Growth", metric: getMetric(data?.financials?.revenue_growth) },
+    { name: "Stock Price", metric: getMetric(data?.market_data?.stock_price) },
+    { name: "Market Cap", metric: getMetric(data?.market_data?.market_cap) },
   ];
 
   // Check executive summary
@@ -168,14 +173,14 @@ export function getUncertaintyReasons(data: any): UncertaintyReason[] {
     }
   };
 
-  // Check key metrics
-  checkMetric(data?.financials?.revenue, "Revenue", "critical");
-  checkMetric(data?.financials?.ebitda, "EBITDA", "critical");
-  checkMetric(data?.financials?.free_cash_flow, "Free Cash Flow", "material");
-  checkMetric(data?.market_data?.stock_price, "Stock Price", "material");
-  checkMetric(data?.market_data?.target_price, "Target Price", "minor");
-  checkMetric(data?.market_data?.pe_ratio, "P/E Ratio", "minor");
-  checkMetric(data?.market_data?.ev_ebitda, "EV/EBITDA", "material");
+  // Check key metrics (extract current from MetricWithHistory)
+  checkMetric(data?.financials?.revenue?.current, "Revenue", "critical");
+  checkMetric(data?.financials?.ebitda?.current, "EBITDA", "critical");
+  checkMetric(data?.financials?.free_cash_flow?.current, "Free Cash Flow", "material");
+  checkMetric(data?.market_data?.stock_price?.current, "Stock Price", "material");
+  checkMetric(data?.market_data?.target_price?.current, "Target Price", "minor");
+  checkMetric(data?.market_data?.pe_ratio?.current, "P/E Ratio", "minor");
+  checkMetric(data?.market_data?.ev_ebitda?.current, "EV/EBITDA", "material");
 
   return reasons;
 }
