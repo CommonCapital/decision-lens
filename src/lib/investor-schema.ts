@@ -64,7 +64,7 @@ const timeSeriesPointSchema = z.object({
   unit: z.string().optional(),
   confidence: z.number().min(0).max(100),
   availability: availabilityStatusSchema,
-  unavailable_reason: z.string().optional(),
+  unavailable_reason: z.string().optional().nullable(),
 });
 
 // Horizon statistics with quarterly breakdown
@@ -86,7 +86,7 @@ const timeSeriesMetricSchema = z.object({
   ).optional(),
   availability: availabilityStatusSchema,
   confidence: z.number().min(0).max(100),
-  unavailable_reason: z.string().optional(),
+  unavailable_reason: z.string().optional().nullable(),
   source: z.string(),
   decision_context: decisionContextSchema.optional().nullable(),
 });
