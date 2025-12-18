@@ -22,6 +22,9 @@ const availabilityStatusSchema = z.enum([
   "conflicting",    // Multiple sources disagree
 ]);
 
+// Time horizons (removed 1H as it's not illustrated)
+export const timeHorizonSchema = z.enum(["1D", "1W", "1M", "1Y", "5Y", "10Y"]);
+
 // Decision context per metric
 const decisionContextSchema = z.object({
   confidence_level: z.enum(["high", "medium", "low"]),
@@ -48,23 +51,12 @@ const metricSchema = z.object({
 
 // === TIME-SERIES SCHEMA ===
 
-// Quarterly data slices
+// Quarterly data slices - Q1-Q4 values for graph visualization
 const quarterlySeriesSchema = z.object({
   Q1: z.number().nullable(),
   Q2: z.number().nullable(),
   Q3: z.number().nullable(),
   Q4: z.number().nullable(),
-});
-
-// Time-series data point
-const timeSeriesPointSchema = z.object({
-  timestamp: z.string(),
-  value: z.number().nullable(),
-  formatted: z.string(),
-  unit: z.string().optional(),
-  confidence: z.number().min(0).max(100),
-  availability: availabilityStatusSchema,
-  unavailable_reason: z.string().optional().nullable(),
 });
 
 // Horizon statistics with quarterly breakdown
@@ -73,28 +65,48 @@ const horizonStatsSchema = z.object({
   high: z.number().nullable(),
   low: z.number().nullable(),
   average: z.number().nullable(),
-  volatility: z.number().nullable(),
-  change_percent: z.number().nullable(),
+  volatility: z.number().nullable(),        // Percentage volatility
+  change_percent: z.number().nullable(),    // Period change percentage
 });
 
-// Time-series metric with full historical data
+// Time-series metric with horizon data (for Stock Price, EBITDA, Revenue, Volume only)
 const timeSeriesMetricSchema = z.object({
-  series: z.array(timeSeriesPointSchema),
-  horizons: z.record(
-    z.enum(["1H", "1D", "1W", "1M", "1Y", "5Y", "10Y"]),
-    horizonStatsSchema
-  ).optional(),
+  horizons: z.object({
+    "1D": horizonStatsSchema.nullable(),
+    "1W": horizonStatsSchema.nullable(),
+    "1M": horizonStatsSchema.nullable(),
+    "1Y": horizonStatsSchema.nullable(),
+    "5Y": horizonStatsSchema.nullable(),
+    "10Y": horizonStatsSchema.nullable(),
+  }),
   availability: availabilityStatusSchema,
   confidence: z.number().min(0).max(100),
   unavailable_reason: z.string().optional().nullable(),
-  source: z.string(),
+  source: z.string().nullable(),
   decision_context: decisionContextSchema.optional().nullable(),
 });
 
-// Metric with current value and optional history
+// Metric with current value and optional history (only for key metrics)
 const metricWithHistorySchema = z.object({
   current: metricSchema,
   history: timeSeriesMetricSchema.nullable(),
+});
+
+// === AI INSIGHTS SCHEMA ===
+
+const aiInsightSchema = z.object({
+  id: z.string(),
+  type: z.enum(["prediction", "recommendation", "alert", "analysis"]),
+  confidence: z.number().min(0).max(1),
+  title: z.string(),
+  summary: z.string(),
+  details: z.string().optional().nullable(),
+  source: z.string(),
+  generated_at: z.string(),
+  horizon_relevance: z.array(timeHorizonSchema),
+  impact_score: z.number().min(-1).max(1),  // -1 to 1
+  action_required: z.boolean(),
+  supporting_metrics: z.array(z.string()).optional().nullable(),
 });
 
 // Event in timeline
@@ -156,31 +168,35 @@ export const investorDashboardSchema = z.object({
     thesis_status: z.enum(["intact", "challenged", "broken"]),
   }),
 
-  // Core financials with history
+  // Core financials - only revenue and ebitda have history
   financials: z.object({
     revenue: metricWithHistorySchema,
-    revenue_growth: metricWithHistorySchema,
+    revenue_growth: z.object({ current: metricSchema }),  // No history needed
     ebitda: metricWithHistorySchema,
-    ebitda_margin: metricWithHistorySchema,
-    free_cash_flow: metricWithHistorySchema,
+    ebitda_margin: z.object({ current: metricSchema }),   // No history needed
+    free_cash_flow: z.object({ current: metricSchema }),  // No history needed
   }),
 
-  // Market data (public mode) with history
+  // Market data (public mode) - stock_price and volume have history
   market_data: z.object({
     stock_price: metricWithHistorySchema,
-    market_cap: metricWithHistorySchema,
-    pe_ratio: metricWithHistorySchema.optional(),
-    ev_ebitda: metricWithHistorySchema.optional(),
-    target_price: metricWithHistorySchema.optional(),
+    volume: metricWithHistorySchema,  // Added volume with history
+    market_cap: z.object({ current: metricSchema }),      // No history needed
+    pe_ratio: z.object({ current: metricSchema }).optional(),
+    ev_ebitda: z.object({ current: metricSchema }).optional(),
+    target_price: z.object({ current: metricSchema }).optional(),
   }).optional(),
 
-  // Private data (private mode)
+  // Private data (private mode) - no history needed for private metrics
   private_data: z.object({
-    valuation_mark: metricWithHistorySchema,
-    net_leverage: metricWithHistorySchema,
-    liquidity_runway: metricWithHistorySchema,
-    covenant_headroom: metricWithHistorySchema.optional(),
+    valuation_mark: z.object({ current: metricSchema }),
+    net_leverage: z.object({ current: metricSchema }),
+    liquidity_runway: z.object({ current: metricSchema }),
+    covenant_headroom: z.object({ current: metricSchema }).optional(),
   }).optional(),
+
+  // AI Insights - with horizon relevance
+  ai_insights: z.array(aiInsightSchema),
 
   // Events timeline
   events: z.array(eventSchema),
@@ -204,12 +220,13 @@ export type InvestorDashboard = z.infer<typeof investorDashboardSchema>;
 export type Metric = z.infer<typeof metricSchema>;
 export type MetricWithHistory = z.infer<typeof metricWithHistorySchema>;
 export type TimeSeriesMetric = z.infer<typeof timeSeriesMetricSchema>;
-export type TimeSeriesPoint = z.infer<typeof timeSeriesPointSchema>;
 export type HorizonStats = z.infer<typeof horizonStatsSchema>;
 export type QuarterlySeries = z.infer<typeof quarterlySeriesSchema>;
 export type DecisionContext = z.infer<typeof decisionContextSchema>;
 export type TieOutStatus = z.infer<typeof tieOutStatusSchema>;
 export type AvailabilityStatus = z.infer<typeof availabilityStatusSchema>;
+export type TimeHorizon = z.infer<typeof timeHorizonSchema>;
+export type AIInsight = z.infer<typeof aiInsightSchema>;
 export type Event = z.infer<typeof eventSchema>;
 export type Scenario = z.infer<typeof scenarioSchema>;
 export type Risk = z.infer<typeof riskSchema>;

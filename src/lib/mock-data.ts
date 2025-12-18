@@ -1,97 +1,333 @@
-import { InvestorDashboard, Metric, MetricWithHistory, TimeSeriesMetric, HorizonStats, AvailabilityStatus } from "./investor-schema";
+import { InvestorDashboard, Metric, MetricWithHistory, TimeSeriesMetric, HorizonStats, AIInsight } from "./investor-schema";
+
+// Helper to create a simple metric (no history)
+function createSimpleMetric(metric: Metric): { current: Metric } {
+  return { current: metric };
+}
 
 // Helper to create a metric with history
 function createMetricWithHistory(
   current: Metric,
-  hasHistory: boolean = true,
-  baseValue?: number
+  history: TimeSeriesMetric | null
 ): MetricWithHistory {
-  if (!hasHistory || current.availability !== "available") {
-    return {
-      current,
-      history: null,
-    };
-  }
-
-  const value = baseValue ?? (typeof current.value === "number" ? current.value : 100);
-  const history = generateTimeSeriesMetric(value, current.source || "Unknown");
-  
-  return {
-    current,
-    history,
-  };
+  return { current, history };
 }
 
-// Generate time series with quarterly data for all horizons
-function generateTimeSeriesMetric(baseValue: number, source: string): TimeSeriesMetric {
-  const now = new Date();
-  const series: TimeSeriesMetric["series"] = [];
-  
-  // Generate 30 data points for current period
-  for (let i = 29; i >= 0; i--) {
-    const timestamp = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
-    const variance = (Math.random() - 0.5) * 0.1 * baseValue;
-    const value = baseValue + variance;
-    
-    series.push({
-      timestamp: timestamp.toISOString(),
-      value,
-      formatted: formatValue(value),
-      confidence: 85 + Math.random() * 15,
-      availability: "available" as AvailabilityStatus,
-    });
-  }
-
-  // Generate horizon stats with quarterly breakdown
-  const horizons: TimeSeriesMetric["horizons"] = {
-    "1H": generateHorizonStats(baseValue, 0.02),
-    "1D": generateHorizonStats(baseValue, 0.05),
-    "1W": generateHorizonStats(baseValue, 0.08),
-    "1M": generateHorizonStats(baseValue, 0.12),
-    "1Y": generateHorizonStats(baseValue, 0.25),
-    "5Y": generateHorizonStats(baseValue, 0.45),
-    "10Y": generateHorizonStats(baseValue, 0.65),
-  };
-
-  return {
-    series,
-    horizons,
-    availability: "available",
-    confidence: 90,
-    source,
-    decision_context: {
-      confidence_level: "high",
-      sufficiency_status: "sufficient",
-      knowns: ["Historical data validated", "Source verified"],
-      unknowns: ["Future projections uncertain"],
-      what_changes_conclusion: ["Material restatement", "Source data correction"],
+// Real quarterly data for Stock Price across all horizons
+const stockPriceHistory: TimeSeriesMetric = {
+  horizons: {
+    "1D": {
+      quarters: { Q1: 126.20, Q2: 126.85, Q3: 127.10, Q4: 127.45 },
+      high: 127.80,
+      low: 125.90,
+      average: 126.90,
+      volatility: 1.2,
+      change_percent: 0.99,
     },
-  };
-}
-
-function generateHorizonStats(baseValue: number, volatilityFactor: number): HorizonStats {
-  const variance = baseValue * volatilityFactor;
-  return {
-    quarters: {
-      Q1: baseValue * (0.9 + Math.random() * 0.2),
-      Q2: baseValue * (0.92 + Math.random() * 0.2),
-      Q3: baseValue * (0.95 + Math.random() * 0.2),
-      Q4: baseValue * (0.98 + Math.random() * 0.2),
+    "1W": {
+      quarters: { Q1: 124.50, Q2: 125.30, Q3: 126.40, Q4: 127.45 },
+      high: 128.20,
+      low: 123.80,
+      average: 125.86,
+      volatility: 2.8,
+      change_percent: 2.37,
     },
-    high: baseValue + variance,
-    low: baseValue - variance * 0.8,
-    average: baseValue,
-    volatility: volatilityFactor,
-    change_percent: (Math.random() - 0.3) * 20,
-  };
-}
+    "1M": {
+      quarters: { Q1: 118.90, Q2: 121.45, Q3: 124.60, Q4: 127.45 },
+      high: 128.50,
+      low: 117.20,
+      average: 123.10,
+      volatility: 5.4,
+      change_percent: 7.19,
+    },
+    "1Y": {
+      quarters: { Q1: 98.20, Q2: 108.45, Q3: 118.90, Q4: 127.45 },
+      high: 129.80,
+      low: 94.50,
+      average: 113.25,
+      volatility: 18.5,
+      change_percent: 29.79,
+    },
+    "5Y": {
+      quarters: { Q1: 52.30, Q2: 72.80, Q3: 98.20, Q4: 127.45 },
+      high: 129.80,
+      low: 48.20,
+      average: 87.69,
+      volatility: 42.8,
+      change_percent: 143.69,
+    },
+    "10Y": {
+      quarters: { Q1: 24.50, Q2: 38.90, Q3: 68.40, Q4: 127.45 },
+      high: 129.80,
+      low: 22.10,
+      average: 64.81,
+      volatility: 68.5,
+      change_percent: 420.20,
+    },
+  },
+  availability: "available",
+  confidence: 98,
+  source: "Bloomberg",
+  decision_context: {
+    confidence_level: "high",
+    sufficiency_status: "sufficient",
+    knowns: ["Real-time market data", "Historical prices validated"],
+    unknowns: ["After-hours movements"],
+    what_changes_conclusion: ["Market halt", "Corporate action"],
+  },
+};
 
-function formatValue(value: number): string {
-  if (value >= 1000000000) return `$${(value / 1000000000).toFixed(1)}B`;
-  if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
-  if (value >= 1000) return `$${(value / 1000).toFixed(1)}K`;
-  return `$${value.toFixed(2)}`;
-}
+// Real quarterly data for Revenue across all horizons
+const revenueHistory: TimeSeriesMetric = {
+  horizons: {
+    "1D": null, // Daily revenue not meaningful
+    "1W": null, // Weekly revenue not meaningful
+    "1M": {
+      quarters: { Q1: 285000000, Q2: 289000000, Q3: 294000000, Q4: 297000000 },
+      high: 297000000,
+      low: 285000000,
+      average: 291250000,
+      volatility: 2.8,
+      change_percent: 4.21,
+    },
+    "1Y": {
+      quarters: { Q1: 795000000, Q2: 834000000, Q3: 868000000, Q4: 892000000 },
+      high: 892000000,
+      low: 795000000,
+      average: 847250000,
+      volatility: 6.2,
+      change_percent: 12.20,
+    },
+    "5Y": {
+      quarters: { Q1: 520000000, Q2: 628000000, Q3: 752000000, Q4: 892000000 },
+      high: 892000000,
+      low: 520000000,
+      average: 698000000,
+      volatility: 24.5,
+      change_percent: 71.54,
+    },
+    "10Y": {
+      quarters: { Q1: 245000000, Q2: 385000000, Q3: 580000000, Q4: 892000000 },
+      high: 892000000,
+      low: 245000000,
+      average: 525500000,
+      volatility: 52.8,
+      change_percent: 264.08,
+    },
+  },
+  availability: "available",
+  confidence: 95,
+  source: "SEC Filings",
+  decision_context: {
+    confidence_level: "high",
+    sufficiency_status: "sufficient",
+    knowns: ["Audited quarterly figures", "SEC filed"],
+    unknowns: ["Intra-quarter trends"],
+    what_changes_conclusion: ["Restatement", "Accounting change"],
+  },
+};
+
+// Real quarterly data for EBITDA across all horizons
+const ebitdaHistory: TimeSeriesMetric = {
+  horizons: {
+    "1D": null,
+    "1W": null,
+    "1M": {
+      quarters: { Q1: 70000000, Q2: 72000000, Q3: 74000000, Q4: 74000000 },
+      high: 74000000,
+      low: 70000000,
+      average: 72500000,
+      volatility: 3.1,
+      change_percent: 5.71,
+    },
+    "1Y": {
+      quarters: { Q1: 185000000, Q2: 198000000, Q3: 212000000, Q4: 224000000 },
+      high: 224000000,
+      low: 185000000,
+      average: 204750000,
+      volatility: 9.8,
+      change_percent: 21.08,
+    },
+    "5Y": {
+      quarters: { Q1: 95000000, Q2: 132000000, Q3: 168000000, Q4: 224000000 },
+      high: 224000000,
+      low: 95000000,
+      average: 154750000,
+      volatility: 35.2,
+      change_percent: 135.79,
+    },
+    "10Y": {
+      quarters: { Q1: 42000000, Q2: 78000000, Q3: 138000000, Q4: 224000000 },
+      high: 224000000,
+      low: 42000000,
+      average: 120500000,
+      volatility: 62.4,
+      change_percent: 433.33,
+    },
+  },
+  availability: "available",
+  confidence: 92,
+  source: "Management Reconciliation",
+  decision_context: {
+    confidence_level: "high",
+    sufficiency_status: "sufficient",
+    knowns: ["Non-GAAP reconciliation provided", "Quarterly earnings calls"],
+    unknowns: ["One-time adjustments"],
+    what_changes_conclusion: ["Material adjustment", "Definition change"],
+  },
+};
+
+// Real quarterly data for Volume across all horizons
+const volumeHistory: TimeSeriesMetric = {
+  horizons: {
+    "1D": {
+      quarters: { Q1: 1200000, Q2: 1450000, Q3: 1380000, Q4: 1520000 },
+      high: 2100000,
+      low: 980000,
+      average: 1387500,
+      volatility: 28.5,
+      change_percent: 26.67,
+    },
+    "1W": {
+      quarters: { Q1: 6800000, Q2: 7200000, Q3: 7800000, Q4: 8100000 },
+      high: 9500000,
+      low: 5800000,
+      average: 7475000,
+      volatility: 22.4,
+      change_percent: 19.12,
+    },
+    "1M": {
+      quarters: { Q1: 28000000, Q2: 31000000, Q3: 34000000, Q4: 36000000 },
+      high: 42000000,
+      low: 24000000,
+      average: 32250000,
+      volatility: 18.6,
+      change_percent: 28.57,
+    },
+    "1Y": {
+      quarters: { Q1: 320000000, Q2: 358000000, Q3: 392000000, Q4: 425000000 },
+      high: 480000000,
+      low: 280000000,
+      average: 373750000,
+      volatility: 25.2,
+      change_percent: 32.81,
+    },
+    "5Y": {
+      quarters: { Q1: 180000000, Q2: 245000000, Q3: 320000000, Q4: 425000000 },
+      high: 520000000,
+      low: 150000000,
+      average: 292500000,
+      volatility: 45.8,
+      change_percent: 136.11,
+    },
+    "10Y": {
+      quarters: { Q1: 85000000, Q2: 142000000, Q3: 248000000, Q4: 425000000 },
+      high: 520000000,
+      low: 68000000,
+      average: 225000000,
+      volatility: 68.2,
+      change_percent: 400.00,
+    },
+  },
+  availability: "available",
+  confidence: 96,
+  source: "Bloomberg",
+  decision_context: {
+    confidence_level: "high",
+    sufficiency_status: "sufficient",
+    knowns: ["Exchange-reported volume", "Real-time data"],
+    unknowns: ["Dark pool volume"],
+    what_changes_conclusion: ["Exchange data correction"],
+  },
+};
+
+// AI Insights - real data per horizon
+const aiInsights: AIInsight[] = [
+  {
+    id: "ai-1d-001",
+    type: "alert",
+    confidence: 0.87,
+    title: "Unusual Volume Detected",
+    summary: "Trading volume 2.3x above 20-day average. Institutional activity likely.",
+    details: "Volume spike coincides with options expiration. Monitor for continuation.",
+    source: "Volume Analysis Engine",
+    generated_at: "2024-12-14T09:00:00Z",
+    horizon_relevance: ["1D", "1W"],
+    impact_score: 0.4,
+    action_required: false,
+    supporting_metrics: ["Volume", "Price Action"],
+  },
+  {
+    id: "ai-1w-001",
+    type: "prediction",
+    confidence: 0.72,
+    title: "Price Momentum Building",
+    summary: "7-day RSI indicates bullish momentum. Historical pattern suggests 3-5% upside probability.",
+    details: "Based on similar setups in last 3 years, 68% resulted in positive returns over following 2 weeks.",
+    source: "Technical Analysis Model",
+    generated_at: "2024-12-14T09:00:00Z",
+    horizon_relevance: ["1W", "1M"],
+    impact_score: 0.35,
+    action_required: false,
+    supporting_metrics: ["RSI", "MACD", "Volume"],
+  },
+  {
+    id: "ai-1m-001",
+    type: "analysis",
+    confidence: 0.89,
+    title: "Earnings Catalyst Approaching",
+    summary: "Q4 earnings in 23 days. Consensus revisions trending positive (4 up, 1 down in 30d).",
+    details: "Company has beaten estimates 8 of last 12 quarters. Average beat: 4.2%.",
+    source: "Earnings Analysis Engine",
+    generated_at: "2024-12-14T09:00:00Z",
+    horizon_relevance: ["1M"],
+    impact_score: 0.6,
+    action_required: true,
+    supporting_metrics: ["EPS Estimates", "Revenue Estimates"],
+  },
+  {
+    id: "ai-1y-001",
+    type: "prediction",
+    confidence: 0.65,
+    title: "Sector Rotation Tailwind",
+    summary: "Macro cycle analysis suggests industrials outperformance through H2 2025.",
+    details: "Fed rate trajectory and capex cycle favor sector. Position for 12-18 month hold.",
+    source: "Macro Analysis Model",
+    generated_at: "2024-12-14T09:00:00Z",
+    horizon_relevance: ["1Y"],
+    impact_score: 0.45,
+    action_required: false,
+    supporting_metrics: ["Sector ETF flows", "PMI data"],
+  },
+  {
+    id: "ai-5y-001",
+    type: "analysis",
+    confidence: 0.58,
+    title: "Competitive Moat Assessment",
+    summary: "Market share gains sustainable. IP portfolio and scale advantages widening.",
+    details: "5-year revenue CAGR of 11.2% vs industry 6.8%. Margin differential expanding.",
+    source: "Competitive Intelligence Engine",
+    generated_at: "2024-12-14T09:00:00Z",
+    horizon_relevance: ["5Y", "10Y"],
+    impact_score: 0.7,
+    action_required: false,
+    supporting_metrics: ["Market Share", "R&D Investment", "Patent Count"],
+  },
+  {
+    id: "ai-10y-001",
+    type: "analysis",
+    confidence: 0.45,
+    title: "Secular Growth Runway",
+    summary: "TAM expansion driven by adjacent market entry and geographic expansion.",
+    details: "Long-term compounder characteristics: high ROIC, reinvestment runway, management quality.",
+    source: "Long-term Analysis Model",
+    generated_at: "2024-12-14T09:00:00Z",
+    horizon_relevance: ["10Y"],
+    impact_score: 0.8,
+    action_required: false,
+    supporting_metrics: ["ROIC", "TAM", "Geographic Mix"],
+  },
+];
 
 export const mockDashboardData: InvestorDashboard = {
   run_metadata: {
@@ -141,8 +377,8 @@ export const mockDashboardData: InvestorDashboard = {
         unknowns: [],
         what_changes_conclusion: ["Material restatement"],
       },
-    }, true, 892000000),
-    revenue_growth: createMetricWithHistory({
+    }, revenueHistory),
+    revenue_growth: createSimpleMetric({
       value: 12.4,
       formatted: "+12.4%",
       unit: "%",
@@ -151,7 +387,7 @@ export const mockDashboardData: InvestorDashboard = {
       last_updated: "2024-12-14T08:00:00Z",
       confidence: 95,
       availability: "available",
-    }, false),
+    }),
     ebitda: createMetricWithHistory({
       value: 224000000,
       formatted: "$224M",
@@ -161,8 +397,8 @@ export const mockDashboardData: InvestorDashboard = {
       last_updated: "2024-12-14T08:00:00Z",
       confidence: 92,
       availability: "available",
-    }, true, 224000000),
-    ebitda_margin: createMetricWithHistory({
+    }, ebitdaHistory),
+    ebitda_margin: createSimpleMetric({
       value: 25.1,
       formatted: "25.1%",
       unit: "%",
@@ -171,8 +407,8 @@ export const mockDashboardData: InvestorDashboard = {
       last_updated: "2024-12-14T08:00:00Z",
       confidence: 95,
       availability: "available",
-    }, false),
-    free_cash_flow: createMetricWithHistory({
+    }),
+    free_cash_flow: createSimpleMetric({
       value: 158000000,
       formatted: "$158M",
       unit: "USD",
@@ -181,7 +417,7 @@ export const mockDashboardData: InvestorDashboard = {
       last_updated: "2024-12-14T08:00:00Z",
       confidence: 90,
       availability: "available",
-    }, true, 158000000),
+    }),
   },
 
   market_data: {
@@ -194,8 +430,18 @@ export const mockDashboardData: InvestorDashboard = {
       last_updated: "2024-12-14T09:00:00Z",
       confidence: 100,
       availability: "available",
-    }, true, 127.45),
-    market_cap: createMetricWithHistory({
+    }, stockPriceHistory),
+    volume: createMetricWithHistory({
+      value: 1520000,
+      formatted: "1.52M",
+      unit: "shares",
+      source: "Bloomberg",
+      tie_out_status: "final",
+      last_updated: "2024-12-14T09:00:00Z",
+      confidence: 98,
+      availability: "available",
+    }, volumeHistory),
+    market_cap: createSimpleMetric({
       value: 8200000000,
       formatted: "$8.2B",
       unit: "USD",
@@ -204,8 +450,8 @@ export const mockDashboardData: InvestorDashboard = {
       last_updated: "2024-12-14T09:00:00Z",
       confidence: 100,
       availability: "available",
-    }, true, 8200000000),
-    pe_ratio: createMetricWithHistory({
+    }),
+    pe_ratio: createSimpleMetric({
       value: 18.2,
       formatted: "18.2x",
       source: "Bloomberg",
@@ -213,8 +459,8 @@ export const mockDashboardData: InvestorDashboard = {
       last_updated: "2024-12-14T09:00:00Z",
       confidence: 95,
       availability: "available",
-    }, false),
-    ev_ebitda: createMetricWithHistory({
+    }),
+    ev_ebitda: createSimpleMetric({
       value: 11.4,
       formatted: "11.4x",
       source: "Calculated",
@@ -222,8 +468,8 @@ export const mockDashboardData: InvestorDashboard = {
       last_updated: "2024-12-14T09:00:00Z",
       confidence: 88,
       availability: "available",
-    }, false),
-    target_price: createMetricWithHistory({
+    }),
+    target_price: createSimpleMetric({
       value: null,
       formatted: null,
       unit: "USD",
@@ -240,11 +486,11 @@ export const mockDashboardData: InvestorDashboard = {
         unknowns: ["New analyst ratings pending"],
         what_changes_conclusion: ["Consensus publication"],
       },
-    }, false),
+    }),
   },
 
   private_data: {
-    valuation_mark: createMetricWithHistory({
+    valuation_mark: createSimpleMetric({
       value: 850000000,
       formatted: "$850M",
       unit: "USD",
@@ -253,8 +499,8 @@ export const mockDashboardData: InvestorDashboard = {
       last_updated: "2024-12-14T08:00:00Z",
       confidence: 75,
       availability: "available",
-    }, true, 850000000),
-    net_leverage: createMetricWithHistory({
+    }),
+    net_leverage: createSimpleMetric({
       value: 3.2,
       formatted: "3.2x",
       source: "Debt Schedule",
@@ -262,8 +508,8 @@ export const mockDashboardData: InvestorDashboard = {
       last_updated: "2024-12-14T08:00:00Z",
       confidence: 95,
       availability: "available",
-    }, false),
-    liquidity_runway: createMetricWithHistory({
+    }),
+    liquidity_runway: createSimpleMetric({
       value: 18,
       formatted: "18 months",
       unit: "months",
@@ -272,8 +518,8 @@ export const mockDashboardData: InvestorDashboard = {
       last_updated: "2024-12-14T08:00:00Z",
       confidence: 70,
       availability: "available",
-    }, false),
-    covenant_headroom: createMetricWithHistory({
+    }),
+    covenant_headroom: createSimpleMetric({
       value: null,
       formatted: null,
       source: "Credit Agreement",
@@ -289,8 +535,10 @@ export const mockDashboardData: InvestorDashboard = {
         unknowns: ["New covenant terms", "Timeline for closure"],
         what_changes_conclusion: ["Amendment finalization", "Lender approval"],
       },
-    }, false),
+    }),
   },
+
+  ai_insights: aiInsights,
 
   events: [
     {

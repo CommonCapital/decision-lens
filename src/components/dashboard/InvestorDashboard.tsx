@@ -22,9 +22,8 @@ export function InvestorDashboard({ data }: InvestorDashboardProps) {
   const { 
     horizon, 
     setHorizon, 
-    horizonData, 
     isTransitioning 
-  } = useTimeHorizon(data);
+  } = useTimeHorizon();
 
   return (
     <div className="min-h-screen bg-background">
@@ -43,9 +42,9 @@ export function InvestorDashboard({ data }: InvestorDashboardProps) {
         <ExecutiveSummary summary={data.executive_summary} />
         
         {/* Time-Series Section with functional horizon controls */}
-        {mode === "public" && horizonData && (
+        {mode === "public" && data.market_data && (
           <TimeSeriesSection
-            horizonData={horizonData}
+            data={data}
             horizon={horizon}
             onHorizonChange={setHorizon}
             isTransitioning={isTransitioning}
@@ -53,9 +52,9 @@ export function InvestorDashboard({ data }: InvestorDashboardProps) {
         )}
         
         {/* AI Insights Panel */}
-        {horizonData?.ai_insights && (
+        {data.ai_insights && data.ai_insights.length > 0 && (
           <AIInsightsPanel
-            insights={horizonData.ai_insights}
+            insights={data.ai_insights}
             horizon={horizon}
             isTransitioning={isTransitioning}
           />
