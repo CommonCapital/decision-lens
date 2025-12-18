@@ -1,4 +1,5 @@
-import { AIInsight, TimeHorizon } from "@/lib/time-series-data";
+import { AIInsight, TimeHorizon } from "@/lib/investor-schema";
+import { HORIZON_LABELS } from "@/lib/time-series-data";
 import { cn } from "@/lib/utils";
 import { 
   TrendingUp, 
@@ -127,11 +128,11 @@ export function AIInsightsPanel({
               AI Insights & Predictions
             </h2>
             <span className="px-2 py-0.5 bg-secondary text-micro font-mono text-muted-foreground">
-              {horizon} Horizon
+              {HORIZON_LABELS[horizon]} Horizon
             </span>
           </div>
           <span className="text-micro text-muted-foreground font-mono">
-            Powered by pending AI integration
+            {filteredInsights.length} insight{filteredInsights.length !== 1 ? 's' : ''} for horizon
           </span>
         </div>
         
@@ -139,10 +140,10 @@ export function AIInsightsPanel({
           <div className="bg-card border border-dashed border-border p-8 text-center">
             <Sparkles className="w-6 h-6 text-muted-foreground mx-auto mb-3" />
             <p className="text-muted-foreground">
-              No AI insights available for {horizon} horizon
+              No AI insights available for {HORIZON_LABELS[horizon]} horizon
             </p>
             <p className="text-micro text-muted-foreground mt-1">
-              AI layer will generate predictions when connected
+              AI layer will generate predictions when more data is available
             </p>
           </div>
         ) : (
