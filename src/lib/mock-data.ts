@@ -386,7 +386,76 @@ export const mockDashboardData: InvestorDashboard = {
     mode: "public",
     timestamp: "2024-12-14T09:00:00Z",
     owner: "Sarah Chen, CFA",
+    version: "v2.1",
+    previous_run_id: "RUN-2024-1207-001",
   },
+
+  // What Changed Since Last Run
+  changes_since_last_run: [
+    {
+      id: "CHG-001",
+      timestamp: "2024-12-12T16:00:00Z",
+      category: "filing",
+      title: "Q3 10-Q Filed with Raised Guidance",
+      description: "Company raised FY24 revenue guidance to $3.52-3.58B from $3.45-3.52B, citing strong order book.",
+      source_url: "https://sec.gov/...",
+      thesis_pillar: "path",
+      so_what: "Confirms operational momentum thesis. Revenue trajectory now 3% above prior model.",
+      action: "Update model assumptions, consider adding to position on pullback",
+      model_impact: {
+        metric_affected: "FY24 Revenue",
+        previous_value: "$3.48B",
+        new_value: "$3.55B",
+        percent_change: 2.0,
+      },
+    },
+    {
+      id: "CHG-002",
+      timestamp: "2024-12-11T09:30:00Z",
+      category: "price",
+      title: "Stock +7.2% on Guidance Beat",
+      description: "Stock rallied post-earnings, now trading at 12.4x forward EV/EBITDA vs. 11.8x prior.",
+      source_url: null,
+      thesis_pillar: "price",
+      so_what: "Valuation gap narrowing faster than expected. Entry point less attractive.",
+      action: "Trim position sizing for new capital; hold existing",
+      model_impact: {
+        metric_affected: "EV/EBITDA",
+        previous_value: "11.8x",
+        new_value: "12.4x",
+        percent_change: 5.1,
+      },
+    },
+    {
+      id: "CHG-003",
+      timestamp: "2024-12-10T14:00:00Z",
+      category: "news",
+      title: "Competitor Announces Market Exit",
+      description: "Major competitor exiting industrial segment, creating $200M TAM opportunity.",
+      source_url: "https://reuters.com/...",
+      thesis_pillar: "path",
+      so_what: "Accelerates market share thesis. Company well-positioned to capture share.",
+      action: "Monitor Q4 order activity for confirmation",
+      model_impact: null,
+    },
+    {
+      id: "CHG-004",
+      timestamp: "2024-12-09T11:00:00Z",
+      category: "consensus",
+      title: "Street Estimates Revised Higher",
+      description: "4 analysts raised FY24 EPS estimates post-earnings; 1 downgrade on valuation.",
+      source_url: null,
+      thesis_pillar: "price",
+      so_what: "Consensus catching up to our view. Less variant upside.",
+      action: "Track revision momentum for next 30 days",
+      model_impact: {
+        metric_affected: "Consensus EPS",
+        previous_value: "$4.12",
+        new_value: "$4.28",
+        percent_change: 3.9,
+      },
+    },
+  ],
 
   executive_summary: {
     headline: "Investment thesis strengthening: operational execution exceeding plan with expanding margins and raised guidance",
@@ -744,6 +813,44 @@ export const mockDashboardData: InvestorDashboard = {
     },
   ],
 
+  // Valuation Engine
+  valuation: {
+    valuation_range_low: 9500000000,
+    valuation_range_high: 12800000000,
+    valuation_range_midpoint: 11150000000,
+    why_range_exists: "DCF and comps converge at $10-11B; precedent transactions suggest premium to $12-13B for strategic buyer.",
+    what_breaks_it: ["Customer concentration loss", "Margin compression >300bps", "Multiple contraction to <10x"],
+    what_moves_it_next: ["Q4 order book disclosure", "FY25 guidance", "M&A speculation"],
+    method_weights: { dcf: 0.4, trading_comps: 0.4, precedent_transactions: 0.2 },
+    dcf: {
+      implied_value: 10800000000,
+      implied_value_per_share: 142,
+      terminal_growth_rate: 2.5,
+      wacc: 9.2,
+      assumptions_sourced_percent: 78,
+      blockers: ["Working capital assumptions need refresh", "Terminal margin not validated"],
+    },
+    trading_comps: {
+      implied_value_range_low: 9200000000,
+      implied_value_range_high: 11500000000,
+      confidence: { coverage: 85, auditability: 90, freshness_days: 1, overall_band: "high" },
+      comps: [
+        { company: "Industrial Corp A", ticker: "ICA", business_model_match: 85, metric_basis: "NTM", metric_type: "adjusted", ev_revenue: 2.8, ev_ebitda: 11.2, pe_ratio: 18.5, revenue_growth: 8.5, ebitda_margin: 24.0, multiple_date: "2024-12-14", market_regime: "expansion" },
+        { company: "Industrial Corp B", ticker: "ICB", business_model_match: 72, metric_basis: "NTM", metric_type: "adjusted", ev_revenue: 2.5, ev_ebitda: 10.8, pe_ratio: 16.2, revenue_growth: 6.2, ebitda_margin: 22.5, multiple_date: "2024-12-14", market_regime: "expansion" },
+      ],
+      blockers: [],
+    },
+    precedent_transactions: {
+      implied_value_range_low: 11000000000,
+      implied_value_range_high: 14200000000,
+      confidence: { coverage: 60, auditability: 75, freshness_days: 180, overall_band: "medium" },
+      transactions: [
+        { id: "TX-001", target: "Similar Industrial Co", acquirer: "Strategic PE", date: "2024-03-15", rationale: "Platform consolidation", asset_quality: "premium", growth_profile: "10% organic", margin_profile: "26% EBITDA", buyer_type: "financial", ev_revenue: 3.2, ev_ebitda: 13.5, premium_paid: 28, applicability_score: 75, applicability_rationale: "Similar scale, different end markets" },
+      ],
+      blockers: ["Limited recent transactions in sector"],
+    },
+  },
+
   risks: [
     {
       id: "RISK-001",
@@ -753,6 +860,16 @@ export const mockDashboardData: InvestorDashboard = {
       severity: "high",
       trigger: "Loss of top-5 customer or >20% volume decline from any",
       mitigation: "Accelerating customer diversification; targeting 5+ new enterprise accounts in FY25",
+      impact_range: { eps_impact_low: -0.45, eps_impact_high: -0.85, multiple_impact_low: -1.5, multiple_impact_high: -2.5, revenue_impact_percent: -12, probability: 0.15, timing: "12-18 months" },
+      leading_indicators: [
+        { name: "Top 3 Revenue %", current_value: "34%", threshold: "40%", direction: "below", source_url: null },
+        { name: "Customer NPS", current_value: "72", threshold: "60", direction: "above", source_url: null },
+      ],
+      tripwires: [
+        { condition: "Single customer >15% revenue", threshold: "15%", action: "review_thesis" },
+        { condition: "Customer churn >5% annually", threshold: "5%", action: "reduce_position" },
+      ],
+      response: { sizing_action: "Reduce position 25% if triggered", hedge_instrument: "Sector puts", exit_condition: "Customer loss confirmed" },
     },
     {
       id: "RISK-002",
@@ -762,6 +879,14 @@ export const mockDashboardData: InvestorDashboard = {
       severity: "medium",
       trigger: "Gross margin compression >200bps from current levels",
       mitigation: "Long-term supply agreements under negotiation",
+      impact_range: { eps_impact_low: -0.20, eps_impact_high: -0.40, multiple_impact_low: -0.5, multiple_impact_high: -1.0, revenue_impact_percent: 0, probability: 0.30, timing: "6-12 months" },
+      leading_indicators: [
+        { name: "PPI Industrial", current_value: "+4.2%", threshold: "+6%", direction: "below", source_url: null },
+      ],
+      tripwires: [
+        { condition: "Gross margin <38%", threshold: "38%", action: "review_thesis" },
+      ],
+      response: { sizing_action: "Monitor closely", hedge_instrument: null, exit_condition: null },
     },
     {
       id: "RISK-003",
@@ -771,6 +896,11 @@ export const mockDashboardData: InvestorDashboard = {
       severity: "medium",
       trigger: "CEO departure announcement without successor",
       mitigation: null,
+      impact_range: { eps_impact_low: 0, eps_impact_high: -0.15, multiple_impact_low: -1.0, multiple_impact_high: -2.0, revenue_impact_percent: -3, probability: 0.25, timing: "24 months" },
+      tripwires: [
+        { condition: "CEO health issue or resignation", threshold: null, action: "review_thesis" },
+      ],
+      response: { sizing_action: "Reduce position 15%", hedge_instrument: null, exit_condition: "No successor within 6 months" },
     },
   ],
 
