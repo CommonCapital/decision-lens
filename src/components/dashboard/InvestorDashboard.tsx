@@ -2,10 +2,12 @@ import { useState } from "react";
 import { InvestorDashboard as InvestorDashboardType } from "@/lib/investor-schema";
 import { useTimeHorizon } from "@/hooks/use-time-horizon";
 import { RunHeader } from "./RunHeader";
+import { ChangesSection } from "./ChangesSection";
 import { ExecutiveSummary } from "./ExecutiveSummary";
 import { TimeSeriesSection } from "./TimeSeriesSection";
 import { AIInsightsPanel } from "./AIInsightsPanel";
 import { FinancialsGrid } from "./FinancialsGrid";
+import { ValuationSection } from "./ValuationSection";
 import { EventsTimeline } from "./EventsTimeline";
 import { ScenariosPanel } from "./ScenariosPanel";
 import { RisksPanel } from "./RisksPanel";
@@ -34,7 +36,10 @@ export function InvestorDashboard({ data }: InvestorDashboardProps) {
       />
 
       <main>
-        {/* Decision Sufficiency Assessment - Always visible */}
+        {/* What Changed Since Last Run - Top of Dashboard */}
+        <ChangesSection changes={data.changes_since_last_run} />
+        
+        {/* Decision Sufficiency Assessment */}
         <section className="py-6 px-6 border-b border-border">
           <DecisionSufficiency data={data} />
         </section>
@@ -51,16 +56,20 @@ export function InvestorDashboard({ data }: InvestorDashboardProps) {
           />
         )}
         
-        {/* AI Insights Panel */}
-        {data.ai_insights && data.ai_insights.length > 0 && (
+        {/* AI Insights / Hypotheses Panel */}
+        {((data.ai_insights && data.ai_insights.length > 0) || (data.hypotheses && data.hypotheses.length > 0)) && (
           <AIInsightsPanel
-            insights={data.ai_insights}
+            insights={data.ai_insights || data.hypotheses || []}
             horizon={horizon}
             isTransitioning={isTransitioning}
           />
         )}
         
         <FinancialsGrid data={data} mode={mode} />
+        
+        {/* Valuation Engine */}
+        <ValuationSection valuation={data.valuation} />
+        
         <EventsTimeline events={data.events} />
         <ScenariosPanel scenarios={data.scenarios} />
         <RisksPanel risks={data.risks} />
