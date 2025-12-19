@@ -241,15 +241,22 @@ const volumeHistory: TimeSeriesMetric = {
   },
 };
 
-// AI Insights - real data per horizon
-const aiInsights: AIInsight[] = [
+// Hypotheses - evidence-based insights (replacing predictions)
+const hypotheses: AIInsight[] = [
   {
     id: "ai-1d-001",
     type: "alert",
-    confidence: 0.87,
+    confidence_band: "high",
+    evidence_count: 3,
+    evidence_recency_days: 1,
     title: "Unusual Volume Detected",
     summary: "Trading volume 2.3x above 20-day average. Institutional activity likely.",
     details: "Volume spike coincides with options expiration. Monitor for continuation.",
+    evidence: [
+      { claim: "Volume 2.3x above 20-day average", source_url: "https://finance.yahoo.com", source_type: "market_data", accessed_at: "2024-12-14T09:00:00Z" },
+    ],
+    assumptions: ["Volume spike indicates institutional activity", "Options expiration is primary driver"],
+    falsification_criteria: ["Volume returns to normal within 2 days without price impact"],
     source: "Volume Analysis Engine",
     generated_at: "2024-12-14T09:00:00Z",
     horizon_relevance: ["1D", "1W"],
@@ -259,11 +266,20 @@ const aiInsights: AIInsight[] = [
   },
   {
     id: "ai-1w-001",
-    type: "prediction",
-    confidence: 0.72,
+    type: "hypothesis",
+    confidence_band: "medium",
+    evidence_count: 5,
+    evidence_recency_days: 7,
     title: "Price Momentum Building",
     summary: "7-day RSI indicates bullish momentum. Historical pattern suggests 3-5% upside probability.",
     details: "Based on similar setups in last 3 years, 68% resulted in positive returns over following 2 weeks.",
+    evidence: [
+      { claim: "RSI reading above 60", source_url: null, source_type: "technical_indicator", accessed_at: "2024-12-14T09:00:00Z" },
+      { claim: "68% hit rate on similar setups", source_url: null, source_type: "backtested_model", accessed_at: "2024-12-14T09:00:00Z" },
+    ],
+    assumptions: ["Past patterns predict future behavior", "Current market regime similar to backtest period"],
+    falsification_criteria: ["RSI breaks below 50", "Volume dries up without follow-through"],
+    next_check: { date: "2024-12-21", trigger: "RSI reading", indicator: "Daily RSI" },
     source: "Technical Analysis Model",
     generated_at: "2024-12-14T09:00:00Z",
     horizon_relevance: ["1W", "1M"],
@@ -274,10 +290,19 @@ const aiInsights: AIInsight[] = [
   {
     id: "ai-1m-001",
     type: "analysis",
-    confidence: 0.89,
+    confidence_band: "high",
+    evidence_count: 12,
+    evidence_recency_days: 30,
     title: "Earnings Catalyst Approaching",
     summary: "Q4 earnings in 23 days. Consensus revisions trending positive (4 up, 1 down in 30d).",
     details: "Company has beaten estimates 8 of last 12 quarters. Average beat: 4.2%.",
+    evidence: [
+      { claim: "4 upward revisions in 30 days", source_url: "https://seekingalpha.com", source_type: "analyst_report", accessed_at: "2024-12-14T09:00:00Z" },
+      { claim: "8/12 quarterly beats", source_url: null, source_type: "earnings_history", accessed_at: "2024-12-14T09:00:00Z" },
+    ],
+    assumptions: ["Historical beat rate predictive of future", "Analyst revisions signal information edge"],
+    falsification_criteria: ["Negative pre-announcement", "Sector-wide guidance cuts"],
+    next_check: { date: "2025-01-06", trigger: "Earnings release", indicator: "EPS vs consensus" },
     source: "Earnings Analysis Engine",
     generated_at: "2024-12-14T09:00:00Z",
     horizon_relevance: ["1M"],
@@ -287,11 +312,19 @@ const aiInsights: AIInsight[] = [
   },
   {
     id: "ai-1y-001",
-    type: "prediction",
-    confidence: 0.65,
+    type: "hypothesis",
+    confidence_band: "medium",
+    evidence_count: 8,
+    evidence_recency_days: 60,
     title: "Sector Rotation Tailwind",
     summary: "Macro cycle analysis suggests industrials outperformance through H2 2025.",
     details: "Fed rate trajectory and capex cycle favor sector. Position for 12-18 month hold.",
+    evidence: [
+      { claim: "Fed dot plot signals rate cuts", source_url: "https://federalreserve.gov", source_type: "official_document", accessed_at: "2024-12-14T09:00:00Z" },
+      { claim: "Capex cycle upturn in progress", source_url: null, source_type: "economic_indicator", accessed_at: "2024-12-14T09:00:00Z" },
+    ],
+    assumptions: ["Fed follows projected path", "No recession in 2025", "Capex cycle continues"],
+    falsification_criteria: ["Fed reverses to hawkish stance", "PMI drops below 45", "Credit spreads widen 100bp+"],
     source: "Macro Analysis Model",
     generated_at: "2024-12-14T09:00:00Z",
     horizon_relevance: ["1Y"],
@@ -302,10 +335,18 @@ const aiInsights: AIInsight[] = [
   {
     id: "ai-5y-001",
     type: "analysis",
-    confidence: 0.58,
+    confidence_band: "medium",
+    evidence_count: 15,
+    evidence_recency_days: 90,
     title: "Competitive Moat Assessment",
     summary: "Market share gains sustainable. IP portfolio and scale advantages widening.",
     details: "5-year revenue CAGR of 11.2% vs industry 6.8%. Margin differential expanding.",
+    evidence: [
+      { claim: "Revenue CAGR 11.2% vs industry 6.8%", source_url: null, source_type: "financial_data", accessed_at: "2024-12-14T09:00:00Z" },
+      { claim: "Patent count up 23% YoY", source_url: null, source_type: "ip_database", accessed_at: "2024-12-14T09:00:00Z" },
+    ],
+    assumptions: ["Competitive dynamics stable", "Technology platform remains relevant", "Management execution continues"],
+    falsification_criteria: ["Market share loss >2pp", "New entrant with disruptive technology", "Key patent expiration without replacement"],
     source: "Competitive Intelligence Engine",
     generated_at: "2024-12-14T09:00:00Z",
     horizon_relevance: ["5Y", "10Y"],
@@ -316,10 +357,18 @@ const aiInsights: AIInsight[] = [
   {
     id: "ai-10y-001",
     type: "analysis",
-    confidence: 0.45,
+    confidence_band: "low",
+    evidence_count: 6,
+    evidence_recency_days: 120,
     title: "Secular Growth Runway",
     summary: "TAM expansion driven by adjacent market entry and geographic expansion.",
     details: "Long-term compounder characteristics: high ROIC, reinvestment runway, management quality.",
+    evidence: [
+      { claim: "ROIC consistently >20%", source_url: null, source_type: "financial_data", accessed_at: "2024-12-14T09:00:00Z" },
+      { claim: "TAM expansion from $50B to $120B", source_url: null, source_type: "industry_report", accessed_at: "2024-12-14T09:00:00Z" },
+    ],
+    assumptions: ["TAM projections accurate", "Company captures fair share of expansion", "No technological disruption"],
+    falsification_criteria: ["ROIC drops below 15%", "TAM growth stalls", "New technology obsoletes core product"],
     source: "Long-term Analysis Model",
     generated_at: "2024-12-14T09:00:00Z",
     horizon_relevance: ["10Y"],
@@ -538,7 +587,8 @@ export const mockDashboardData: InvestorDashboard = {
     }),
   },
 
-  ai_insights: aiInsights,
+  ai_insights: hypotheses,
+  hypotheses: hypotheses,
 
   events: [
     {
