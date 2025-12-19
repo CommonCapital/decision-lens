@@ -17,30 +17,37 @@ interface AIInsightsPanelProps {
 }
 
 const INSIGHT_ICONS = {
-  prediction: TrendingUp,
+  hypothesis: TrendingUp,
   recommendation: Lightbulb,
   alert: AlertTriangle,
   analysis: BarChart3,
 };
 
 const INSIGHT_STYLES = {
-  prediction: "border-l-foreground",
+  hypothesis: "border-l-foreground",
   recommendation: "border-l-foreground/60",
   alert: "border-l-foreground",
   analysis: "border-l-foreground/40",
 };
 
-function ConfidenceBar({ value }: { value: number }) {
+const CONFIDENCE_BAND_STYLES = {
+  high: { label: "High Confidence", width: "100%", color: "bg-foreground" },
+  medium: { label: "Medium Confidence", width: "66%", color: "bg-foreground/70" },
+  low: { label: "Low Confidence", width: "33%", color: "bg-foreground/40" },
+};
+
+function ConfidenceBand({ band, evidenceCount }: { band: "high" | "medium" | "low" | null; evidenceCount: number | null }) {
+  const style = CONFIDENCE_BAND_STYLES[band || "low"];
   return (
     <div className="flex items-center gap-2">
       <div className="w-16 h-1 bg-border">
         <div 
-          className="h-full bg-foreground transition-all duration-300"
-          style={{ width: `${value * 100}%` }}
+          className={cn("h-full transition-all duration-300", style.color)}
+          style={{ width: style.width }}
         />
       </div>
       <span className="text-micro font-mono text-muted-foreground">
-        {Math.round(value * 100)}%
+        {style.label} {evidenceCount ? `(${evidenceCount} sources)` : ""}
       </span>
     </div>
   );
@@ -64,7 +71,7 @@ function InsightCard({ insight }: { insight: AIInsight }) {
             {insight.type}
           </span>
         </div>
-        <ConfidenceBar value={insight.confidence} />
+        <ConfidenceBand band={insight.confidence_band} evidenceCount={insight.evidence_count} />
       </div>
       
       <h4 className="font-medium text-foreground mb-1">
