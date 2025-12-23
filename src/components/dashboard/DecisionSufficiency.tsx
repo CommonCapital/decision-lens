@@ -63,22 +63,22 @@ const SUFFICIENCY_CONFIG: Record<SufficiencyLevel, {
   },
 };
 
-function ConfidenceMeter({ confidence }: { confidence: number }) {
+function DataQualityMeter({ score }: { score: number }) {
   return (
     <div className="flex items-center gap-3">
       <div className="flex-1 h-2 bg-border rounded-full overflow-hidden">
         <div 
           className={cn(
             "h-full transition-all duration-500 rounded-full",
-            confidence >= 80 ? "bg-emerald-500" :
-            confidence >= 60 ? "bg-amber-500" :
-            confidence >= 40 ? "bg-orange-500" : "bg-red-500"
+            score >= 80 ? "bg-emerald-500" :
+            score >= 60 ? "bg-amber-500" :
+            score >= 40 ? "bg-orange-500" : "bg-red-500"
           )}
-          style={{ width: `${confidence}%` }}
+          style={{ width: `${score}%` }}
         />
       </div>
       <span className="font-mono text-sm font-medium w-12 text-right">
-        {confidence}%
+        {score}%
       </span>
     </div>
   );
@@ -166,7 +166,7 @@ export function DecisionSufficiency({ data, className }: DecisionSufficiencyProp
         <div className="flex items-center gap-4">
           <div className="text-right hidden sm:block">
             <div className="text-micro uppercase tracking-wide text-muted-foreground">
-              Confidence
+              Data Quality
             </div>
             <div className="font-mono font-bold text-lg">
               {assessment.confidence}%
@@ -183,12 +183,12 @@ export function DecisionSufficiency({ data, className }: DecisionSufficiencyProp
       {/* Expanded Details */}
       {expanded && (
         <div className="border-t border-border/50 p-4 space-y-4 bg-background/50">
-          {/* Confidence Meter */}
+          {/* Data Quality Meter */}
           <div>
             <div className="text-micro uppercase tracking-ultra-wide text-muted-foreground mb-2">
-              Confidence Level
+              Data Quality Score
             </div>
-            <ConfidenceMeter confidence={assessment.confidence} />
+            <DataQualityMeter score={assessment.confidence} />
           </div>
 
           {/* Known / Unknown Grid */}
