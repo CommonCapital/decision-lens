@@ -68,18 +68,17 @@ const AVAILABILITY_CONFIG: Record<AvailabilityStatus, {
   },
 };
 
-function getConfidenceColor(confidence: number): string {
-  if (confidence >= 90) return "text-emerald-600";
-  if (confidence >= 70) return "text-amber-600";
-  if (confidence >= 50) return "text-orange-600";
-  return "text-red-600";
+function getQualityColor(band: "high" | "medium" | "low" | null | undefined): string {
+  if (band === "high") return "text-foreground";
+  if (band === "medium") return "text-muted-foreground";
+  return "text-muted-foreground/60";
 }
 
-function getConfidenceLabel(confidence: number): string {
-  if (confidence >= 90) return "High";
-  if (confidence >= 70) return "Medium";
-  if (confidence >= 50) return "Low";
-  return "Very Low";
+function getQualityLabel(coverage: number | null, auditability: number | null, freshness: number | null): string {
+  const avgScore = [coverage, auditability].filter(Boolean).reduce((a, b) => a + (b || 0), 0) / 2;
+  if (avgScore >= 85) return "High";
+  if (avgScore >= 60) return "Medium";
+  return "Low";
 }
 
 // Helper to extract the current metric from MetricWithHistory or plain Metric
@@ -155,22 +154,36 @@ export function UncertainMetric({
             <DefinitionPill definition={currentMetric.definition} />
           </div>
           <div className="flex items-center gap-2">
-            {/* Data Quality instead of raw confidence */}
+            {/* Data Quality: Coverage, Auditability, Freshness */}
             {currentMetric.data_quality ? (
-              <span className={cn(
-                "text-micro uppercase tracking-wide",
-                currentMetric.data_quality.overall_band === "high" ? "text-foreground" :
-                currentMetric.data_quality.overall_band === "medium" ? "text-muted-foreground" :
-                "text-muted-foreground/60"
-              )}>
-                {currentMetric.data_quality.coverage || 0}% cov
-              </span>
+              <div className="flex items-center gap-1.5">
+                <span className={cn(
+                  "text-micro uppercase tracking-wide",
+                  getQualityColor(currentMetric.data_quality.overall_band)
+                )}>
+                  {currentMetric.data_quality.coverage || 0}%
+                </span>
+                <span className="text-[9px] text-muted-foreground/50">cov</span>
+                <span className="text-muted-foreground/30">•</span>
+                <span className={cn(
+                  "text-micro uppercase tracking-wide",
+                  getQualityColor(currentMetric.data_quality.overall_band)
+                )}>
+                  {currentMetric.data_quality.auditability || 0}%
+                </span>
+                <span className="text-[9px] text-muted-foreground/50">aud</span>
+                {currentMetric.data_quality.freshness_days !== null && (
+                  <>
+                    <span className="text-muted-foreground/30">•</span>
+                    <span className="text-micro text-muted-foreground">
+                      {currentMetric.data_quality.freshness_days}d
+                    </span>
+                  </>
+                )}
+              </div>
             ) : (
-              <span className={cn(
-                "text-micro uppercase tracking-wide",
-                getConfidenceColor(confidence)
-              )}>
-                {confidence}%
+              <span className="text-micro uppercase tracking-wide text-muted-foreground/60">
+                No quality data
               </span>
             )}
             <TieOutBadge status={currentMetric.tie_out_status} />
@@ -218,13 +231,8 @@ export function UncertainMetric({
                 </div>
               )}
               {!currentMetric.data_quality && (
-                <div className="flex items-center justify-between">
-                  <span className="text-background/60 uppercase tracking-wide text-[10px]">
-                    Confidence
-                  </span>
-                  <span className={cn("font-medium", getConfidenceColor(confidence))}>
-                    {confidence}% ({getConfidenceLabel(confidence)})
-                  </span>
+                <div className="text-background/50 text-[10px] italic">
+                  No quality metrics available
                 </div>
               )}
               <div>
@@ -324,10 +332,10 @@ export function UncertainMetric({
           <div className="space-y-2 text-xs">
             <div className="flex items-center justify-between">
               <span className="text-background/60 uppercase tracking-wide text-[10px]">
-                Confidence
+                Data Quality
               </span>
-              <span className={cn("font-medium", getConfidenceColor(confidence))}>
-                {confidence}%
+              <span className="font-medium text-muted-foreground">
+                Insufficient
               </span>
             </div>
             <div>

@@ -6,8 +6,12 @@ import {
   GitCompare, 
   AlertCircle,
   CheckCircle,
-  XCircle
+  XCircle,
+  ChevronDown,
+  FileText,
+  Link as LinkIcon
 } from "lucide-react";
+import { useState } from "react";
 
 interface ValuationSectionProps {
   valuation: Valuation | null | undefined;
@@ -26,16 +30,24 @@ function DataQualityBadge({ quality }: { quality: DataQuality | null | undefined
   const Icon = style.icon;
 
   return (
-    <div className="flex items-center gap-2">
-      <span className={cn("px-2 py-0.5 text-[10px] uppercase tracking-ultra-wide font-mono flex items-center gap-1", style.bg, style.text)}>
-        <Icon className="w-3 h-3" />
-        {quality.overall_band || "Unknown"}
-      </span>
-      {quality.coverage !== null && (
-        <span className="text-micro text-muted-foreground">
-          {quality.coverage}% coverage
+    <div className="flex flex-col gap-1">
+      <div className="flex items-center gap-2">
+        <span className={cn("px-2 py-0.5 text-[10px] uppercase tracking-ultra-wide font-mono flex items-center gap-1", style.bg, style.text)}>
+          <Icon className="w-3 h-3" />
+          {quality.overall_band || "Unknown"}
         </span>
-      )}
+      </div>
+      <div className="flex gap-3 text-[10px] text-muted-foreground font-mono">
+        {quality.coverage !== null && (
+          <span>Coverage: {quality.coverage}%</span>
+        )}
+        {quality.auditability !== null && (
+          <span>Audit: {quality.auditability}%</span>
+        )}
+        {quality.freshness_days !== null && (
+          <span>{quality.freshness_days}d old</span>
+        )}
+      </div>
     </div>
   );
 }
@@ -47,10 +59,88 @@ function formatValue(value: number | null): string {
   return `$${value.toFixed(0)}`;
 }
 
+// Source derivation panel for each valuation method
+function MethodSourcePanel({ 
+  title, 
+  sources 
+}: { 
+  title: string; 
+  sources: Array<{ label: string; value: string; source?: string; formula?: string }>;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  
+  return (
+    <div className="border-t border-border pt-3 mt-3">
+      <button 
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-2 text-micro uppercase text-muted-foreground hover:text-foreground transition-colors w-full"
+      >
+        <FileText className="w-3 h-3" />
+        <span>{title}</span>
+        <ChevronDown className={cn("w-3 h-3 ml-auto transition-transform", isOpen && "rotate-180")} />
+      </button>
+      
+      {isOpen && (
+        <div className="mt-3 space-y-2 pl-5">
+          {sources.map((item, i) => (
+            <div key={i} className="text-sm">
+              <div className="flex justify-between items-start">
+                <span className="text-muted-foreground">{item.label}</span>
+                <span className="font-mono">{item.value}</span>
+              </div>
+              {item.formula && (
+                <div className="text-[10px] text-muted-foreground/70 mt-0.5 font-mono">
+                  Formula: {item.formula}
+                </div>
+              )}
+              {item.source && (
+                <div className="text-[10px] text-muted-foreground/70 flex items-center gap-1 mt-0.5">
+                  <LinkIcon className="w-2.5 h-2.5" />
+                  {item.source}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function ValuationSection({ valuation }: ValuationSectionProps) {
   if (!valuation) return null;
 
   const hasRange = valuation.valuation_range_low !== null && valuation.valuation_range_high !== null;
+
+  // DCF derivation sources
+  const dcfSources = valuation.dcf ? [
+    { label: "Terminal Growth Rate", value: `${valuation.dcf.terminal_growth_rate}%`, source: "Management Long-Term Plan" },
+    { label: "WACC", value: `${valuation.dcf.wacc}%`, formula: "Rf + β(Rm - Rf) + Size Premium", source: "Bloomberg Beta, 10Y Treasury" },
+    { label: "Implied Enterprise Value", value: formatValue(valuation.dcf.implied_value), formula: "Σ FCF/(1+WACC)^t + TV/(1+WACC)^n" },
+    ...(valuation.dcf.revenue_drivers || []).map(d => ({
+      label: d.name,
+      value: String(d.value),
+      source: d.source === "fact" ? d.source_reference?.document_type || "Filed" : "Judgment",
+    })),
+  ] : [];
+
+  // Trading comps derivation sources
+  const tradingCompsSources = valuation.trading_comps ? [
+    { label: "Comp Set Size", value: `${valuation.trading_comps.comps?.length || 0} companies`, source: "FactSet / Capital IQ" },
+    { label: "Metric Basis", value: valuation.trading_comps.comps?.[0]?.metric_basis || "NTM", source: "Standard methodology" },
+    { label: "Metric Type", value: valuation.trading_comps.comps?.[0]?.metric_type || "Adjusted", source: "Street consensus" },
+    { label: "EV/EBITDA Range", value: `${valuation.trading_comps.comps?.map(c => c.ev_ebitda).filter(Boolean).sort((a,b) => (a||0)-(b||0))[0]?.toFixed(1)}x - ${valuation.trading_comps.comps?.map(c => c.ev_ebitda).filter(Boolean).sort((a,b) => (b||0)-(a||0))[0]?.toFixed(1)}x`, formula: "EV / LTM EBITDA" },
+    { label: "Implied Value", value: `${formatValue(valuation.trading_comps.implied_value_range_low)} - ${formatValue(valuation.trading_comps.implied_value_range_high)}`, formula: "Target EBITDA × Median Multiple" },
+  ] : [];
+
+  // Precedent transactions derivation sources
+  const precedentSources = valuation.precedent_transactions ? [
+    { label: "Transaction Count", value: `${valuation.precedent_transactions.transactions?.length || 0} deals`, source: "Bloomberg M&A, FactSet" },
+    { label: "Date Range", value: valuation.precedent_transactions.transactions?.[0]?.date ? `Since ${valuation.precedent_transactions.transactions[0].date.slice(0, 4)}` : "N/A", source: "Public filings" },
+    { label: "EV/EBITDA Paid", value: `${valuation.precedent_transactions.transactions?.map(t => t.ev_ebitda).filter(Boolean).sort((a,b) => (a||0)-(b||0))[0]?.toFixed(1)}x - ${valuation.precedent_transactions.transactions?.map(t => t.ev_ebitda).filter(Boolean).sort((a,b) => (b||0)-(a||0))[0]?.toFixed(1)}x`, source: "Deal announcements, 8-K filings" },
+    { label: "Avg Premium Paid", value: `${valuation.precedent_transactions.transactions?.[0]?.premium_paid || 0}%`, source: "Pre-announcement price" },
+    { label: "Implied Value", value: `${formatValue(valuation.precedent_transactions.implied_value_range_low)} - ${formatValue(valuation.precedent_transactions.implied_value_range_high)}`, formula: "Target Metrics × Transaction Multiple" },
+  ] : [];
 
   return (
     <section className="py-8 border-b border-border">
@@ -195,6 +285,8 @@ export function ValuationSection({ valuation }: ValuationSectionProps) {
                     </ul>
                   </div>
                 )}
+                
+                <MethodSourcePanel title="Derivation Sources" sources={dcfSources} />
               </>
             ) : (
               <p className="text-sm text-muted-foreground">Not available</p>
@@ -251,6 +343,8 @@ export function ValuationSection({ valuation }: ValuationSectionProps) {
                     </ul>
                   </div>
                 )}
+                
+                <MethodSourcePanel title="Derivation Sources" sources={tradingCompsSources} />
               </>
             ) : (
               <p className="text-sm text-muted-foreground">Not available</p>
@@ -307,6 +401,8 @@ export function ValuationSection({ valuation }: ValuationSectionProps) {
                     </ul>
                   </div>
                 )}
+                
+                <MethodSourcePanel title="Derivation Sources" sources={precedentSources} />
               </>
             ) : (
               <p className="text-sm text-muted-foreground">Not available</p>
