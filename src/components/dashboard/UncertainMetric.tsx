@@ -2,6 +2,7 @@ import { cn } from "@/lib/utils";
 import { Metric, MetricWithHistory, AvailabilityStatus } from "@/lib/investor-schema";
 import { TieOutBadge } from "./TieOutBadge";
 import { DefinitionPill } from "./DefinitionPill";
+import { TieOutView } from "./TieOutView";
 import {
   Tooltip,
   TooltipContent,
@@ -260,6 +261,13 @@ export function UncertainMetric({
                       </p>
                     )}
                   </div>
+                </div>
+              )}
+
+              {/* Tie-Out View Button */}
+              {(currentMetric.source_reference?.xbrl_tag || currentMetric.calculation_chain) && (
+                <div className="pt-2 border-t border-background/20">
+                  <TieOutView metric={currentMetric} label={label} />
                 </div>
               )}
             </div>

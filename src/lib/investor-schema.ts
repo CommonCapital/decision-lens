@@ -65,6 +65,33 @@ const decisionContextSchema = z.object({
   what_changes_conclusion: z.array(z.string()),
 });
 
+// === CALCULATION CHAIN (AUDIT TRAIL) ===
+
+// Component source for calculation chains
+const componentSourceSchema = z.object({
+  name: z.string(),
+  value: z.union([z.number(), z.string()]).nullable(),
+  formatted: z.string().nullable(),
+  source: z.string().nullable(),
+  source_line: z.string().optional().nullable(),  // e.g., "Line 12"
+  xbrl_tag: z.string().optional().nullable(),
+  filing_date: z.string().optional().nullable(),
+});
+
+// Full calculation chain for derived metrics
+const calculationChainSchema = z.object({
+  formula: z.string(),  // e.g., "Cash Flow from Operations - Capital Expenditures"
+  formula_expanded: z.string().optional().nullable(),  // e.g., "$215M - $57M = $158M"
+  components: z.array(componentSourceSchema),
+  // For complex multi-step calculations
+  intermediate_calculations: z.array(z.object({
+    step_name: z.string(),
+    formula: z.string(),
+    result: z.string(),
+    components: z.array(componentSourceSchema).optional().nullable(),
+  })).optional().nullable(),
+});
+
 // Metric with uncertainty awareness
 const metricSchema = z.object({
   value: z.union([z.number(), z.string()]).nullable(),
@@ -83,6 +110,8 @@ const metricSchema = z.object({
   decision_context: decisionContextSchema.optional().nullable(),
   // Definition pill
   definition: metricDefinitionSchema.optional().nullable(),
+  // NEW: Calculation chain for derived metrics
+  calculation_chain: calculationChainSchema.optional().nullable(),
 });
 
 // === TIME-SERIES SCHEMA ===
