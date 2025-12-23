@@ -7,9 +7,11 @@ import { ExecutiveSummary } from "./ExecutiveSummary";
 import { TimeSeriesSection } from "./TimeSeriesSection";
 import { AIInsightsPanel } from "./AIInsightsPanel";
 import { FinancialsGrid } from "./FinancialsGrid";
+import { PricePathProtection } from "./PricePathProtection";
+import { PublicMarketMetrics } from "./PublicMarketMetrics";
 import { ValuationSection } from "./ValuationSection";
 import { EventsTimeline } from "./EventsTimeline";
-import { ScenariosPanel } from "./ScenariosPanel";
+import { DriverScenariosPanel } from "./DriverScenariosPanel";
 import { RisksPanel } from "./RisksPanel";
 import { DataLineage } from "./DataLineage";
 import { DecisionSufficiency } from "./DecisionSufficiency";
@@ -36,7 +38,7 @@ export function InvestorDashboard({ data }: InvestorDashboardProps) {
       />
 
       <main>
-        {/* What Changed Since Last Run - Top of Dashboard */}
+        {/* What Changed Since Last Run - TOP OF DASHBOARD */}
         <ChangesSection changes={data.changes_since_last_run} />
         
         {/* Decision Sufficiency Assessment */}
@@ -45,6 +47,11 @@ export function InvestorDashboard({ data }: InvestorDashboardProps) {
         </section>
         
         <ExecutiveSummary summary={data.executive_summary} />
+        
+        {/* Price → Path → Protection Framework */}
+        {mode === "public" && (
+          <PricePathProtection data={data} />
+        )}
         
         {/* Time-Series Section with functional horizon controls */}
         {mode === "public" && data.market_data && (
@@ -67,12 +74,27 @@ export function InvestorDashboard({ data }: InvestorDashboardProps) {
         
         <FinancialsGrid data={data} mode={mode} />
         
+        {/* Public Market Metrics - replaces private noise */}
+        {mode === "public" && (
+          <PublicMarketMetrics 
+            data={null} 
+            segments={null}
+            guidance_bridge={null}
+            revisions_momentum={null}
+          />
+        )}
+        
         {/* Valuation Engine */}
         <ValuationSection valuation={data.valuation} />
         
         <EventsTimeline events={data.events} />
-        <ScenariosPanel scenarios={data.scenarios} />
+        
+        {/* Driver-Based Scenarios - replaces thin scenario panel */}
+        <DriverScenariosPanel scenarios={data.scenarios} />
+        
+        {/* Enhanced Risks as Tradable Objects */}
         <RisksPanel risks={data.risks} />
+        
         <DataLineage sources={data.sources} />
       </main>
 

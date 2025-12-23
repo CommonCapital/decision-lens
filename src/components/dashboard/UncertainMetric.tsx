@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 import { Metric, MetricWithHistory, AvailabilityStatus } from "@/lib/investor-schema";
 import { TieOutBadge } from "./TieOutBadge";
+import { DefinitionPill } from "./DefinitionPill";
 import {
   Tooltip,
   TooltipContent,
@@ -145,16 +146,32 @@ export function UncertainMetric({
         )}
       >
         <div className="flex items-center justify-between mb-2">
-          <span className="text-micro uppercase tracking-ultra-wide text-muted-foreground font-sans">
-            {label}
-          </span>
           <div className="flex items-center gap-2">
-            <span className={cn(
-              "text-micro uppercase tracking-wide",
-              getConfidenceColor(confidence)
-            )}>
-              {confidence}%
+            <span className="text-micro uppercase tracking-ultra-wide text-muted-foreground font-sans">
+              {label}
             </span>
+            {/* Definition Pill */}
+            <DefinitionPill definition={currentMetric.definition} />
+          </div>
+          <div className="flex items-center gap-2">
+            {/* Data Quality instead of raw confidence */}
+            {currentMetric.data_quality ? (
+              <span className={cn(
+                "text-micro uppercase tracking-wide",
+                currentMetric.data_quality.overall_band === "high" ? "text-foreground" :
+                currentMetric.data_quality.overall_band === "medium" ? "text-muted-foreground" :
+                "text-muted-foreground/60"
+              )}>
+                {currentMetric.data_quality.coverage || 0}% cov
+              </span>
+            ) : (
+              <span className={cn(
+                "text-micro uppercase tracking-wide",
+                getConfidenceColor(confidence)
+              )}>
+                {confidence}%
+              </span>
+            )}
             <TieOutBadge status={currentMetric.tie_out_status} />
           </div>
         </div>
@@ -177,14 +194,38 @@ export function UncertainMetric({
             className="max-w-xs p-4 bg-foreground text-background border-0"
           >
             <div className="space-y-2 text-xs">
-              <div className="flex items-center justify-between">
-                <span className="text-background/60 uppercase tracking-wide text-[10px]">
-                  Confidence
-                </span>
-                <span className={cn("font-medium", getConfidenceColor(confidence))}>
-                  {confidence}% ({getConfidenceLabel(confidence)})
-                </span>
-              </div>
+              {/* Data Quality Breakdown */}
+              {currentMetric.data_quality && (
+                <div className="space-y-1 pb-2 border-b border-background/20">
+                  <span className="text-background/60 uppercase tracking-wide text-[10px] block">
+                    Data Quality
+                  </span>
+                  <div className="grid grid-cols-3 gap-2 text-[10px]">
+                    <div>
+                      <span className="text-background/50">Coverage</span>
+                      <p className="font-mono">{currentMetric.data_quality.coverage}%</p>
+                    </div>
+                    <div>
+                      <span className="text-background/50">Auditability</span>
+                      <p className="font-mono">{currentMetric.data_quality.auditability}%</p>
+                    </div>
+                    <div>
+                      <span className="text-background/50">Freshness</span>
+                      <p className="font-mono">{currentMetric.data_quality.freshness_days}d</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              {!currentMetric.data_quality && (
+                <div className="flex items-center justify-between">
+                  <span className="text-background/60 uppercase tracking-wide text-[10px]">
+                    Confidence
+                  </span>
+                  <span className={cn("font-medium", getConfidenceColor(confidence))}>
+                    {confidence}% ({getConfidenceLabel(confidence)})
+                  </span>
+                </div>
+              )}
               <div>
                 <span className="text-background/60 uppercase tracking-wide text-[10px]">
                   Source
