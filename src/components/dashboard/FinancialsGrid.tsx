@@ -46,43 +46,8 @@ export function FinancialsGrid({ data, mode }: FinancialsGridProps) {
         </div>
 
         {/* Mode-specific metrics */}
-        {mode === "public" && (
-          <>
-            <h3 className="text-micro uppercase tracking-ultra-wide text-muted-foreground font-sans mb-4 mt-8">
-              Market Data
-            </h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-px bg-border">
-              <UncertainMetric
-                label="Stock Price"
-                metric={data.market_data?.stock_price}
-                size="lg"
-                className="bg-card"
-              />
-              <UncertainMetric
-                label="Market Cap"
-                metric={data.market_data?.market_cap}
-                className="bg-card"
-              />
-              <UncertainMetric
-                label="P/E Ratio"
-                metric={data.market_data?.pe_ratio}
-                className="bg-card"
-              />
-              <UncertainMetric
-                label="EV/EBITDA"
-                metric={data.market_data?.ev_ebitda}
-                className="bg-card"
-              />
-              <UncertainMetric
-                label="Target Price"
-                metric={data.market_data?.target_price}
-                className="bg-card"
-              />
-            </div>
-          </>
-        )}
-
-        {mode === "private" && (
+        {/* Mode-specific metrics - Only show if in private mode */}
+        {mode === "private" && data.private_data && (
           <>
             <h3 className="text-micro uppercase tracking-ultra-wide text-muted-foreground font-sans mb-4 mt-8">
               Private Metrics
