@@ -45,14 +45,13 @@ export function FinancialsGrid({ data, mode }: FinancialsGridProps) {
           />
         </div>
 
-        {/* Mode-specific metrics */}
-        {/* Mode-specific metrics - Only show if in private mode */}
+        {/* Mode-specific metrics - Only show if in proprietary mode */}
         {mode === "private" && data.private_data && (
           <>
             <h3 className="text-micro uppercase tracking-ultra-wide text-muted-foreground font-sans mb-4 mt-8">
-              Private Metrics
+              Proprietary Metrics
             </h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-border">
+            <div className="grid grid-cols-2 gap-px bg-border">
               <UncertainMetric
                 label="Valuation Mark"
                 metric={data.private_data?.valuation_mark}
@@ -62,16 +61,6 @@ export function FinancialsGrid({ data, mode }: FinancialsGridProps) {
               <UncertainMetric
                 label="Net Leverage"
                 metric={data.private_data?.net_leverage}
-                className="bg-card"
-              />
-              <UncertainMetric
-                label="Liquidity Runway"
-                metric={data.private_data?.liquidity_runway}
-                className="bg-card"
-              />
-              <UncertainMetric
-                label="Covenant Headroom"
-                metric={data.private_data?.covenant_headroom}
                 className="bg-card"
               />
             </div>
