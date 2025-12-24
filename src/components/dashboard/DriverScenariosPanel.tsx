@@ -297,33 +297,11 @@ export function DriverScenariosPanel({ scenarios }: DriverScenariosPanelProps) {
               </div>
               <div className="bg-card p-4">
                 <span className="text-micro uppercase tracking-ultra-wide text-muted-foreground block mb-1">
-                  Free Cash Flow
-                </span>
-                <span className="font-mono text-xl">
-                  {current.outputs.fcf?.formatted || "—"}
-                </span>
-              </div>
-              <div className="bg-card p-4">
-                <span className="text-micro uppercase tracking-ultra-wide text-muted-foreground block mb-1">
                   Implied Valuation
                 </span>
                 <span className="font-mono text-2xl">{current.outputs.valuation.formatted}</span>
               </div>
             </div>
-
-            {/* Sensitivity */}
-            {current.sensitivity && (
-              <div className="mt-4 p-3 bg-secondary/50 border-l-2 border-foreground">
-                <span className="text-micro text-muted-foreground block mb-2">
-                  Sensitivity: {current.sensitivity.key_driver}
-                </span>
-                <div className="flex items-center gap-4 text-sm font-mono">
-                  <span>{current.sensitivity.range_low} → ${((current.sensitivity.valuation_at_low || 0) / 1e9).toFixed(1)}B</span>
-                  <span className="text-muted-foreground">|</span>
-                  <span>{current.sensitivity.range_high} → ${((current.sensitivity.valuation_at_high || 0) / 1e9).toFixed(1)}B</span>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>

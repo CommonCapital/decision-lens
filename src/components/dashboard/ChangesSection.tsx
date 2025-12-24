@@ -34,7 +34,6 @@ const PILLAR_STYLES = {
 export function ChangesSection({ changes }: ChangesSectionProps) {
   if (!changes || changes.length === 0) return null;
 
-  // Show max 5 changes
   const displayChanges = changes.slice(0, 5);
 
   return (
@@ -95,32 +94,6 @@ export function ChangesSection({ changes }: ChangesSectionProps) {
                 )}
               </div>
 
-              {/* Model Impact */}
-              {change.model_impact && change.model_impact.metric_affected && (
-                <div className="mt-3 pt-3 border-t border-border flex items-center gap-4 text-sm">
-                  <span className="text-muted-foreground">
-                    {change.model_impact.metric_affected}:
-                  </span>
-                  <span className="font-mono">
-                    {change.model_impact.previous_value} → {change.model_impact.new_value}
-                  </span>
-                  {change.model_impact.percent_change !== null && (
-                    <span
-                      className={cn(
-                        "font-mono",
-                        (change.model_impact.percent_change ?? 0) >= 0
-                          ? "text-foreground"
-                          : "text-muted-foreground"
-                      )}
-                    >
-                      {(change.model_impact.percent_change ?? 0) >= 0 ? "+" : ""}
-                      {change.model_impact.percent_change?.toFixed(1)}%
-                    </span>
-                  )}
-                </div>
-              )}
-
-              {/* So What + Action */}
               {(change.so_what || change.action) && (
                 <div className="mt-3 pt-3 border-t border-border grid grid-cols-2 gap-4">
                   {change.so_what && (
