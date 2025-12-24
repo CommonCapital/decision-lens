@@ -56,24 +56,24 @@ function RiskCard({ risk, index }: { risk: Risk; index: number }) {
           </span>
         </div>
         <span className="text-micro font-mono text-muted-foreground">
-          {risk.id}
+          {risk?.id ?? ""}
         </span>
       </div>
 
       {/* Content */}
       <div className="p-4">
         <h4 className="font-serif text-lg font-medium mb-2">
-          {risk.title}
+          {risk?.title ?? "Untitled Risk"}
         </h4>
         <p className="text-sm text-muted-foreground font-light mb-4">
-          {risk.description}
+          {risk?.description ?? ""}
         </p>
 
         <div className="text-sm">
           <span className="text-micro uppercase tracking-ultra-wide text-muted-foreground block mb-1">
             Trigger
           </span>
-          <span className="font-light">{risk.trigger}</span>
+          <span className="font-light">{risk?.trigger ?? ""}</span>
         </div>
 
         {risk.mitigation && (
@@ -120,7 +120,7 @@ export function RisksPanel({ risks }: RisksPanelProps) {
         ) : (
           <div className="space-y-4">
             {sortedRisks.map((risk, index) => (
-              <RiskCard key={risk.id} risk={risk} index={index} />
+              risk ? <RiskCard key={risk.id ?? index} risk={risk} index={index} /> : null
             ))}
           </div>
         )}

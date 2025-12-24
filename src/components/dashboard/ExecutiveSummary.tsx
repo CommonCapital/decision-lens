@@ -25,8 +25,17 @@ const thesisStatusConfig = {
 };
 
 export function ExecutiveSummary({ summary }: ExecutiveSummaryProps) {
-  const statusConfig = thesisStatusConfig[summary.thesis_status];
+  if (!summary) return null;
+  
+  const thesisStatus = (summary.thesis_status === "intact" || summary.thesis_status === "challenged" || summary.thesis_status === "broken") 
+    ? summary.thesis_status 
+    : "challenged";
+  const statusConfig = thesisStatusConfig[thesisStatus];
   const StatusIcon = statusConfig.icon;
+
+  const keyFacts = summary.key_facts ?? [];
+  const implications = summary.implications ?? [];
+  const keyRisks = summary.key_risks ?? [];
 
   return (
     <section className="py-8 border-b border-border animate-fade-in">
@@ -49,7 +58,7 @@ export function ExecutiveSummary({ summary }: ExecutiveSummaryProps) {
 
         {/* Headline */}
         <p className="text-xl md:text-2xl font-serif font-normal leading-relaxed mb-8 max-w-4xl">
-          {summary.headline}
+          {summary.headline ?? "No headline available"}
         </p>
 
         {/* Grid of facts/implications/risks */}
@@ -60,11 +69,13 @@ export function ExecutiveSummary({ summary }: ExecutiveSummaryProps) {
               Key Facts
             </h3>
             <ul className="space-y-2">
-              {summary.key_facts.map((fact, i) => (
+              {keyFacts.length > 0 ? keyFacts.map((fact, i) => (
                 <li key={i} className="text-sm font-light leading-relaxed">
                   {fact}
                 </li>
-              ))}
+              )) : (
+                <li className="text-sm text-muted-foreground italic">No facts available</li>
+              )}
             </ul>
           </div>
 
@@ -74,11 +85,13 @@ export function ExecutiveSummary({ summary }: ExecutiveSummaryProps) {
               Implications
             </h3>
             <ul className="space-y-2">
-              {summary.implications.map((impl, i) => (
+              {implications.length > 0 ? implications.map((impl, i) => (
                 <li key={i} className="text-sm font-light leading-relaxed">
                   {impl}
                 </li>
-              ))}
+              )) : (
+                <li className="text-sm text-muted-foreground italic">No implications available</li>
+              )}
             </ul>
           </div>
 
@@ -88,11 +101,13 @@ export function ExecutiveSummary({ summary }: ExecutiveSummaryProps) {
               Key Risks
             </h3>
             <ul className="space-y-2">
-              {summary.key_risks.map((risk, i) => (
+              {keyRisks.length > 0 ? keyRisks.map((risk, i) => (
                 <li key={i} className="text-sm font-light leading-relaxed">
                   {risk}
                 </li>
-              ))}
+              )) : (
+                <li className="text-sm text-muted-foreground italic">No risks identified</li>
+              )}
             </ul>
           </div>
         </div>

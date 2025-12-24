@@ -24,7 +24,7 @@ interface UncertainMetricProps {
   className?: string;
 }
 
-const AVAILABILITY_CONFIG: Record<AvailabilityStatus, {
+const AVAILABILITY_CONFIG: Record<string, {
   icon: typeof HelpCircle;
   label: string;
   color: string;
@@ -125,9 +125,9 @@ export function UncertainMetric({
     );
   }
 
-  const availability = currentMetric.availability;
-  const confidence = currentMetric.confidence;
-  const config = AVAILABILITY_CONFIG[availability];
+  const availability = currentMetric.availability ?? "unavailable";
+  const confidence = currentMetric.confidence ?? 0;
+  const config = AVAILABILITY_CONFIG[availability] ?? AVAILABILITY_CONFIG.unavailable;
   const Icon = config.icon;
 
   // If metric has a value and is available, render with full context
@@ -242,14 +242,14 @@ export function UncertainMetric({
                     Decision Context
                   </span>
                   <div className="mt-1 space-y-1">
-                    {currentMetric.decision_context.knowns.length > 0 && (
+                    {(currentMetric.decision_context.knowns?.length ?? 0) > 0 && (
                       <p className="text-[10px]">
-                        <span className="text-emerald-400">Known:</span> {currentMetric.decision_context.knowns.join(", ")}
+                        <span className="text-emerald-400">Known:</span> {currentMetric.decision_context.knowns?.join(", ")}
                       </p>
                     )}
-                    {currentMetric.decision_context.unknowns.length > 0 && (
+                    {(currentMetric.decision_context.unknowns?.length ?? 0) > 0 && (
                       <p className="text-[10px]">
-                        <span className="text-amber-400">Unknown:</span> {currentMetric.decision_context.unknowns.join(", ")}
+                        <span className="text-amber-400">Unknown:</span> {currentMetric.decision_context.unknowns?.join(", ")}
                       </p>
                     )}
                   </div>
@@ -343,7 +343,7 @@ export function UncertainMetric({
               </p>
             </div>
             {/* Decision Context */}
-            {currentMetric.decision_context && (
+            {currentMetric.decision_context && currentMetric.decision_context.what_changes_conclusion && (
               <div className="pt-2 border-t border-background/20">
                 <span className="text-background/60 uppercase tracking-wide text-[10px]">
                   What Changes Conclusion
@@ -370,7 +370,7 @@ export function UncertainMetric({
   );
 }
 
-function getDefaultReason(availability: AvailabilityStatus, label: string): string {
+function getDefaultReason(availability: string, label: string): string {
   switch (availability) {
     case "pending":
       return `${label} data is being processed or awaiting source confirmation`;
@@ -387,7 +387,7 @@ function getDefaultReason(availability: AvailabilityStatus, label: string): stri
   }
 }
 
-function getDecisionImpact(availability: AvailabilityStatus, label: string): string {
+function getDecisionImpact(availability: string, label: string): string {
   switch (availability) {
     case "pending":
       return "May proceed with caution; verify when available";
