@@ -1,8 +1,8 @@
-import { Scenario } from "@/lib/investor-schema";
+import { Scenarios, SingleScenario } from "@/lib/investor-schema";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { EmptySection } from "./EmptySection";
-import { ArrowDown, ArrowUp, Minus, Info } from "lucide-react";
+import { ArrowDown, ArrowUp } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -10,8 +10,10 @@ import {
 } from "@/components/ui/tooltip";
 
 interface DriverScenariosPanelProps {
-  scenarios: Scenario[];
+  scenarios: Scenarios;
 }
+
+type ScenarioName = "base" | "downside" | "upside";
 
 // Driver breakdown structure
 interface DriverBreakdown {
@@ -35,17 +37,17 @@ const mockDrivers: DriverBreakdown[] = [
   { name: "Working Capital Days", category: "other", baseValue: "45", downsideValue: "52", upsideValue: "40", unit: "days", source: "judgment" },
 ];
 
-const scenarioLabels: Record<Scenario["name"], string> = {
+const scenarioLabels: Record<ScenarioName, string> = {
   base: "Base Case",
   downside: "Downside",
   upside: "Upside",
 };
 
 export function DriverScenariosPanel({ scenarios }: DriverScenariosPanelProps) {
-  const [activeScenario, setActiveScenario] = useState<Scenario["name"]>("base");
+  const [activeScenario, setActiveScenario] = useState<ScenarioName>("base");
   const [showDrivers, setShowDrivers] = useState(true);
 
-  if (!scenarios || scenarios.length === 0) {
+  if (!scenarios) {
     return (
       <section className="py-8 border-b border-border animate-fade-in">
         <div className="px-6">
@@ -64,19 +66,22 @@ export function DriverScenariosPanel({ scenarios }: DriverScenariosPanelProps) {
     );
   }
 
-  const current = scenarios.find((s) => s.name === activeScenario) || scenarios[0];
-  const baseCase = scenarios.find((s) => s.name === "base");
-  const downside = scenarios.find((s) => s.name === "downside");
-  const upside = scenarios.find((s) => s.name === "upside");
+  const scenarioEntries: Array<{ name: ScenarioName; scenario: SingleScenario }> = [
+    { name: "base", scenario: scenarios.base },
+    { name: "downside", scenario: scenarios.downside },
+    { name: "upside", scenario: scenarios.upside },
+  ];
 
-  const valuations = scenarios.map((s) => s.outputs.valuation.value as number);
+  const current = scenarios[activeScenario];
+
+  const valuations = scenarioEntries.map((s) => s.scenario.outputs.valuation.value as number);
   const minVal = Math.min(...valuations);
   const maxVal = Math.max(...valuations);
   const range = maxVal - minVal;
 
   // Calculate expected value
-  const expectedValue = scenarios.reduce((acc, s) => 
-    acc + (s.outputs.valuation.value as number) * s.probability, 0
+  const expectedValue = scenarioEntries.reduce((acc, s) => 
+    acc + (s.scenario.outputs.valuation.value as number) * s.scenario.probability, 0
   );
 
   return (
@@ -96,18 +101,18 @@ export function DriverScenariosPanel({ scenarios }: DriverScenariosPanelProps) {
           </div>
 
           <div className="flex items-center border border-foreground">
-            {scenarios.map((scenario) => (
+            {scenarioEntries.map(({ name, scenario }) => (
               <button
-                key={scenario.name}
-                onClick={() => setActiveScenario(scenario.name)}
+                key={name}
+                onClick={() => setActiveScenario(name)}
                 className={cn(
                   "px-4 py-2 text-micro uppercase tracking-ultra-wide font-sans transition-all duration-150",
-                  activeScenario === scenario.name
+                  activeScenario === name
                     ? "bg-foreground text-background"
                     : "bg-transparent text-foreground hover:bg-foreground/5"
                 )}
               >
-                {scenarioLabels[scenario.name]}
+                {scenarioLabels[name]}
                 <span className="ml-2 text-[10px] opacity-60">
                   {Math.round(scenario.probability * 100)}%
                 </span>
@@ -126,7 +131,7 @@ export function DriverScenariosPanel({ scenarios }: DriverScenariosPanelProps) {
               <div className="text-right">
                 <span className="text-micro text-muted-foreground block">Range</span>
                 <span className="font-mono">
-                  {downside?.outputs.valuation.formatted} — {upside?.outputs.valuation.formatted}
+                  {scenarios.downside.outputs.valuation.formatted} — {scenarios.upside.outputs.valuation.formatted}
                 </span>
               </div>
               <div className="text-right">
@@ -140,16 +145,16 @@ export function DriverScenariosPanel({ scenarios }: DriverScenariosPanelProps) {
           
           {/* Visual range */}
           <div className="relative h-10 bg-secondary border border-border">
-            {scenarios.map((scenario) => {
+            {scenarioEntries.map(({ name, scenario }) => {
               const val = scenario.outputs.valuation.value as number;
               const position = range > 0 ? ((val - minVal) / range) * 100 : 50;
 
               return (
                 <div
-                  key={scenario.name}
+                  key={name}
                   className={cn(
                     "absolute top-0 bottom-0 flex items-center justify-center transition-all duration-300",
-                    scenario.name === activeScenario
+                    name === activeScenario
                       ? "bg-foreground text-background z-10"
                       : "bg-foreground/10"
                   )}
@@ -160,7 +165,7 @@ export function DriverScenariosPanel({ scenarios }: DriverScenariosPanelProps) {
                 >
                   <div className="text-center">
                     <span className="text-[10px] uppercase tracking-wide block opacity-70">
-                      {scenarioLabels[scenario.name]}
+                      {scenarioLabels[name]}
                     </span>
                     <span className="text-micro font-mono">
                       {scenario.outputs.valuation.formatted}
@@ -248,7 +253,7 @@ export function DriverScenariosPanel({ scenarios }: DriverScenariosPanelProps) {
           {/* Current Scenario Assumptions */}
           <div>
             <h3 className="text-micro uppercase tracking-ultra-wide text-muted-foreground font-sans mb-4 border-b border-border pb-2">
-              {scenarioLabels[current.name]} Assumptions
+              {scenarioLabels[activeScenario]} Assumptions
             </h3>
             <div className="space-y-3">
               {current.assumptions.map((assumption, i) => (
@@ -261,9 +266,9 @@ export function DriverScenariosPanel({ scenarios }: DriverScenariosPanelProps) {
                     <span className="font-mono text-sm bg-secondary px-2 py-1">
                       {assumption.value}
                     </span>
-                    {baseCase && current.name !== "base" && (
+                    {activeScenario !== "base" && (
                       <span className="text-[10px] text-muted-foreground">
-                        {current.name === "downside" ? (
+                        {activeScenario === "downside" ? (
                           <ArrowDown className="w-3 h-3 inline" />
                         ) : (
                           <ArrowUp className="w-3 h-3 inline" />
@@ -280,7 +285,7 @@ export function DriverScenariosPanel({ scenarios }: DriverScenariosPanelProps) {
           {/* Outputs with FCF */}
           <div>
             <h3 className="text-micro uppercase tracking-ultra-wide text-muted-foreground font-sans mb-4 border-b border-border pb-2">
-              {scenarioLabels[current.name]} Outputs
+              {scenarioLabels[activeScenario]} Outputs
             </h3>
             <div className="grid grid-cols-2 gap-px bg-border">
               <div className="bg-card p-4">

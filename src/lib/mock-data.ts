@@ -120,8 +120,8 @@ export const mockDashboardData: InvestorDashboard = {
     valuation_range_midpoint: 14500000000,
     why_range_exists: "Multiple scenarios based on margin trajectory and terminal growth assumptions",
     dcf: { terminal_growth_rate: 2.5, wacc: 8.2, implied_value: 14500000000, implied_value_per_share: 145.00 },
-    trading_comps: { implied_value_range_low: 13500000000, implied_value_range_high: 15200000000, confidence: { coverage: 85, auditability: 78, freshness_days: 7, overall_band: "high" } },
-    precedent_transactions: { implied_value_range_low: 14000000000, implied_value_range_high: 16500000000, confidence: { coverage: 70, auditability: 65, freshness_days: 30, overall_band: "medium" } },
+    trading_comps: { implied_value_range_low: 13500000000, implied_value_range_high: 15200000000, confidence: { coverage: 85, auditability: 78, freshness_days: 7 } },
+    precedent_transactions: { implied_value_range_low: 14000000000, implied_value_range_high: 16500000000, confidence: { coverage: 70, auditability: 65, freshness_days: 30 } },
   },
 
   hypotheses,
@@ -132,11 +132,11 @@ export const mockDashboardData: InvestorDashboard = {
     { id: "evt-2", date: "2025-03-15", type: "filing", title: "10-K Annual Report", description: "Annual filing due", impact: "neutral" },
   ],
 
-  scenarios: [
-    { name: "base", probability: 0.6, assumptions: [{ key: "Revenue Growth", value: "9%" }, { key: "EBITDA Margin", value: "25.5%" }], outputs: { revenue: createBaseMetric(3550000000, "$3.55B", "Model"), ebitda: createBaseMetric(905000000, "$905M", "Model"), valuation: createBaseMetric(14500000000, "$14.5B", "DCF") } },
-    { name: "downside", probability: 0.25, assumptions: [{ key: "Revenue Growth", value: "5%" }, { key: "EBITDA Margin", value: "22%" }], outputs: { revenue: createBaseMetric(3280000000, "$3.28B", "Model"), ebitda: createBaseMetric(722000000, "$722M", "Model"), valuation: createBaseMetric(11200000000, "$11.2B", "DCF") } },
-    { name: "upside", probability: 0.15, assumptions: [{ key: "Revenue Growth", value: "14%" }, { key: "EBITDA Margin", value: "27%" }], outputs: { revenue: createBaseMetric(3850000000, "$3.85B", "Model"), ebitda: createBaseMetric(1040000000, "$1.04B", "Model"), valuation: createBaseMetric(17800000000, "$17.8B", "DCF") } },
-  ],
+  scenarios: {
+    base: { probability: 0.6, assumptions: [{ key: "Revenue Growth", value: "9%" }, { key: "EBITDA Margin", value: "25.5%" }], outputs: { revenue: createBaseMetric(3550000000, "$3.55B", "Model"), ebitda: createBaseMetric(905000000, "$905M", "Model"), valuation: createBaseMetric(14500000000, "$14.5B", "DCF") } },
+    downside: { probability: 0.25, assumptions: [{ key: "Revenue Growth", value: "5%" }, { key: "EBITDA Margin", value: "22%" }], outputs: { revenue: createBaseMetric(3280000000, "$3.28B", "Model"), ebitda: createBaseMetric(722000000, "$722M", "Model"), valuation: createBaseMetric(11200000000, "$11.2B", "DCF") } },
+    upside: { probability: 0.15, assumptions: [{ key: "Revenue Growth", value: "14%" }, { key: "EBITDA Margin", value: "27%" }], outputs: { revenue: createBaseMetric(3850000000, "$3.85B", "Model"), ebitda: createBaseMetric(1040000000, "$1.04B", "Model"), valuation: createBaseMetric(17800000000, "$17.8B", "DCF") } },
+  },
 
   risks: [
     { id: "risk-1", category: "market", title: "Customer Concentration", description: "Top 3 customers represent 34% of revenue", severity: "high", trigger: "Loss of any top-3 customer", mitigation: "Diversification initiatives underway" },
@@ -150,5 +150,5 @@ export const mockDashboardData: InvestorDashboard = {
     { name: "FactSet", type: "secondary", last_refresh: "2024-12-14T08:30:00Z" },
   ],
 
-  run_data_quality: { coverage: 88, auditability: 82, freshness_days: 1, overall_band: "high" },
+  run_data_quality: { coverage: 88, auditability: 82, freshness_days: 1 },
 };

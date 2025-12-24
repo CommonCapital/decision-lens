@@ -1,23 +1,25 @@
-import { Scenario } from "@/lib/investor-schema";
+import { Scenarios, SingleScenario } from "@/lib/investor-schema";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { EmptySection } from "./EmptySection";
 
 interface ScenariosPanelProps {
-  scenarios: Scenario[];
+  scenarios: Scenarios;
 }
 
-export function ScenariosPanel({ scenarios }: ScenariosPanelProps) {
-  const [activeScenario, setActiveScenario] = useState<Scenario["name"]>("base");
+type ScenarioName = "base" | "downside" | "upside";
 
-  const scenarioLabels: Record<Scenario["name"], string> = {
+export function ScenariosPanel({ scenarios }: ScenariosPanelProps) {
+  const [activeScenario, setActiveScenario] = useState<ScenarioName>("base");
+
+  const scenarioLabels: Record<ScenarioName, string> = {
     base: "Base Case",
     downside: "Downside",
     upside: "Upside",
   };
 
   // Handle empty scenarios
-  if (!scenarios || scenarios.length === 0) {
+  if (!scenarios) {
     return (
       <section className="py-8 border-b border-border animate-fade-in">
         <div className="px-6">
@@ -36,9 +38,15 @@ export function ScenariosPanel({ scenarios }: ScenariosPanelProps) {
     );
   }
 
-  const current = scenarios.find((s) => s.name === activeScenario) || scenarios[0];
+  const scenarioEntries: Array<{ name: ScenarioName; scenario: SingleScenario }> = [
+    { name: "base", scenario: scenarios.base },
+    { name: "downside", scenario: scenarios.downside },
+    { name: "upside", scenario: scenarios.upside },
+  ];
 
-  const valuations = scenarios.map((s) => s.outputs.valuation.value as number);
+  const current = scenarios[activeScenario];
+
+  const valuations = scenarioEntries.map((s) => s.scenario.outputs.valuation.value as number);
   const minVal = Math.min(...valuations);
   const maxVal = Math.max(...valuations);
   const range = maxVal - minVal;
@@ -52,18 +60,18 @@ export function ScenariosPanel({ scenarios }: ScenariosPanelProps) {
           </h2>
 
           <div className="flex items-center border border-foreground">
-            {scenarios.map((scenario) => (
+            {scenarioEntries.map(({ name, scenario }) => (
               <button
-                key={scenario.name}
-                onClick={() => setActiveScenario(scenario.name)}
+                key={name}
+                onClick={() => setActiveScenario(name)}
                 className={cn(
                   "px-4 py-2 text-micro uppercase tracking-ultra-wide font-sans transition-all duration-150",
-                  activeScenario === scenario.name
+                  activeScenario === name
                     ? "bg-foreground text-background"
                     : "bg-transparent text-foreground hover:bg-foreground/5"
                 )}
               >
-                {scenarioLabels[scenario.name]}
+                {scenarioLabels[name]}
                 <span className="ml-2 text-[10px] opacity-60">
                   {Math.round(scenario.probability * 100)}%
                 </span>
@@ -77,21 +85,21 @@ export function ScenariosPanel({ scenarios }: ScenariosPanelProps) {
           <div className="flex items-center justify-between mb-2 text-micro text-muted-foreground">
             <span>Valuation Range</span>
             <span className="font-mono">
-              {scenarios.find((s) => s.name === "downside")?.outputs.valuation.formatted} —{" "}
-              {scenarios.find((s) => s.name === "upside")?.outputs.valuation.formatted}
+              {scenarios.downside.outputs.valuation.formatted} —{" "}
+              {scenarios.upside.outputs.valuation.formatted}
             </span>
           </div>
           <div className="relative h-8 bg-secondary border border-border">
-            {scenarios.map((scenario) => {
+            {scenarioEntries.map(({ name, scenario }) => {
               const val = scenario.outputs.valuation.value as number;
               const position = range > 0 ? ((val - minVal) / range) * 100 : 50;
 
               return (
                 <div
-                  key={scenario.name}
+                  key={name}
                   className={cn(
                     "absolute top-0 bottom-0 flex items-center justify-center transition-all duration-300",
-                    scenario.name === activeScenario
+                    name === activeScenario
                       ? "bg-foreground text-background z-10"
                       : "bg-foreground/10"
                   )}

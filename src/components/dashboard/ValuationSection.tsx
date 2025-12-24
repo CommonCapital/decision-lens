@@ -13,8 +13,17 @@ interface ValuationSectionProps {
   valuation: Valuation | null | undefined;
 }
 
+function getQualityBand(quality: DataQuality): "high" | "medium" | "low" {
+  const avgScore = [quality.coverage, quality.auditability].filter(Boolean).reduce((a, b) => a + (b || 0), 0) / 2;
+  if (avgScore >= 85) return "high";
+  if (avgScore >= 60) return "medium";
+  return "low";
+}
+
 function DataQualityBadge({ quality }: { quality: DataQuality | null | undefined }) {
   if (!quality) return null;
+  
+  const band = getQualityBand(quality);
   
   const bandStyles = {
     high: { icon: CheckCircle, bg: "bg-foreground", text: "text-background" },
@@ -22,7 +31,7 @@ function DataQualityBadge({ quality }: { quality: DataQuality | null | undefined
     low: { icon: XCircle, bg: "bg-foreground/30", text: "text-foreground" },
   };
   
-  const style = quality.overall_band ? bandStyles[quality.overall_band] : bandStyles.low;
+  const style = bandStyles[band];
   const Icon = style.icon;
 
   return (
@@ -30,7 +39,7 @@ function DataQualityBadge({ quality }: { quality: DataQuality | null | undefined
       <div className="flex items-center gap-2">
         <span className={cn("px-2 py-0.5 text-[10px] uppercase tracking-ultra-wide font-mono flex items-center gap-1", style.bg, style.text)}>
           <Icon className="w-3 h-3" />
-          {quality.overall_band || "Unknown"}
+          {band}
         </span>
       </div>
       <div className="flex gap-3 text-[10px] text-muted-foreground font-mono">
