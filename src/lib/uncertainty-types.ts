@@ -46,11 +46,12 @@ export function computeSufficiencyFromMetrics(
   for (const { name, metric, critical } of metrics) {
     if (metric && metric.availability === "available" && metric.value !== null) {
       available.push(name);
-      totalConfidence += metric.confidence;
+      const confidence = metric.confidence ?? 0;
+      totalConfidence += confidence;
       metricCount++;
       
-      if (metric.confidence < 70) {
-        caveats.push(`${name} has low confidence (${metric.confidence}%)`);
+      if (confidence < 70) {
+        caveats.push(`${name} has low confidence (${confidence}%)`);
       }
     } else {
       unavailable.push(name);
@@ -155,18 +156,19 @@ export function getUncertaintyReasons(data: any): UncertaintyReason[] {
     } else if (metric.availability !== "available") {
       reasons.push({
         field: label,
-        status: metric.availability,
-        confidence: metric.confidence,
-        explanation: metric.unavailable_reason || `${label} is ${metric.availability}`,
+        status: metric.availability ?? "unavailable",
+        confidence: metric.confidence ?? 0,
+        explanation: metric.unavailable_reason || `${label} is ${metric.availability ?? "unavailable"}`,
         impact: metric.availability === "conflicting" ? "critical" : impact,
-        workaround: getWorkaroundForStatus(metric.availability)
+        workaround: getWorkaroundForStatus(metric.availability ?? "unavailable")
       });
-    } else if (metric.confidence < 70) {
+    } else if ((metric.confidence ?? 0) < 70) {
+      const confidence = metric.confidence ?? 0;
       reasons.push({
         field: label,
-        status: metric.availability,
-        confidence: metric.confidence,
-        explanation: `${label} has low confidence (${metric.confidence}%)`,
+        status: metric.availability ?? "available",
+        confidence,
+        explanation: `${label} has low confidence (${confidence}%)`,
         impact: "minor",
         workaround: "Verify with additional sources"
       });
