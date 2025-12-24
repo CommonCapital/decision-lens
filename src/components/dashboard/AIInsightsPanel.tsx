@@ -36,8 +36,9 @@ const CONFIDENCE_BAND_STYLES = {
   low: { label: "Low Confidence", width: "33%", color: "bg-foreground/40" },
 };
 
-function ConfidenceBand({ band }: { band: "high" | "medium" | "low" | null }) {
-  const style = CONFIDENCE_BAND_STYLES[band || "low"];
+function ConfidenceBand({ band }: { band: string | null | undefined }) {
+  const normalizedBand = (band === "high" || band === "medium" || band === "low") ? band : "low";
+  const style = CONFIDENCE_BAND_STYLES[normalizedBand];
   return (
     <div className="flex items-center gap-2">
       <div className="w-16 h-1 bg-border">

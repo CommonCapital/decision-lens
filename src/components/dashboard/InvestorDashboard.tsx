@@ -21,7 +21,7 @@ interface InvestorDashboardProps {
 }
 
 export function InvestorDashboard({ data }: InvestorDashboardProps) {
-  const [mode, setMode] = useState<"public" | "private">(data.run_metadata.mode);
+  const [mode, setMode] = useState<"public" | "private">((data.run_metadata?.mode as "public" | "private") || "public");
   
   const { 
     horizon, 
