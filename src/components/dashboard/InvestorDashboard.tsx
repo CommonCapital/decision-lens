@@ -102,11 +102,11 @@ export function InvestorDashboard({ data }: InvestorDashboardProps) {
       <footer className="border-t border-border py-6 px-6">
         <div className="flex items-center justify-between text-micro text-muted-foreground">
           <span>
-            Decision-Grade Dashboard • {data.run_metadata.entity} •{" "}
-            {data.run_metadata.run_id}
+            Decision-Grade Dashboard • {data.run_metadata?.entity || "Unknown"} •{" "}
+            {data.run_metadata?.run_id || "N/A"}
           </span>
           <span className="font-mono">
-            {new Date(data.run_metadata.timestamp).toLocaleString()}
+            {data.run_metadata?.timestamp ? new Date(data.run_metadata.timestamp).toLocaleString() : "N/A"}
           </span>
         </div>
       </footer>
