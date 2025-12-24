@@ -27,8 +27,8 @@ const dataQualitySchema = z.object({
 
 const metricDefinitionSchema = z.object({
   metric_name: z.string().nullable(),
-  period: z.enum(["quarter", "TTM", "FY", "LTM", "NTM"]).nullable(),
-  basis: z.enum(["GAAP", "non_GAAP", "adjusted", "reported"]).nullable(),
+  period: z.string().nullable(),
+  basis: z.string().nullable(),
   currency: z.string().nullable(),
   unit: z.string().nullable(),
 });
@@ -41,7 +41,7 @@ const decisionContextSchema = z.object({
   knowns: z.array(z.string()),
   unknowns: z.array(z.string()),
   what_changes_conclusion: z.array(z.string()),
-});
+}).nullable();
 
 // === SOURCE REFERENCE ===
 
@@ -102,6 +102,7 @@ const timeSeriesMetricSchema = z.object({
   confidence: z.number().min(0).max(100),
   data_quality: dataQualitySchema.optional().nullable(),
   source: z.string().nullable(),
+  decision_context: decisionContextSchema.optional().nullable(),
 });
 
 const metricWithHistorySchema = z.object({
