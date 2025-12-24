@@ -106,7 +106,8 @@ const metricSchema = z.object({
   // Legacy confidence for backward compatibility
   confidence: z.number().min(0).max(100),
   availability: availabilityStatusSchema,
-  unavailable_reason: z.string().optional().nullable(),
+  // Reason for availability status (applies to all statuses, not just unavailable)
+  reason: z.string().optional().nullable(),
   decision_context: decisionContextSchema.optional().nullable(),
   // Definition pill
   definition: metricDefinitionSchema.optional().nullable(),
@@ -147,7 +148,8 @@ const timeSeriesMetricSchema = z.object({
   availability: availabilityStatusSchema,
   confidence: z.number().min(0).max(100),
   data_quality: dataQualitySchema.optional().nullable(),
-  unavailable_reason: z.string().optional().nullable(),
+  // Reason for availability status (applies to all statuses)
+  reason: z.string().optional().nullable(),
   source: z.string().nullable(),
   decision_context: decisionContextSchema.optional().nullable(),
 });

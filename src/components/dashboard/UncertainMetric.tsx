@@ -288,7 +288,7 @@ export function UncertainMetric({
   }
 
   // Render uncertainty state for non-available metrics
-  const reason = currentMetric.unavailable_reason || getDefaultReason(availability, label);
+  const reason = currentMetric.reason || getDefaultReason(availability, label);
 
   return (
     <div
