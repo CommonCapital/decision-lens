@@ -21,7 +21,6 @@ const dataQualitySchema = z.object({
   coverage: z.number().min(0).max(100).nullable(),
   auditability: z.number().min(0).max(100).nullable(),
   freshness_days: z.number().nullable(),
-  overall_band: z.enum(["high", "medium", "low"]).nullable(),
 });
 
 // === METRIC DEFINITION ===
@@ -142,18 +141,25 @@ const eventSchema = z.object({
 
 // === SCENARIO ===
 
-const scenarioSchema = z.object({
-  name: z.enum(["base", "downside", "upside"]),
+const scenarioOutputsSchema = z.object({
+  revenue: metricSchema,
+  ebitda: metricSchema,
+  valuation: metricSchema,
+});
+
+const singleScenarioSchema = z.object({
   probability: z.number().min(0).max(1),
   assumptions: z.array(z.object({
     key: z.string().nullable(),
     value: z.string().nullable(),
   })),
-  outputs: z.object({
-    revenue: metricSchema,
-    ebitda: metricSchema,
-    valuation: metricSchema,
-  }),
+  outputs: scenarioOutputsSchema,
+});
+
+const scenariosSchema = z.object({
+  base: singleScenarioSchema,
+  downside: singleScenarioSchema,
+  upside: singleScenarioSchema,
 });
 
 // === RISK ===
@@ -260,7 +266,7 @@ export const investorDashboardSchema = z.object({
   ai_insights: z.array(hypothesisSchema).optional().nullable(),
 
   events: z.array(eventSchema),
-  scenarios: z.array(scenarioSchema),
+  scenarios: scenariosSchema,
   risks: z.array(riskSchema),
 
   sources: z.array(z.object({
@@ -287,7 +293,8 @@ export type TimeHorizon = z.infer<typeof timeHorizonSchema>;
 export type Hypothesis = z.infer<typeof hypothesisSchema>;
 export type AIInsight = z.infer<typeof hypothesisSchema>;
 export type Event = z.infer<typeof eventSchema>;
-export type Scenario = z.infer<typeof scenarioSchema>;
+export type Scenarios = z.infer<typeof scenariosSchema>;
+export type SingleScenario = z.infer<typeof singleScenarioSchema>;
 export type Risk = z.infer<typeof riskSchema>;
 export type DataQuality = z.infer<typeof dataQualitySchema>;
 export type MetricDefinition = z.infer<typeof metricDefinitionSchema>;

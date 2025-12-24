@@ -68,12 +68,6 @@ const AVAILABILITY_CONFIG: Record<AvailabilityStatus, {
   },
 };
 
-function getQualityColor(band: "high" | "medium" | "low" | null | undefined): string {
-  if (band === "high") return "text-foreground";
-  if (band === "medium") return "text-muted-foreground";
-  return "text-muted-foreground/60";
-}
-
 function getQualityLabel(coverage: number | null, auditability: number | null, freshness: number | null): string {
   const avgScore = [coverage, auditability].filter(Boolean).reduce((a, b) => a + (b || 0), 0) / 2;
   if (avgScore >= 85) return "High";
@@ -157,18 +151,12 @@ export function UncertainMetric({
             {/* Data Quality: Coverage, Auditability, Freshness */}
             {currentMetric.data_quality ? (
               <div className="flex items-center gap-1.5">
-                <span className={cn(
-                  "text-micro uppercase tracking-wide",
-                  getQualityColor(currentMetric.data_quality.overall_band)
-                )}>
+                <span className="text-micro uppercase tracking-wide">
                   {currentMetric.data_quality.coverage || 0}%
                 </span>
                 <span className="text-[9px] text-muted-foreground/50">cov</span>
                 <span className="text-muted-foreground/30">•</span>
-                <span className={cn(
-                  "text-micro uppercase tracking-wide",
-                  getQualityColor(currentMetric.data_quality.overall_band)
-                )}>
+                <span className="text-micro uppercase tracking-wide">
                   {currentMetric.data_quality.auditability || 0}%
                 </span>
                 <span className="text-[9px] text-muted-foreground/50">aud</span>
@@ -181,11 +169,7 @@ export function UncertainMetric({
                   </>
                 )}
               </div>
-            ) : (
-              <span className="text-micro uppercase tracking-wide text-muted-foreground/60">
-                No quality data
-              </span>
-            )}
+            ) : null}
             <TieOutBadge status={currentMetric.tie_out_status} />
           </div>
         </div>
