@@ -34,24 +34,26 @@ export function QuarterlyChart({
 }: QuarterlyChartProps) {
   // Build chart data from Q1-Q4 quarters
   const chartData = useMemo(() => {
-    const quarters = horizonStats.quarters;
+    const quarters = horizonStats?.quarters;
+    if (!quarters) return [];
+    
     const data: { quarter: string; value: number | null; formatted: string }[] = [];
     
-    if (quarters.Q1 !== null) {
+    if (quarters.Q1 !== null && quarters.Q1 !== undefined) {
       data.push({ quarter: "Q1", value: quarters.Q1, formatted: formatNumber(quarters.Q1) });
     }
-    if (quarters.Q2 !== null) {
+    if (quarters.Q2 !== null && quarters.Q2 !== undefined) {
       data.push({ quarter: "Q2", value: quarters.Q2, formatted: formatNumber(quarters.Q2) });
     }
-    if (quarters.Q3 !== null) {
+    if (quarters.Q3 !== null && quarters.Q3 !== undefined) {
       data.push({ quarter: "Q3", value: quarters.Q3, formatted: formatNumber(quarters.Q3) });
     }
-    if (quarters.Q4 !== null) {
+    if (quarters.Q4 !== null && quarters.Q4 !== undefined) {
       data.push({ quarter: "Q4", value: quarters.Q4, formatted: formatNumber(quarters.Q4) });
     }
     
     return data;
-  }, [horizonStats.quarters]);
+  }, [horizonStats?.quarters]);
 
   const isPositive = (horizonStats.change_percent ?? 0) >= 0;
 

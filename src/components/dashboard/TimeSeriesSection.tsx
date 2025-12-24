@@ -39,8 +39,8 @@ export function TimeSeriesSection({
   // Get horizon stats for each metric with history
   const stockPriceStats = getHorizonStats(data.market_data?.stock_price, horizon);
   const volumeStats = getHorizonStats(data.market_data?.volume, horizon);
-  const revenueStats = getHorizonStats(data.financials.revenue, horizon);
-  const ebitdaStats = getHorizonStats(data.financials.ebitda, horizon);
+  const revenueStats = getHorizonStats(data.financials?.revenue, horizon);
+  const ebitdaStats = getHorizonStats(data.financials?.ebitda, horizon);
 
   const hasAnyCharts = stockPriceStats || volumeStats || revenueStats || ebitdaStats;
 
@@ -135,8 +135,8 @@ export function TimeSeriesSection({
                 horizonStats={revenueStats}
                 horizon={horizon}
                 label="Revenue"
-                currentValue={data.financials.revenue.current.value}
-                currentFormatted={data.financials.revenue.current.formatted}
+                currentValue={data.financials?.revenue?.current?.value ?? null}
+                currentFormatted={data.financials?.revenue?.current?.formatted ?? null}
                 isTransitioning={isTransitioning}
               />
             )}
@@ -145,8 +145,8 @@ export function TimeSeriesSection({
                 horizonStats={ebitdaStats}
                 horizon={horizon}
                 label="EBITDA"
-                currentValue={data.financials.ebitda.current.value}
-                currentFormatted={data.financials.ebitda.current.formatted}
+                currentValue={data.financials?.ebitda?.current?.value ?? null}
+                currentFormatted={data.financials?.ebitda?.current?.formatted ?? null}
                 isTransitioning={isTransitioning}
               />
             )}

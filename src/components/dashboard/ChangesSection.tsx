@@ -15,7 +15,7 @@ interface ChangesSectionProps {
   changes: Change[] | null | undefined;
 }
 
-const CATEGORY_ICONS = {
+const CATEGORY_ICONS: Record<string, typeof FileText> = {
   filing: FileText,
   transcript: Mic,
   guidance: TrendingUp,
@@ -25,7 +25,7 @@ const CATEGORY_ICONS = {
   news: Newspaper,
 };
 
-const PILLAR_STYLES = {
+const PILLAR_STYLES: Record<string, { label: string; bg: string; text: string }> = {
   price: { label: "Price", bg: "bg-foreground", text: "text-background" },
   path: { label: "Path", bg: "bg-foreground/60", text: "text-background" },
   protection: { label: "Protection", bg: "bg-foreground/30", text: "text-foreground" },
@@ -48,13 +48,15 @@ export function ChangesSection({ changes }: ChangesSectionProps) {
       </div>
 
       <div className="space-y-3">
-        {displayChanges.map((change) => {
-          const Icon = CATEGORY_ICONS[change.category];
+        {displayChanges.map((change, index) => {
+          if (!change) return null;
+          const category = change.category ?? "news";
+          const Icon = CATEGORY_ICONS[category] ?? Newspaper;
           const pillarStyle = change.thesis_pillar ? PILLAR_STYLES[change.thesis_pillar] : null;
 
           return (
             <div
-              key={change.id}
+              key={change.id ?? index}
               className="bg-card border border-border p-4 hover:shadow-subtle transition-all"
             >
               <div className="flex items-start justify-between gap-4">
@@ -63,7 +65,7 @@ export function ChangesSection({ changes }: ChangesSectionProps) {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-micro uppercase tracking-wide text-muted-foreground">
-                        {change.category.replace("_", " ")}
+                        {category.replace("_", " ")}
                       </span>
                       {pillarStyle && (
                         <span
@@ -77,8 +79,8 @@ export function ChangesSection({ changes }: ChangesSectionProps) {
                         </span>
                       )}
                     </div>
-                    <h4 className="font-medium text-foreground mb-1">{change.title}</h4>
-                    <p className="text-sm text-muted-foreground">{change.description}</p>
+                    <h4 className="font-medium text-foreground mb-1">{change.title ?? "Untitled"}</h4>
+                    <p className="text-sm text-muted-foreground">{change.description ?? ""}</p>
                   </div>
                 </div>
 

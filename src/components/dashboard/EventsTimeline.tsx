@@ -11,10 +11,10 @@ import {
   ExternalLink,
 } from "lucide-react";
 interface EventsTimelineProps {
-  events: Event[];
+  events?: Event[] | null;
 }
 
-const eventTypeConfig: Record<Event["type"], { icon: typeof FileText; label: string }> = {
+const eventTypeConfig: Record<string, { icon: typeof FileText; label: string }> = {
   earnings: { icon: TrendingUp, label: "Earnings" },
   filing: { icon: FileText, label: "Filing" },
   guidance: { icon: BarChart3, label: "Guidance" },
@@ -23,15 +23,16 @@ const eventTypeConfig: Record<Event["type"], { icon: typeof FileText; label: str
   analyst_update: { icon: Users, label: "Analyst" },
 };
 
-const impactStyles: Record<Event["impact"], string> = {
+const impactStyles: Record<string, string> = {
   positive: "border-l-foreground",
   negative: "border-l-muted-foreground",
   neutral: "border-l-border",
 };
 
 export function EventsTimeline({ events }: EventsTimelineProps) {
-  const sortedEvents = [...events].sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+  const eventsList = events ?? [];
+  const sortedEvents = [...eventsList].sort(
+    (a, b) => new Date(b?.date ?? "").getTime() - new Date(a?.date ?? "").getTime()
   );
 
   return (
@@ -41,7 +42,7 @@ export function EventsTimeline({ events }: EventsTimelineProps) {
           Events & Filings Timeline
         </h2>
 
-        {events.length === 0 ? (
+        {sortedEvents.length === 0 ? (
           <EmptySection
             title="Events & Filings"
             type="pending"
@@ -52,15 +53,18 @@ export function EventsTimeline({ events }: EventsTimelineProps) {
         ) : (
           <div className="space-y-0">
             {sortedEvents.map((event, index) => {
-              const config = eventTypeConfig[event.type];
+              if (!event) return null;
+              const eventType = event.type ?? "news";
+              const config = eventTypeConfig[eventType];
               const Icon = config?.icon || FileText;
+              const impact = event.impact ?? "neutral";
 
               return (
                 <div
-                  key={event.id}
+                  key={event.id ?? index}
                   className={cn(
                     "group relative pl-6 py-4 border-l-2 transition-all duration-150 hover:bg-secondary/30",
-                    impactStyles[event.impact],
+                    impactStyles[impact] ?? impactStyles.neutral,
                     index !== sortedEvents.length - 1 && "border-b border-border"
                   )}
                   style={{ animationDelay: `${index * 50}ms` }}
@@ -68,14 +72,14 @@ export function EventsTimeline({ events }: EventsTimelineProps) {
                   {/* Date */}
                   <div className="absolute left-6 top-4 flex items-center gap-3">
                     <span className="text-micro font-mono text-muted-foreground">
-                      {new Date(event.date).toLocaleDateString("en-US", {
+                      {event.date ? new Date(event.date).toLocaleDateString("en-US", {
                         month: "short",
                         day: "numeric",
                         year: "numeric",
-                      })}
+                      }) : "—"}
                     </span>
                     <span className="px-2 py-0.5 text-[10px] uppercase tracking-ultra-wide font-sans border border-border">
-                      {config?.label || event.type}
+                      {config?.label || eventType}
                     </span>
                   </div>
 
@@ -84,10 +88,10 @@ export function EventsTimeline({ events }: EventsTimelineProps) {
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">
                         <h4 className="font-serif text-lg font-medium mb-1">
-                          {event.title}
+                          {event.title ?? "Untitled Event"}
                         </h4>
                         <p className="text-sm text-muted-foreground font-light leading-relaxed">
-                          {event.description}
+                          {event.description ?? ""}
                         </p>
                       </div>
                       {event.source_url && (

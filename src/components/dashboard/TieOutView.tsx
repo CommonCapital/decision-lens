@@ -18,6 +18,8 @@ interface TieOutViewProps {
 export function TieOutView({ metric, label }: TieOutViewProps) {
   const [isOpen, setIsOpen] = useState(false);
   
+  if (!metric) return null;
+  
   const hasSource = metric.source_reference?.excerpt || metric.source;
   
   if (!hasSource) {
@@ -35,7 +37,7 @@ export function TieOutView({ metric, label }: TieOutViewProps) {
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-serif text-xl">
-            {label}: {metric.formatted}
+            {label}: {metric.formatted ?? "—"}
           </DialogTitle>
           <p className="text-sm text-muted-foreground">
             Source verification
@@ -97,6 +99,7 @@ export function TieOutView({ metric, label }: TieOutViewProps) {
 }
 
 function DirectSourceView({ metric }: { metric: Metric }) {
+  if (!metric) return null;
   const ref = metric.source_reference;
   
   return (
@@ -110,7 +113,7 @@ function DirectSourceView({ metric }: { metric: Metric }) {
 
       <div className="border border-border p-4 space-y-3">
         <div className="flex items-center justify-between">
-          <span className="font-medium">{metric.source}</span>
+          <span className="font-medium">{metric.source ?? "Unknown"}</span>
           {ref?.url && (
             <a
               href={ref.url}

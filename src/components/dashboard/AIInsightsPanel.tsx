@@ -55,13 +55,18 @@ function ConfidenceBand({ band }: { band: string | null | undefined }) {
 }
 
 function InsightCard({ insight }: { insight: AIInsight }) {
-  const Icon = INSIGHT_ICONS[insight.type];
+  if (!insight) return null;
+  
+  const insightType = (insight.type === "hypothesis" || insight.type === "recommendation" || insight.type === "alert" || insight.type === "analysis") 
+    ? insight.type 
+    : "analysis";
+  const Icon = INSIGHT_ICONS[insightType];
   
   return (
     <div 
       className={cn(
         "bg-card p-4 border-l-2 transition-all duration-300",
-        INSIGHT_STYLES[insight.type],
+        INSIGHT_STYLES[insightType],
         "hover:bg-secondary/50"
       )}
     >
@@ -69,18 +74,18 @@ function InsightCard({ insight }: { insight: AIInsight }) {
         <div className="flex items-center gap-2">
           <Icon className="w-4 h-4 text-foreground" />
           <span className="text-micro uppercase tracking-ultra-wide text-muted-foreground">
-            {insight.type}
+            {insightType}
           </span>
         </div>
         <ConfidenceBand band={insight.confidence_band} />
       </div>
       
       <h4 className="font-medium text-foreground mb-1">
-        {insight.title}
+        {insight.title ?? "Untitled Insight"}
       </h4>
       
       <p className="text-sm text-muted-foreground leading-relaxed mb-3">
-        {insight.summary}
+        {insight.summary ?? ""}
       </p>
       
       {insight.details && (
@@ -92,7 +97,7 @@ function InsightCard({ insight }: { insight: AIInsight }) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="text-micro text-muted-foreground font-mono">
-            {insight.source}
+            {insight.source ?? "Unknown"}
           </span>
         </div>
         
@@ -112,8 +117,8 @@ export function AIInsightsPanel({
   horizon,
   isTransitioning 
 }: AIInsightsPanelProps) {
-  const filteredInsights = insights.filter(i => 
-    i.horizon_relevance.includes(horizon)
+  const filteredInsights = (insights ?? []).filter(i => 
+    i && i.horizon_relevance && i.horizon_relevance.includes(horizon)
   );
   
   return (

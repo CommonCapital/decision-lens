@@ -14,19 +14,19 @@ export function RunHeader({ metadata, mode, onModeChange }: RunHeaderProps) {
       <div className="flex items-center justify-between px-6 py-3 border-b border-border bg-secondary/30">
         <div className="flex items-center gap-6 text-micro font-mono uppercase tracking-wide text-muted-foreground">
           <span>
-            Run: <span className="text-foreground">{metadata.run_id}</span>
+            Run: <span className="text-foreground">{metadata?.run_id ?? "N/A"}</span>
           </span>
           <span className="w-px h-3 bg-border" />
           <span>
             Cut:{" "}
             <span className="text-foreground">
-              {new Date(metadata.timestamp).toLocaleString()}
+              {metadata?.timestamp ? new Date(metadata.timestamp).toLocaleString() : "—"}
             </span>
           </span>
         </div>
         <div className="flex items-center gap-4 text-micro font-mono uppercase tracking-wide text-muted-foreground">
           <span>
-            Owner: <span className="text-foreground">{metadata.owner}</span>
+            Owner: <span className="text-foreground">{metadata?.owner ?? "Unknown"}</span>
           </span>
         </div>
       </div>
@@ -39,14 +39,14 @@ export function RunHeader({ metadata, mode, onModeChange }: RunHeaderProps) {
               <span className="text-micro uppercase tracking-ultra-wide text-muted-foreground font-sans">
                 Entity
               </span>
-              {metadata.ticker && (
+              {metadata?.ticker && (
                 <span className="px-2 py-0.5 bg-foreground text-background text-micro font-mono uppercase">
                   {metadata.ticker}
                 </span>
               )}
             </div>
             <h1 className="text-4xl md:text-5xl font-serif font-medium tracking-tight">
-              {metadata.entity}
+              {metadata?.entity ?? "Unknown Entity"}
             </h1>
           </div>
 
