@@ -62,9 +62,9 @@ export function PricePathProtection({ data }: PricePathProtectionProps) {
 
   // Protection triggers - derived from risks
   const protectionTriggers: ProtectionTrigger[] = data.risks?.slice(0, 3).map(risk => ({
-    condition: risk.tripwires?.[0]?.condition || risk.trigger || risk.title,
-    threshold: risk.tripwires?.[0]?.threshold || "N/A",
-    action: risk.response?.sizing_action || risk.tripwires?.[0]?.action?.replace("_", " ") || "Review",
+    condition: risk.trigger || risk.title,
+    threshold: "N/A",
+    action: risk.mitigation || "Review",
     status: "active" as const
   })) || [];
 

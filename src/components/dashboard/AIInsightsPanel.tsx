@@ -36,7 +36,7 @@ const CONFIDENCE_BAND_STYLES = {
   low: { label: "Low Confidence", width: "33%", color: "bg-foreground/40" },
 };
 
-function ConfidenceBand({ band, evidenceCount }: { band: "high" | "medium" | "low" | null; evidenceCount: number | null }) {
+function ConfidenceBand({ band }: { band: "high" | "medium" | "low" | null }) {
   const style = CONFIDENCE_BAND_STYLES[band || "low"];
   return (
     <div className="flex items-center gap-2">
@@ -47,7 +47,7 @@ function ConfidenceBand({ band, evidenceCount }: { band: "high" | "medium" | "lo
         />
       </div>
       <span className="text-micro font-mono text-muted-foreground">
-        {style.label} {evidenceCount ? `(${evidenceCount} sources)` : ""}
+        {style.label}
       </span>
     </div>
   );
@@ -71,7 +71,7 @@ function InsightCard({ insight }: { insight: AIInsight }) {
             {insight.type}
           </span>
         </div>
-        <ConfidenceBand band={insight.confidence_band} evidenceCount={insight.evidence_count} />
+        <ConfidenceBand band={insight.confidence_band} />
       </div>
       
       <h4 className="font-medium text-foreground mb-1">
@@ -90,14 +90,9 @@ function InsightCard({ insight }: { insight: AIInsight }) {
       
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          {insight.supporting_metrics?.map((metric) => (
-            <span 
-              key={metric}
-              className="px-2 py-0.5 bg-secondary text-micro font-mono text-muted-foreground"
-            >
-              {metric}
-            </span>
-          ))}
+          <span className="text-micro text-muted-foreground font-mono">
+            {insight.source}
+          </span>
         </div>
         
         {insight.action_required && (

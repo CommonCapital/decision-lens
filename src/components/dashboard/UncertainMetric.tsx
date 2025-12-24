@@ -273,7 +273,7 @@ export function UncertainMetric({
               )}
 
               {/* Tie-Out View Button */}
-              {(currentMetric.source_reference?.xbrl_tag || currentMetric.calculation_chain) && (
+              {currentMetric.source_reference?.excerpt && (
                 <div className="pt-2 border-t border-background/20">
                   <TieOutView metric={currentMetric} label={label} />
                 </div>

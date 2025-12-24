@@ -76,12 +76,6 @@ export function DefinitionPill({ definition }: DefinitionPillProps) {
               <span>{definition.unit}</span>
             </div>
           )}
-          {definition.calculation_method && (
-            <div className="border-t border-border pt-2 mt-2">
-              <span className="text-muted-foreground block mb-1">Calculation:</span>
-              <span className="text-xs">{definition.calculation_method}</span>
-            </div>
-          )}
         </div>
       </TooltipContent>
     </Tooltip>
