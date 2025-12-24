@@ -57,8 +57,8 @@ export function computeSufficiencyFromMetrics(
       if (critical) {
         blockers.push(name);
       }
-      if (metric?.reason) {
-        caveats.push(`${name}: ${metric.reason}`);
+      if (metric?.unavailable_reason) {
+        caveats.push(`${name}: ${metric.unavailable_reason}`);
       }
     }
   }
@@ -157,7 +157,7 @@ export function getUncertaintyReasons(data: any): UncertaintyReason[] {
         field: label,
         status: metric.availability,
         confidence: metric.confidence,
-        explanation: metric.reason || `${label} is ${metric.availability}`,
+        explanation: metric.unavailable_reason || `${label} is ${metric.availability}`,
         impact: metric.availability === "conflicting" ? "critical" : impact,
         workaround: getWorkaroundForStatus(metric.availability)
       });
