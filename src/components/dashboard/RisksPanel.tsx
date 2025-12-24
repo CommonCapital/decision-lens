@@ -13,17 +13,17 @@ import { EmptySection } from "./EmptySection";
 import { useState } from "react";
 
 interface RisksPanelProps {
-  risks: Risk[];
+  risks?: Risk[] | null;
 }
 
-const severityStyles: Record<Risk["severity"], { bg: string; text: string }> = {
+const severityStyles: Record<string, { bg: string; text: string }> = {
   critical: { bg: "bg-foreground", text: "text-background" },
   high: { bg: "bg-foreground/80", text: "text-background" },
   medium: { bg: "bg-foreground/40", text: "text-background" },
   low: { bg: "bg-foreground/20", text: "text-foreground" },
 };
 
-const categoryLabels: Record<Risk["category"], string> = {
+const categoryLabels: Record<string, string> = {
   market: "Market",
   operational: "Operational",
   financial: "Financial",
@@ -32,7 +32,7 @@ const categoryLabels: Record<Risk["category"], string> = {
 };
 
 function RiskCard({ risk, index }: { risk: Risk; index: number }) {
-  const styles = severityStyles[risk.severity];
+  const styles = severityStyles[risk?.severity || "low"] || severityStyles.low;
 
   return (
     <div
@@ -52,7 +52,7 @@ function RiskCard({ risk, index }: { risk: Risk; index: number }) {
             {risk.severity}
           </span>
           <span className="text-micro uppercase tracking-wide text-muted-foreground">
-            {categoryLabels[risk.category]}
+            {categoryLabels[risk?.category || ""] || risk?.category || "Unknown"}
           </span>
         </div>
         <span className="text-micro font-mono text-muted-foreground">
@@ -90,9 +90,10 @@ function RiskCard({ risk, index }: { risk: Risk; index: number }) {
 }
 
 export function RisksPanel({ risks }: RisksPanelProps) {
-  const severityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
-  const sortedRisks = [...risks].sort(
-    (a, b) => severityOrder[a.severity] - severityOrder[b.severity]
+  const severityOrder: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3 };
+  const risksList = risks || [];
+  const sortedRisks = [...risksList].sort(
+    (a, b) => (severityOrder[a?.severity || "low"] || 3) - (severityOrder[b?.severity || "low"] || 3)
   );
 
   return (
@@ -108,7 +109,7 @@ export function RisksPanel({ risks }: RisksPanelProps) {
           </span>
         </div>
 
-        {risks.length === 0 ? (
+        {risksList.length === 0 ? (
           <EmptySection
             title="Risks & Breakpoints"
             type="unavailable"

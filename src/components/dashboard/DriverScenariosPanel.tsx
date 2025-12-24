@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/tooltip";
 
 interface DriverScenariosPanelProps {
-  scenarios: Scenarios;
+  scenarios?: Scenarios | null;
 }
 
 type ScenarioName = "base" | "downside" | "upside";
@@ -66,23 +66,49 @@ export function DriverScenariosPanel({ scenarios }: DriverScenariosPanelProps) {
     );
   }
 
-  const scenarioEntries: Array<{ name: ScenarioName; scenario: SingleScenario }> = [
-    { name: "base", scenario: scenarios.base },
-    { name: "downside", scenario: scenarios.downside },
-    { name: "upside", scenario: scenarios.upside },
-  ];
+  const availableScenarios: Array<{ name: ScenarioName; scenario: SingleScenario }> = [];
+  if (scenarios.base) availableScenarios.push({ name: "base", scenario: scenarios.base });
+  if (scenarios.downside) availableScenarios.push({ name: "downside", scenario: scenarios.downside });
+  if (scenarios.upside) availableScenarios.push({ name: "upside", scenario: scenarios.upside });
 
-  const current = scenarios[activeScenario];
+  if (availableScenarios.length === 0) {
+    return (
+      <section className="py-8 border-b border-border animate-fade-in">
+        <div className="px-6">
+          <h2 className="text-micro uppercase tracking-ultra-wide text-muted-foreground font-sans mb-6">
+            Driver-Based Scenarios
+          </h2>
+          <EmptySection
+            title="Driver-Based Scenarios"
+            type="unavailable"
+            reason="No scenario data available."
+            impact="Cannot stress-test thesis against different assumptions."
+            suggestion="Build scenarios with explicit driver deltas for revenue, margin, and capital."
+          />
+        </div>
+      </section>
+    );
+  }
 
-  const valuations = scenarioEntries.map((s) => s.scenario.outputs.valuation.value as number);
-  const minVal = Math.min(...valuations);
-  const maxVal = Math.max(...valuations);
+  const current = scenarios[activeScenario] || availableScenarios[0]?.scenario;
+  
+  if (!current) {
+    return null;
+  }
+
+  const valuations = availableScenarios
+    .filter(s => s.scenario?.outputs?.valuation?.value != null)
+    .map((s) => s.scenario.outputs?.valuation?.value as number);
+  const minVal = valuations.length > 0 ? Math.min(...valuations) : 0;
+  const maxVal = valuations.length > 0 ? Math.max(...valuations) : 0;
   const range = maxVal - minVal;
 
   // Calculate expected value
-  const expectedValue = scenarioEntries.reduce((acc, s) => 
-    acc + (s.scenario.outputs.valuation.value as number) * s.scenario.probability, 0
-  );
+  const expectedValue = availableScenarios.reduce((acc, s) => {
+    const val = s.scenario?.outputs?.valuation?.value as number || 0;
+    const prob = s.scenario?.probability || 0;
+    return acc + val * prob;
+  }, 0);
 
   return (
     <section className="py-8 border-b border-border animate-fade-in">
@@ -101,7 +127,7 @@ export function DriverScenariosPanel({ scenarios }: DriverScenariosPanelProps) {
           </div>
 
           <div className="flex items-center border border-foreground">
-            {scenarioEntries.map(({ name, scenario }) => (
+            {availableScenarios.map(({ name, scenario }) => (
               <button
                 key={name}
                 onClick={() => setActiveScenario(name)}
@@ -114,7 +140,7 @@ export function DriverScenariosPanel({ scenarios }: DriverScenariosPanelProps) {
               >
                 {scenarioLabels[name]}
                 <span className="ml-2 text-[10px] opacity-60">
-                  {Math.round(scenario.probability * 100)}%
+                  {Math.round((scenario?.probability || 0) * 100)}%
                 </span>
               </button>
             ))}
@@ -131,7 +157,7 @@ export function DriverScenariosPanel({ scenarios }: DriverScenariosPanelProps) {
               <div className="text-right">
                 <span className="text-micro text-muted-foreground block">Range</span>
                 <span className="font-mono">
-                  {scenarios.downside.outputs.valuation.formatted} — {scenarios.upside.outputs.valuation.formatted}
+                  {scenarios.downside?.outputs?.valuation?.formatted || "N/A"} — {scenarios.upside?.outputs?.valuation?.formatted || "N/A"}
                 </span>
               </div>
               <div className="text-right">
@@ -145,8 +171,8 @@ export function DriverScenariosPanel({ scenarios }: DriverScenariosPanelProps) {
           
           {/* Visual range */}
           <div className="relative h-10 bg-secondary border border-border">
-            {scenarioEntries.map(({ name, scenario }) => {
-              const val = scenario.outputs.valuation.value as number;
+            {availableScenarios.map(({ name, scenario }) => {
+              const val = (scenario?.outputs?.valuation?.value as number) || 0;
               const position = range > 0 ? ((val - minVal) / range) * 100 : 50;
 
               return (
@@ -168,7 +194,7 @@ export function DriverScenariosPanel({ scenarios }: DriverScenariosPanelProps) {
                       {scenarioLabels[name]}
                     </span>
                     <span className="text-micro font-mono">
-                      {scenario.outputs.valuation.formatted}
+                      {scenario?.outputs?.valuation?.formatted || "N/A"}
                     </span>
                   </div>
                 </div>
@@ -256,15 +282,15 @@ export function DriverScenariosPanel({ scenarios }: DriverScenariosPanelProps) {
               {scenarioLabels[activeScenario]} Assumptions
             </h3>
             <div className="space-y-3">
-              {current.assumptions.map((assumption, i) => (
+              {(current?.assumptions || []).map((assumption, i) => (
                 <div
                   key={i}
                   className="flex items-center justify-between py-2 border-b border-border/50"
                 >
-                  <span className="text-sm">{assumption.key}</span>
+                  <span className="text-sm">{assumption?.key || ""}</span>
                   <div className="flex items-center gap-2">
                     <span className="font-mono text-sm bg-secondary px-2 py-1">
-                      {assumption.value}
+                      {assumption?.value || ""}
                     </span>
                     {activeScenario !== "base" && (
                       <span className="text-[10px] text-muted-foreground">
@@ -292,19 +318,19 @@ export function DriverScenariosPanel({ scenarios }: DriverScenariosPanelProps) {
                 <span className="text-micro uppercase tracking-ultra-wide text-muted-foreground block mb-1">
                   Revenue
                 </span>
-                <span className="font-mono text-xl">{current.outputs.revenue.formatted}</span>
+                <span className="font-mono text-xl">{current?.outputs?.revenue?.formatted || "N/A"}</span>
               </div>
               <div className="bg-card p-4">
                 <span className="text-micro uppercase tracking-ultra-wide text-muted-foreground block mb-1">
                   EBITDA
                 </span>
-                <span className="font-mono text-xl">{current.outputs.ebitda.formatted}</span>
+                <span className="font-mono text-xl">{current?.outputs?.ebitda?.formatted || "N/A"}</span>
               </div>
               <div className="bg-card p-4">
                 <span className="text-micro uppercase tracking-ultra-wide text-muted-foreground block mb-1">
                   Implied Valuation
                 </span>
-                <span className="font-mono text-2xl">{current.outputs.valuation.formatted}</span>
+                <span className="font-mono text-2xl">{current?.outputs?.valuation?.formatted || "N/A"}</span>
               </div>
             </div>
           </div>
