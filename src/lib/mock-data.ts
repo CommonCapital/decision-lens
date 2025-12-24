@@ -739,7 +739,7 @@ export const mockDashboardData: InvestorDashboard = {
       last_updated: "2024-12-14T09:00:00Z",
       confidence: 0,
       availability: "pending",
-      unavailable_reason: "Analyst consensus update expected after Q3 earnings cycle completes",
+      reason: "Analyst consensus update expected after Q3 earnings cycle completes",
       decision_context: {
         confidence_level: "low",
         sufficiency_status: "insufficient",
@@ -788,7 +788,7 @@ export const mockDashboardData: InvestorDashboard = {
       last_updated: "2024-12-14T08:00:00Z",
       confidence: 0,
       availability: "restricted",
-      unavailable_reason: "Credit agreement amendment in progress; terms under renegotiation",
+      reason: "Credit agreement amendment in progress; terms under renegotiation",
       decision_context: {
         confidence_level: "low",
         sufficiency_status: "insufficient",
