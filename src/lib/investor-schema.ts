@@ -135,6 +135,14 @@ const eventSchema = z.object({
 
 // === SCENARIO ===
 
+const scenarioDriverSchema = z.object({
+  name: z.string().nullable().optional(),
+  category: z.string().nullable().optional(),
+  value: z.string().nullable().optional(),
+  unit: z.string().nullable().optional(),
+  source: z.string().nullable().optional(),
+}).nullable().optional();
+
 const scenarioOutputsSchema = z.object({
   revenue: metricSchema,
   ebitda: metricSchema,
@@ -147,6 +155,7 @@ const singleScenarioSchema = z.object({
     key: z.string().nullable().optional(),
     value: z.string().nullable().optional(),
   })).nullable().optional(),
+  drivers: z.array(scenarioDriverSchema).nullable().optional(),
   outputs: scenarioOutputsSchema,
 }).nullable().optional();
 
@@ -295,3 +304,4 @@ export type MetricDefinition = z.infer<typeof metricDefinitionSchema>;
 export type SourceReference = z.infer<typeof sourceReferenceSchema>;
 export type Change = z.infer<typeof changeSchema>;
 export type Valuation = z.infer<typeof valuationSchema>;
+export type ScenarioDriver = z.infer<typeof scenarioDriverSchema>;

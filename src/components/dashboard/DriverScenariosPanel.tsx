@@ -1,4 +1,4 @@
-import { Scenarios, SingleScenario } from "@/lib/investor-schema";
+import { Scenarios, SingleScenario, ScenarioDriver } from "@/lib/investor-schema";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { EmptySection } from "./EmptySection";
@@ -14,28 +14,6 @@ interface DriverScenariosPanelProps {
 }
 
 type ScenarioName = "base" | "downside" | "upside";
-
-// Driver breakdown structure
-interface DriverBreakdown {
-  name: string;
-  category: "revenue" | "margin" | "other";
-  baseValue: string;
-  downsideValue: string;
-  upsideValue: string;
-  unit: string;
-  source: "fact" | "judgment";
-}
-
-// Mock driver breakdowns - would come from scenarios.drivers in full implementation
-const mockDrivers: DriverBreakdown[] = [
-  { name: "Units Shipped", category: "revenue", baseValue: "2.4M", downsideValue: "2.1M", upsideValue: "2.8M", unit: "units", source: "judgment" },
-  { name: "ASP", category: "revenue", baseValue: "$1,420", downsideValue: "$1,350", upsideValue: "$1,480", unit: "USD", source: "fact" },
-  { name: "Revenue Growth", category: "revenue", baseValue: "9.2%", downsideValue: "5.0%", upsideValue: "14.0%", unit: "%", source: "judgment" },
-  { name: "Gross Margin", category: "margin", baseValue: "42.5%", downsideValue: "39.0%", upsideValue: "44.0%", unit: "%", source: "judgment" },
-  { name: "EBITDA Margin", category: "margin", baseValue: "25.5%", downsideValue: "22.0%", upsideValue: "27.0%", unit: "%", source: "fact" },
-  { name: "CapEx % Rev", category: "other", baseValue: "4.5%", downsideValue: "5.0%", upsideValue: "4.0%", unit: "%", source: "fact" },
-  { name: "Working Capital Days", category: "other", baseValue: "45", downsideValue: "52", upsideValue: "40", unit: "days", source: "judgment" },
-];
 
 const scenarioLabels: Record<ScenarioName, string> = {
   base: "Base Case",
@@ -204,75 +182,126 @@ export function DriverScenariosPanel({ scenarios }: DriverScenariosPanelProps) {
         </div>
 
         {/* Driver Breakdown Table */}
-        {showDrivers && (
-          <div className="mb-8 border border-border">
-            <div className="grid grid-cols-5 gap-px bg-border">
-              <div className="bg-secondary p-3 text-micro uppercase tracking-ultra-wide text-muted-foreground">
-                Driver
+        {showDrivers && (() => {
+          // Build merged drivers from all scenarios
+          const baseDrivers = scenarios.base?.drivers || [];
+          const downsideDrivers = scenarios.downside?.drivers || [];
+          const upsideDrivers = scenarios.upside?.drivers || [];
+          
+          // Create a map of driver names across all scenarios
+          const driverNames = new Set<string>();
+          baseDrivers.forEach(d => d?.name && driverNames.add(d.name));
+          downsideDrivers.forEach(d => d?.name && driverNames.add(d.name));
+          upsideDrivers.forEach(d => d?.name && driverNames.add(d.name));
+          
+          const getDriverValue = (drivers: typeof baseDrivers, name: string) => {
+            const driver = drivers.find(d => d?.name === name);
+            return driver?.value || "N/A";
+          };
+          
+          const getDriverMeta = (drivers: typeof baseDrivers, name: string) => {
+            const driver = drivers.find(d => d?.name === name);
+            return {
+              category: driver?.category || "",
+              source: driver?.source || "",
+            };
+          };
+          
+          const driverNameList = Array.from(driverNames);
+          
+          if (driverNameList.length === 0) {
+            return (
+              <div className="mb-8 p-4 border border-border bg-secondary/20">
+                <p className="text-sm text-muted-foreground">No driver data available in scenarios.</p>
               </div>
-              <div className="bg-secondary p-3 text-micro uppercase tracking-ultra-wide text-muted-foreground text-center">
-                Downside
+            );
+          }
+          
+          return (
+            <div className="mb-8 border border-border">
+              <div className="grid grid-cols-5 gap-px bg-border">
+                <div className="bg-secondary p-3 text-micro uppercase tracking-ultra-wide text-muted-foreground">
+                  Driver
+                </div>
+                <div className="bg-secondary p-3 text-micro uppercase tracking-ultra-wide text-muted-foreground text-center">
+                  Downside
+                </div>
+                <div className="bg-secondary p-3 text-micro uppercase tracking-ultra-wide text-muted-foreground text-center font-medium">
+                  Base
+                </div>
+                <div className="bg-secondary p-3 text-micro uppercase tracking-ultra-wide text-muted-foreground text-center">
+                  Upside
+                </div>
+                <div className="bg-secondary p-3 text-micro uppercase tracking-ultra-wide text-muted-foreground text-center">
+                  Source
+                </div>
               </div>
-              <div className="bg-secondary p-3 text-micro uppercase tracking-ultra-wide text-muted-foreground text-center font-medium">
-                Base
-              </div>
-              <div className="bg-secondary p-3 text-micro uppercase tracking-ultra-wide text-muted-foreground text-center">
-                Upside
-              </div>
-              <div className="bg-secondary p-3 text-micro uppercase tracking-ultra-wide text-muted-foreground text-center">
-                Source
-              </div>
+              
+              {driverNameList.map((driverName, i) => {
+                const meta = getDriverMeta(baseDrivers, driverName) || 
+                             getDriverMeta(downsideDrivers, driverName) || 
+                             getDriverMeta(upsideDrivers, driverName);
+                const downsideValue = getDriverValue(downsideDrivers, driverName);
+                const baseValue = getDriverValue(baseDrivers, driverName);
+                const upsideValue = getDriverValue(upsideDrivers, driverName);
+                const source = meta.source || "";
+                const category = meta.category || "";
+                
+                return (
+                  <div key={i} className="grid grid-cols-5 gap-px bg-border">
+                    <div className="bg-card p-3 flex items-center gap-2">
+                      <span className="text-sm">{driverName}</span>
+                      {category && (
+                        <span className="text-[9px] px-1.5 py-0.5 bg-secondary text-muted-foreground uppercase">
+                          {category}
+                        </span>
+                      )}
+                    </div>
+                    <div className={cn(
+                      "bg-card p-3 text-center font-mono text-sm",
+                      activeScenario === "downside" ? "bg-foreground/5" : ""
+                    )}>
+                      <span className="text-muted-foreground">{downsideValue}</span>
+                    </div>
+                    <div className={cn(
+                      "bg-card p-3 text-center font-mono text-sm font-medium",
+                      activeScenario === "base" ? "bg-foreground/5" : ""
+                    )}>
+                      {baseValue}
+                    </div>
+                    <div className={cn(
+                      "bg-card p-3 text-center font-mono text-sm",
+                      activeScenario === "upside" ? "bg-foreground/5" : ""
+                    )}>
+                      <span className="text-muted-foreground">{upsideValue}</span>
+                    </div>
+                    <div className="bg-card p-3 text-center">
+                      {source && (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className={cn(
+                              "text-[10px] px-1.5 py-0.5 uppercase tracking-wide cursor-help",
+                              source === "fact" 
+                                ? "bg-foreground text-background" 
+                                : "bg-foreground/20 text-foreground border border-dashed border-foreground/30"
+                            )}>
+                              {source}
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            {source === "fact" 
+                              ? "Source-linked assumption from filings or verified data" 
+                              : "Judgment call - not source-linked"}
+                          </TooltipContent>
+                        </Tooltip>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-            
-            {mockDrivers.map((driver, i) => (
-              <div key={i} className="grid grid-cols-5 gap-px bg-border">
-                <div className="bg-card p-3 flex items-center gap-2">
-                  <span className="text-sm">{driver.name}</span>
-                  <span className="text-[9px] px-1.5 py-0.5 bg-secondary text-muted-foreground uppercase">
-                    {driver.category}
-                  </span>
-                </div>
-                <div className={cn(
-                  "bg-card p-3 text-center font-mono text-sm",
-                  activeScenario === "downside" ? "bg-foreground/5" : ""
-                )}>
-                  <span className="text-muted-foreground">{driver.downsideValue}</span>
-                </div>
-                <div className={cn(
-                  "bg-card p-3 text-center font-mono text-sm font-medium",
-                  activeScenario === "base" ? "bg-foreground/5" : ""
-                )}>
-                  {driver.baseValue}
-                </div>
-                <div className={cn(
-                  "bg-card p-3 text-center font-mono text-sm",
-                  activeScenario === "upside" ? "bg-foreground/5" : ""
-                )}>
-                  <span className="text-muted-foreground">{driver.upsideValue}</span>
-                </div>
-                <div className="bg-card p-3 text-center">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span className={cn(
-                        "text-[10px] px-1.5 py-0.5 uppercase tracking-wide cursor-help",
-                        driver.source === "fact" 
-                          ? "bg-foreground text-background" 
-                          : "bg-foreground/20 text-foreground border border-dashed border-foreground/30"
-                      )}>
-                        {driver.source}
-                      </span>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      {driver.source === "fact" 
-                        ? "Source-linked assumption from filings or verified data" 
-                        : "Judgment call - not source-linked"}
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+          );
+        })()}
 
         {/* Scenario Outputs */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
