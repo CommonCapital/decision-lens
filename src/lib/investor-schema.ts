@@ -100,7 +100,7 @@ const timeSeriesMetricSchema = z.object({
 
 const metricWithHistorySchema = z.object({
   current: metricSchema,
-  history: timeSeriesMetricSchema,
+  history: timeSeriesMetricSchema.optional().nullable(),
 }).nullable().optional();
 
 // === HYPOTHESIS ===
@@ -151,10 +151,10 @@ const singleScenarioSchema = z.object({
 }).nullable().optional();
 
 const scenariosSchema = z.object({
-  base: singleScenarioSchema,
-  downside: singleScenarioSchema,
-  upside: singleScenarioSchema,
-}).nullable().optional();
+  base: singleScenarioSchema.optional().nullable(),
+  downside: singleScenarioSchema.optional().nullable(),
+  upside: singleScenarioSchema.optional().nullable(),
+}).optional().nullable();
 
 // === RISK ===
 
@@ -260,14 +260,14 @@ export const investorDashboardSchema = z.object({
   ai_insights: z.array(hypothesisSchema).nullable().optional(),
 
   events: z.array(eventSchema).nullable().optional(),
-  scenarios: scenariosSchema,
-  risks: z.array(riskSchema).nullable().optional(),
+  scenarios: scenariosSchema.optional().nullable(),
+  risks: z.array(riskSchema).optional().nullable(),
 
   sources: z.array(z.object({
-    name: z.string().nullable().optional(),
-    type: z.string().nullable().optional(),
-    last_refresh: z.string().nullable().optional(),
-  })).nullable().optional(),
+    name: z.string(),
+    type: z.enum(["primary", "secondary"]),
+    last_refresh: z.string(),
+  })).optional().nullable(),
 
   run_data_quality: dataQualitySchema,
 }).passthrough();
