@@ -106,7 +106,7 @@ export const mockDashboardData: InvestorDashboard = {
     market_cap: createSimpleMetric(createBaseMetric(12800000000, "$12.8B", "Calculated")),
     pe_ratio: createSimpleMetric(createBaseMetric(28.4, "28.4x", "Calculated")),
     ev_ebitda: createSimpleMetric(createBaseMetric(12.4, "12.4x", "Calculated")),
-    target_price: createSimpleMetric({ ...createBaseMetric(0, "Pending", "Analyst Consensus"), availability: "pending", reason: "Analyst consensus update expected after Q3 earnings" }),
+    target_price: createSimpleMetric({ ...createBaseMetric(0, "Pending", "Analyst Consensus"), availability: "pending", unavailable_reason: "Analyst consensus update expected after Q3 earnings" }),
   },
 
   private_data: {
