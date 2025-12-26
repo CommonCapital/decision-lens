@@ -191,6 +191,79 @@ const changeSchema = z.object({
   action: z.string().nullable().optional(),
 }).nullable().optional();
 
+// === SEGMENT ===
+
+const segmentSchema = z.object({
+  segment_name: z.string().nullable().optional(),
+  revenue: z.object({ current: metricSchema }).nullable().optional(),
+  growth_percent: z.number().nullable().optional(),
+  margin_percent: z.number().nullable().optional(),
+}).nullable().optional();
+
+// === GUIDANCE BRIDGE ===
+
+const guidanceBridgeSchema = z.object({
+  metric: z.string().nullable().optional(),
+  company_guidance_low: z.number().nullable().optional(),
+  company_guidance_high: z.number().nullable().optional(),
+  consensus: z.number().nullable().optional(),
+  delta_to_consensus: z.number().nullable().optional(),
+}).nullable().optional();
+
+// === REVISIONS MOMENTUM ===
+
+const revisionsMomentumSchema = z.object({
+  eps_revisions_30d: z.number().nullable().optional(),
+  revenue_revisions_30d: z.number().nullable().optional(),
+  direction: z.string().nullable().optional(),
+}).nullable().optional();
+
+// === PUBLIC MARKET METRICS ===
+
+const publicMarketMetricsSchema = z.object({
+  net_cash_or_debt: z.object({ current: metricSchema }).nullable().optional(),
+  buyback_capacity: z.object({ current: metricSchema }).nullable().optional(),
+  sbc_percent_revenue: z.object({ current: metricSchema }).nullable().optional(),
+  share_count_trend: z.object({ current: metricSchema }).nullable().optional(),
+  segments: z.array(segmentSchema).nullable().optional(),
+  guidance_bridge: guidanceBridgeSchema,
+  revisions_momentum: revisionsMomentumSchema,
+}).nullable().optional();
+
+// === PATH INDICATOR ===
+
+const pathIndicatorSchema = z.object({
+  label: z.string().nullable().optional(),
+  value: z.string().nullable().optional(),
+  status: z.string().nullable().optional(),
+  next_check: z.string().nullable().optional(),
+}).nullable().optional();
+
+// === POSITION SIZING ===
+
+const positionSizingSchema = z.object({
+  current_percent: z.number().nullable().optional(),
+  max_percent: z.number().nullable().optional(),
+  target_low: z.number().nullable().optional(),
+  target_high: z.number().nullable().optional(),
+}).nullable().optional();
+
+// === VARIANT VIEW ===
+
+const variantViewSchema = z.object({
+  summary: z.string().nullable().optional(),
+  sensitivity: z.array(z.object({
+    label: z.string().nullable().optional(),
+    impact: z.string().nullable().optional(),
+  })).nullable().optional(),
+}).nullable().optional();
+
+// === KILL SWITCH ===
+
+const killSwitchSchema = z.object({
+  conditions: z.array(z.string()).nullable().optional(),
+}).nullable().optional();
+
 // === VALUATION ===
 
 const valuationSchema = z.object({
@@ -271,6 +344,12 @@ export const investorDashboardSchema = z.object({
   events: z.array(eventSchema).nullable().optional(),
   scenarios: scenariosSchema.optional().nullable(),
   risks: z.array(riskSchema).optional().nullable(),
+
+  public_market_metrics: publicMarketMetricsSchema,
+  path_indicators: z.array(pathIndicatorSchema).nullable().optional(),
+  position_sizing: positionSizingSchema,
+  variant_view: variantViewSchema,
+  kill_switch: killSwitchSchema,
 
   sources: z.array(z.object({
     name: z.string(),
