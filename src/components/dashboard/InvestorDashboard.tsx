@@ -76,12 +76,7 @@ export function InvestorDashboard({ data }: InvestorDashboardProps) {
         
         {/* Public Market Metrics - replaces private noise */}
         {mode === "public" && (
-          <PublicMarketMetrics 
-            data={null} 
-            segments={null}
-            guidance_bridge={null}
-            revisions_momentum={null}
-          />
+          <PublicMarketMetrics data={data.public_market_metrics} />
         )}
         
         {/* Valuation Engine */}
