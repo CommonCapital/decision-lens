@@ -144,6 +144,56 @@ export const mockDashboardData: InvestorDashboard = {
     { id: "risk-3", category: "financial", title: "Input Cost Inflation", description: "Raw material costs up 12% YoY", severity: "medium", trigger: "Margin compression >100bps", mitigation: "Price increases implemented Q4" },
   ],
 
+  public_market_metrics: {
+    net_cash_or_debt: createSimpleMetric(createBaseMetric(1200000000, "$1.2B Net Cash", "10-Q Balance Sheet")),
+    buyback_capacity: createSimpleMetric(createBaseMetric(500000000, "$500M", "Board Authorization")),
+    sbc_percent_revenue: createSimpleMetric(createBaseMetric(4.2, "4.2%", "Calculated from 10-Q")),
+    share_count_trend: createSimpleMetric(createBaseMetric(-1.2, "-1.2% YoY", "Share Count History")),
+    segments: [
+      { segment_name: "Industrial", growth_percent: 14.2, margin_percent: 28.5 },
+      { segment_name: "Commercial", growth_percent: 8.1, margin_percent: 22.3 },
+      { segment_name: "Services", growth_percent: 18.5, margin_percent: 35.2 },
+    ],
+    guidance_bridge: {
+      metric: "FY24 Revenue",
+      company_guidance_low: 3520,
+      company_guidance_high: 3580,
+      consensus: 3545,
+      delta_to_consensus: 0.3,
+    },
+    revisions_momentum: {
+      eps_revisions_30d: 4,
+      revenue_revisions_30d: 3,
+      direction: "up",
+    },
+  },
+
+  path_indicators: [
+    { label: "Revenue vs Plan", value: "+2.0% ahead", status: "on_track", next_check: "Q4 Earnings" },
+    { label: "Margin Trajectory", value: "25.1% (target: 26%)", status: "on_track", next_check: "Monthly" },
+    { label: "Market Share", value: "Gaining (+$200M TAM)", status: "on_track", next_check: "Quarterly" },
+    { label: "Order Book", value: "Pending Q4 disclosure", status: "at_risk", next_check: "Jan 15" },
+  ],
+
+  position_sizing: {
+    current_percent: 6,
+    max_percent: 10,
+    target_low: 5,
+    target_high: 8,
+  },
+
+  variant_view: {
+    summary: "Market underestimates margin expansion from competitor exit and operating leverage. Consensus EPS catching up but still 3-5% below our model.",
+    sensitivity: [
+      { label: "EBITDA ±1pp", impact: "±$0.8B EV" },
+      { label: "Multiple ±1x", impact: "±$0.9B EV" },
+    ],
+  },
+
+  kill_switch: {
+    conditions: ["Thesis pillar broken", "Customer loss confirmed", "Margin <20%"],
+  },
+
   sources: [
     { name: "SEC EDGAR", type: "primary", last_refresh: "2024-12-14T06:00:00Z" },
     { name: "Bloomberg Terminal", type: "primary", last_refresh: "2024-12-14T09:00:00Z" },
