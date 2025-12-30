@@ -1,12 +1,16 @@
 import { z } from "zod";
 
-// === CORE ENUMS (flexible with fallback to string) ===
+// === CORE ENUMS ===
+
+export const companyTypeSchema = z.enum(["public", "private"]);
 
 const tieOutStatusSchema = z.string().nullable().optional();
-
 const availabilityStatusSchema = z.string().nullable().optional();
-
 export const timeHorizonSchema = z.enum(["1D", "1W", "1M", "1Y", "5Y", "10Y"]);
+
+// === EBITDA AVAILABILITY ===
+
+const ebitdaAvailabilitySchema = z.enum(["reported", "proxy", "not_applicable"]);
 
 // === DATA QUALITY ===
 
@@ -191,45 +195,6 @@ const changeSchema = z.object({
   action: z.string().nullable().optional(),
 }).nullable().optional();
 
-// === SEGMENT ===
-
-const segmentSchema = z.object({
-  segment_name: z.string().nullable().optional(),
-  revenue: z.object({ current: metricSchema }).nullable().optional(),
-  growth_percent: z.number().nullable().optional(),
-  margin_percent: z.number().nullable().optional(),
-}).nullable().optional();
-
-// === GUIDANCE BRIDGE ===
-
-const guidanceBridgeSchema = z.object({
-  metric: z.string().nullable().optional(),
-  company_guidance_low: z.number().nullable().optional(),
-  company_guidance_high: z.number().nullable().optional(),
-  consensus: z.number().nullable().optional(),
-  delta_to_consensus: z.number().nullable().optional(),
-}).nullable().optional();
-
-// === REVISIONS MOMENTUM ===
-
-const revisionsMomentumSchema = z.object({
-  eps_revisions_30d: z.number().nullable().optional(),
-  revenue_revisions_30d: z.number().nullable().optional(),
-  direction: z.string().nullable().optional(),
-}).nullable().optional();
-
-// === PUBLIC MARKET METRICS ===
-
-const publicMarketMetricsSchema = z.object({
-  net_cash_or_debt: z.object({ current: metricSchema }).nullable().optional(),
-  buyback_capacity: z.object({ current: metricSchema }).nullable().optional(),
-  sbc_percent_revenue: z.object({ current: metricSchema }).nullable().optional(),
-  share_count_trend: z.object({ current: metricSchema }).nullable().optional(),
-  segments: z.array(segmentSchema).nullable().optional(),
-  guidance_bridge: guidanceBridgeSchema,
-  revisions_momentum: revisionsMomentumSchema,
-}).nullable().optional();
-
 // === PATH INDICATOR ===
 
 const pathIndicatorSchema = z.object({
@@ -292,16 +257,93 @@ const valuationSchema = z.object({
   }).nullable().optional(),
 }).nullable().optional();
 
+// === BASE METRICS (ATOMIC, NON-DERIVABLE) ===
+
+const baseMetricsSchema = z.object({
+  // Market / Price Base
+  market_cap: z.number().nullable().optional(),
+  stock_price: z.number().nullable().optional(),
+  shares_outstanding: z.number().nullable().optional(),
+  
+  // Balance Sheet
+  total_debt: z.number().nullable().optional(),
+  preferred_stock: z.number().nullable().optional(),
+  minority_interest: z.number().nullable().optional(),
+  cash: z.number().nullable().optional(),
+  marketable_securities: z.number().nullable().optional(),
+  current_assets: z.number().nullable().optional(),
+  current_liabilities: z.number().nullable().optional(),
+  accounts_receivable: z.number().nullable().optional(),
+  
+  // Income Statement
+  revenue: z.number().nullable().optional(),
+  revenue_prior: z.number().nullable().optional(),
+  gross_profit: z.number().nullable().optional(),
+  operating_income: z.number().nullable().optional(),
+  depreciation_amortization: z.number().nullable().optional(),
+  interest_expense: z.number().nullable().optional(),
+  
+  // EBITDA (dual structure)
+  ebitda_reported: z.number().nullable().optional(),
+  ebitda_proxy: z.number().nullable().optional(),
+  ebitda_availability: ebitdaAvailabilitySchema.nullable().optional(),
+  
+  // Cash Flow
+  free_cash_flow: z.number().nullable().optional(),
+  net_burn: z.number().nullable().optional(),
+  
+  // Operational
+  headcount: z.number().nullable().optional(),
+  rd_spend: z.number().nullable().optional(),
+  sm_spend: z.number().nullable().optional(),
+  sm_spend_prior: z.number().nullable().optional(),
+  
+  // SaaS / Subscription
+  arr: z.number().nullable().optional(),
+  arr_prior: z.number().nullable().optional(),
+  new_arr: z.number().nullable().optional(),
+  expansion_arr: z.number().nullable().optional(),
+  contraction_arr: z.number().nullable().optional(),
+  churned_arr: z.number().nullable().optional(),
+  monthly_churn_percent: z.number().nullable().optional(),
+  cac: z.number().nullable().optional(),
+  arpa: z.number().nullable().optional(),
+  gross_margin_percent: z.number().nullable().optional(),
+  
+  // Customer Metrics
+  customer_count: z.number().nullable().optional(),
+  top_customer_revenue_percent: z.number().nullable().optional(),
+  top_3_customer_revenue_percent: z.number().nullable().optional(),
+  top_10_customer_revenue_percent: z.number().nullable().optional(),
+  
+  // Supplier Concentration
+  top_supplier_spend_percent: z.number().nullable().optional(),
+  top_5_supplier_spend_percent: z.number().nullable().optional(),
+}).nullable().optional();
+
 // === MAIN SCHEMA ===
 
 export const investorDashboardSchema = z.object({
+  // Company Classification
+  company_type: companyTypeSchema,
+  
   run_metadata: z.object({
     run_id: z.string().nullable().optional(),
     entity: z.string().nullable().optional(),
     ticker: z.string().nullable().optional(),
-    mode: z.string().nullable().optional(),
     timestamp: z.string().nullable().optional(),
     owner: z.string().nullable().optional(),
+  }).nullable().optional(),
+
+  // Base Metrics (atomic, non-derivable)
+  base_metrics: baseMetricsSchema,
+  
+  // Time series for charting
+  time_series: z.object({
+    stock_price: timeSeriesMetricSchema,
+    revenue: timeSeriesMetricSchema,
+    ebitda: timeSeriesMetricSchema,
+    volume: timeSeriesMetricSchema,
   }).nullable().optional(),
 
   changes_since_last_run: z.array(changeSchema).nullable().optional(),
@@ -314,28 +356,6 @@ export const investorDashboardSchema = z.object({
     thesis_status: z.string().nullable().optional(),
   }).nullable().optional(),
 
-  financials: z.object({
-    revenue: metricWithHistorySchema,
-    revenue_growth: z.object({ current: metricSchema }).nullable().optional(),
-    ebitda: metricWithHistorySchema,
-    ebitda_margin: z.object({ current: metricSchema }).nullable().optional(),
-    free_cash_flow: z.object({ current: metricSchema }).nullable().optional(),
-  }).nullable().optional(),
-
-  market_data: z.object({
-    stock_price: metricWithHistorySchema,
-    volume: metricWithHistorySchema,
-    market_cap: z.object({ current: metricSchema }).nullable().optional(),
-    pe_ratio: z.object({ current: metricSchema }).nullable().optional(),
-    ev_ebitda: z.object({ current: metricSchema }).nullable().optional(),
-    target_price: z.object({ current: metricSchema }).nullable().optional(),
-  }).nullable().optional(),
-
-  private_data: z.object({
-    valuation_mark: z.object({ current: metricSchema }).nullable().optional(),
-    net_leverage: z.object({ current: metricSchema }).nullable().optional(),
-  }).nullable().optional(),
-
   valuation: valuationSchema,
 
   hypotheses: z.array(hypothesisSchema).nullable().optional(),
@@ -345,7 +365,6 @@ export const investorDashboardSchema = z.object({
   scenarios: scenariosSchema.optional().nullable(),
   risks: z.array(riskSchema).optional().nullable(),
 
-  public_market_metrics: publicMarketMetricsSchema,
   path_indicators: z.array(pathIndicatorSchema).nullable().optional(),
   position_sizing: positionSizingSchema,
   variant_view: variantViewSchema,
@@ -362,6 +381,7 @@ export const investorDashboardSchema = z.object({
 
 // === TYPE EXPORTS ===
 
+export type CompanyType = z.infer<typeof companyTypeSchema>;
 export type InvestorDashboard = z.infer<typeof investorDashboardSchema>;
 export type Metric = z.infer<typeof metricSchema>;
 export type MetricWithHistory = z.infer<typeof metricWithHistorySchema>;
@@ -384,3 +404,5 @@ export type SourceReference = z.infer<typeof sourceReferenceSchema>;
 export type Change = z.infer<typeof changeSchema>;
 export type Valuation = z.infer<typeof valuationSchema>;
 export type ScenarioDriver = z.infer<typeof scenarioDriverSchema>;
+export type BaseMetrics = z.infer<typeof baseMetricsSchema>;
+export type EbitdaAvailability = z.infer<typeof ebitdaAvailabilitySchema>;

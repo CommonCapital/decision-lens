@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { InvestorDashboard as InvestorDashboardType } from "@/lib/investor-schema";
 import { useTimeHorizon } from "@/hooks/use-time-horizon";
 import { RunHeader } from "./RunHeader";
@@ -8,7 +7,6 @@ import { TimeSeriesSection } from "./TimeSeriesSection";
 import { AIInsightsPanel } from "./AIInsightsPanel";
 import { FinancialsGrid } from "./FinancialsGrid";
 import { PricePathProtection } from "./PricePathProtection";
-import { PublicMarketMetrics } from "./PublicMarketMetrics";
 import { ValuationSection } from "./ValuationSection";
 import { EventsTimeline } from "./EventsTimeline";
 import { DriverScenariosPanel } from "./DriverScenariosPanel";
@@ -21,40 +19,35 @@ interface InvestorDashboardProps {
 }
 
 export function InvestorDashboard({ data }: InvestorDashboardProps) {
-  const [mode, setMode] = useState<"public" | "private">((data.run_metadata?.mode as "public" | "private") || "public");
-  
   const { 
     horizon, 
     setHorizon, 
     isTransitioning 
   } = useTimeHorizon();
 
+  const isPublic = data.company_type === "public";
+
   return (
     <div className="min-h-screen bg-background">
       <RunHeader
         metadata={data.run_metadata}
-        mode={mode}
-        onModeChange={setMode}
+        companyType={data.company_type}
       />
 
       <main>
-        {/* What Changed Since Last Run - TOP OF DASHBOARD */}
         <ChangesSection changes={data.changes_since_last_run} />
         
-        {/* Decision Sufficiency Assessment */}
         <section className="py-6 px-6 border-b border-border">
           <DecisionSufficiency data={data} />
         </section>
         
         <ExecutiveSummary summary={data.executive_summary} />
         
-        {/* Price → Path → Protection Framework */}
-        {mode === "public" && (
+        {isPublic && (
           <PricePathProtection data={data} />
         )}
         
-        {/* Time-Series Section with functional horizon controls */}
-        {mode === "public" && data.market_data && (
+        {isPublic && data.time_series && (
           <TimeSeriesSection
             data={data}
             horizon={horizon}
@@ -63,7 +56,6 @@ export function InvestorDashboard({ data }: InvestorDashboardProps) {
           />
         )}
         
-        {/* AI Insights / Hypotheses Panel */}
         {((data.ai_insights && data.ai_insights.length > 0) || (data.hypotheses && data.hypotheses.length > 0)) && (
           <AIInsightsPanel
             insights={data.ai_insights || data.hypotheses || []}
@@ -72,28 +64,19 @@ export function InvestorDashboard({ data }: InvestorDashboardProps) {
           />
         )}
         
-        <FinancialsGrid data={data} mode={mode} />
+        <FinancialsGrid data={data} />
         
-        {/* Public Market Metrics - replaces private noise */}
-        {mode === "public" && (
-          <PublicMarketMetrics data={data.public_market_metrics} />
-        )}
-        
-        {/* Valuation Engine */}
         <ValuationSection valuation={data.valuation} />
         
         <EventsTimeline events={data.events} />
         
-        {/* Driver-Based Scenarios - replaces thin scenario panel */}
         <DriverScenariosPanel scenarios={data.scenarios} />
         
-        {/* Enhanced Risks as Tradable Objects */}
         <RisksPanel risks={data.risks} />
         
         <DataLineage sources={data.sources} />
       </main>
 
-      {/* Footer */}
       <footer className="border-t border-border py-6 px-6">
         <div className="flex items-center justify-between text-micro text-muted-foreground">
           <span>

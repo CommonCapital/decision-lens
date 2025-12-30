@@ -1,12 +1,35 @@
 import { InvestorDashboard } from "@/lib/investor-schema";
-import { UncertainMetric } from "./UncertainMetric";
+import { 
+  calcRevenueGrowth, 
+  calcGrossMargin, 
+  calcOperatingMargin,
+  calcFCFMargin,
+  calcRevenuePerEmployee,
+  calcRDIntensity,
+  getEBITDADisplay,
+  formatCurrency,
+  formatPercent
+} from "@/lib/kpi-calculations";
+import { FormulaMetricCard } from "./FormulaMetricCard";
 
 interface FinancialsGridProps {
   data: InvestorDashboard;
-  mode: "public" | "private";
 }
 
-export function FinancialsGrid({ data, mode }: FinancialsGridProps) {
+export function FinancialsGrid({ data }: FinancialsGridProps) {
+  const m = data.base_metrics;
+  
+  // Get EBITDA with proper display
+  const ebitdaDisplay = getEBITDADisplay(m);
+  
+  // Calculate derived KPIs
+  const revenueGrowth = calcRevenueGrowth(m);
+  const grossMargin = calcGrossMargin(m);
+  const operatingMargin = calcOperatingMargin(m);
+  const fcfMargin = calcFCFMargin(m);
+  const revenuePerEmployee = calcRevenuePerEmployee(m);
+  const rdIntensity = calcRDIntensity(m);
+
   return (
     <section className="py-8 border-b border-border animate-fade-in">
       <div className="px-6">
@@ -14,58 +37,69 @@ export function FinancialsGrid({ data, mode }: FinancialsGridProps) {
           Financial & Operating Metrics
         </h2>
 
-        {/* Core financials */}
+        {/* Core financials - Base Metrics */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-px bg-border mb-6">
-          <UncertainMetric
+          <FormulaMetricCard
             label="Revenue"
-            metric={data.financials?.revenue}
+            value={formatCurrency(m?.revenue ?? null)}
+            source="10-Q Filing"
             size="lg"
-            className="bg-card"
           />
-          <UncertainMetric
+          <FormulaMetricCard
             label="Revenue Growth"
-            metric={data.financials?.revenue_growth}
-            className="bg-card"
+            value={revenueGrowth.formatted}
+            formula={revenueGrowth.formula}
+            inputs={revenueGrowth.inputs}
           />
-          <UncertainMetric
-            label="EBITDA"
-            metric={data.financials?.ebitda}
+          <FormulaMetricCard
+            label={ebitdaDisplay.isProxy ? "EBITDA (Proxy)" : "EBITDA"}
+            value={formatCurrency(ebitdaDisplay.value)}
+            source={ebitdaDisplay.label}
             size="lg"
-            className="bg-card"
           />
-          <UncertainMetric
-            label="EBITDA Margin"
-            metric={data.financials?.ebitda_margin}
-            className="bg-card"
+          <FormulaMetricCard
+            label="Gross Margin"
+            value={grossMargin.formatted}
+            formula={grossMargin.formula}
+            inputs={grossMargin.inputs}
           />
-          <UncertainMetric
+          <FormulaMetricCard
             label="Free Cash Flow"
-            metric={data.financials?.free_cash_flow}
-            className="bg-card"
+            value={formatCurrency(m?.free_cash_flow ?? null)}
+            source="Cash Flow Statement"
           />
         </div>
 
-        {/* Mode-specific metrics - Only show if in proprietary mode */}
-        {mode === "private" && data.private_data && (
-          <>
-            <h3 className="text-micro uppercase tracking-ultra-wide text-muted-foreground font-sans mb-4 mt-8">
-              Proprietary Metrics
-            </h3>
-            <div className="grid grid-cols-2 gap-px bg-border">
-              <UncertainMetric
-                label="Valuation Mark"
-                metric={data.private_data?.valuation_mark}
-                size="lg"
-                className="bg-card"
-              />
-              <UncertainMetric
-                label="Net Leverage"
-                metric={data.private_data?.net_leverage}
-                className="bg-card"
-              />
-            </div>
-          </>
-        )}
+        {/* Derived Metrics - Second Row */}
+        <h3 className="text-micro uppercase tracking-ultra-wide text-muted-foreground font-sans mb-4 mt-8">
+          Operating Efficiency
+        </h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-border">
+          <FormulaMetricCard
+            label="Operating Margin"
+            value={operatingMargin.formatted}
+            formula={operatingMargin.formula}
+            inputs={operatingMargin.inputs}
+          />
+          <FormulaMetricCard
+            label="FCF Margin"
+            value={fcfMargin.formatted}
+            formula={fcfMargin.formula}
+            inputs={fcfMargin.inputs}
+          />
+          <FormulaMetricCard
+            label="Revenue / Employee"
+            value={revenuePerEmployee.formatted}
+            formula={revenuePerEmployee.formula}
+            inputs={revenuePerEmployee.inputs}
+          />
+          <FormulaMetricCard
+            label="R&D Intensity"
+            value={rdIntensity.formatted}
+            formula={rdIntensity.formula}
+            inputs={rdIntensity.inputs}
+          />
+        </div>
       </div>
     </section>
   );

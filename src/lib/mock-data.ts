@@ -1,12 +1,4 @@
-import { InvestorDashboard, Metric, MetricWithHistory, TimeSeriesMetric, AIInsight } from "./investor-schema";
-
-function createSimpleMetric(metric: Metric): { current: Metric } {
-  return { current: metric };
-}
-
-function createMetricWithHistory(current: Metric, history: TimeSeriesMetric | null): MetricWithHistory {
-  return { current, history };
-}
+import { InvestorDashboard, AIInsight, TimeSeriesMetric } from "./investor-schema";
 
 const stockPriceHistory: TimeSeriesMetric = {
   horizons: {
@@ -72,12 +64,88 @@ const hypotheses: AIInsight[] = [
   { id: "ai-5", type: "analysis", confidence_band: "medium", title: "Competitive Moat Assessment", summary: "Market share gains sustainable. IP portfolio widening.", source: "Competitive Intelligence", generated_at: "2024-12-14T09:00:00Z", horizon_relevance: ["5Y", "10Y"], impact_score: 0.7, action_required: false },
 ];
 
-const createBaseMetric = (value: number | string, formatted: string, source: string): Metric => ({
-  value, formatted, source, tie_out_status: "final", last_updated: "2024-12-14T08:00:00Z", confidence: 95, availability: "available",
-});
-
 export const mockDashboardData: InvestorDashboard = {
-  run_metadata: { run_id: "RUN-2024-1214-001", entity: "Meridian Holdings Corp", ticker: "MHC", mode: "public", timestamp: "2024-12-14T09:00:00Z", owner: "Sarah Chen, CFA" },
+  // Company Classification
+  company_type: "public",
+  
+  run_metadata: { 
+    run_id: "RUN-2024-1214-001", 
+    entity: "Meridian Holdings Corp", 
+    ticker: "MHC", 
+    timestamp: "2024-12-14T09:00:00Z", 
+    owner: "Sarah Chen, CFA" 
+  },
+  
+  // BASE METRICS (ATOMIC, NON-DERIVABLE)
+  base_metrics: {
+    // Market / Price Base
+    market_cap: 12800000000,
+    stock_price: 127.45,
+    shares_outstanding: 100400000,
+    
+    // Balance Sheet
+    total_debt: 450000000,
+    preferred_stock: 0,
+    minority_interest: 25000000,
+    cash: 1200000000,
+    marketable_securities: 180000000,
+    current_assets: 2100000000,
+    current_liabilities: 890000000,
+    accounts_receivable: 420000000,
+    
+    // Income Statement
+    revenue: 892000000,
+    revenue_prior: 817000000,
+    gross_profit: 446000000,
+    operating_income: 198000000,
+    depreciation_amortization: 26000000,
+    interest_expense: 18000000,
+    
+    // EBITDA (dual structure) - Reported is available
+    ebitda_reported: 224000000,
+    ebitda_proxy: null,
+    ebitda_availability: "reported",
+    
+    // Cash Flow
+    free_cash_flow: 158000000,
+    net_burn: null,
+    
+    // Operational
+    headcount: 4850,
+    rd_spend: 89000000,
+    sm_spend: 134000000,
+    sm_spend_prior: 128000000,
+    
+    // SaaS / Subscription (N/A for this industrial company)
+    arr: null,
+    arr_prior: null,
+    new_arr: null,
+    expansion_arr: null,
+    contraction_arr: null,
+    churned_arr: null,
+    monthly_churn_percent: null,
+    cac: null,
+    arpa: null,
+    gross_margin_percent: 50.0,
+    
+    // Customer Metrics
+    customer_count: 2400,
+    top_customer_revenue_percent: 14,
+    top_3_customer_revenue_percent: 34,
+    top_10_customer_revenue_percent: 52,
+    
+    // Supplier Concentration
+    top_supplier_spend_percent: 8,
+    top_5_supplier_spend_percent: 28,
+  },
+  
+  // Time Series for charting
+  time_series: {
+    stock_price: stockPriceHistory,
+    revenue: revenueHistory,
+    ebitda: ebitdaHistory,
+    volume: volumeHistory,
+  },
   
   changes_since_last_run: [
     { id: "CHG-001", timestamp: "2024-12-12T16:00:00Z", category: "filing", title: "Q3 10-Q Filed with Raised Guidance", description: "Company raised FY24 revenue guidance.", source_url: "https://sec.gov/...", thesis_pillar: "path", so_what: "Confirms operational momentum.", action: "Update model assumptions" },
@@ -90,28 +158,6 @@ export const mockDashboardData: InvestorDashboard = {
     implications: ["Valuation upside of 12-18% in base case", "Market share gains accelerating"],
     key_risks: ["Customer concentration: top 3 = 34% of revenue", "Management succession uncertainty"],
     thesis_status: "intact",
-  },
-
-  financials: {
-    revenue: createMetricWithHistory(createBaseMetric(892000000, "$892M", "10-Q Filing"), revenueHistory),
-    revenue_growth: createSimpleMetric(createBaseMetric(9.2, "9.2%", "Calculated")),
-    ebitda: createMetricWithHistory(createBaseMetric(224000000, "$224M", "10-Q Filing"), ebitdaHistory),
-    ebitda_margin: createSimpleMetric(createBaseMetric(25.1, "25.1%", "Calculated")),
-    free_cash_flow: createSimpleMetric(createBaseMetric(158000000, "$158M", "Calculated")),
-  },
-
-  market_data: {
-    stock_price: createMetricWithHistory(createBaseMetric(127.45, "$127.45", "Bloomberg"), stockPriceHistory),
-    volume: createMetricWithHistory(createBaseMetric(1520000, "1.52M", "Bloomberg"), volumeHistory),
-    market_cap: createSimpleMetric(createBaseMetric(12800000000, "$12.8B", "Calculated")),
-    pe_ratio: createSimpleMetric(createBaseMetric(28.4, "28.4x", "Calculated")),
-    ev_ebitda: createSimpleMetric(createBaseMetric(12.4, "12.4x", "Calculated")),
-    target_price: createSimpleMetric({ ...createBaseMetric(0, "Pending", "Analyst Consensus"), availability: "pending", unavailable_reason: "Analyst consensus update expected after Q3 earnings" }),
-  },
-
-  private_data: {
-    valuation_mark: createSimpleMetric(createBaseMetric(14500000000, "$14.5B", "Internal Model")),
-    net_leverage: createSimpleMetric(createBaseMetric(1.8, "1.8x", "Calculated")),
   },
 
   valuation: {
@@ -133,9 +179,9 @@ export const mockDashboardData: InvestorDashboard = {
   ],
 
   scenarios: {
-    base: { probability: 0.6, assumptions: [{ key: "Revenue Growth", value: "9%" }, { key: "EBITDA Margin", value: "25.5%" }], outputs: { revenue: createBaseMetric(3550000000, "$3.55B", "Model"), ebitda: createBaseMetric(905000000, "$905M", "Model"), valuation: createBaseMetric(14500000000, "$14.5B", "DCF") } },
-    downside: { probability: 0.25, assumptions: [{ key: "Revenue Growth", value: "5%" }, { key: "EBITDA Margin", value: "22%" }], outputs: { revenue: createBaseMetric(3280000000, "$3.28B", "Model"), ebitda: createBaseMetric(722000000, "$722M", "Model"), valuation: createBaseMetric(11200000000, "$11.2B", "DCF") } },
-    upside: { probability: 0.15, assumptions: [{ key: "Revenue Growth", value: "14%" }, { key: "EBITDA Margin", value: "27%" }], outputs: { revenue: createBaseMetric(3850000000, "$3.85B", "Model"), ebitda: createBaseMetric(1040000000, "$1.04B", "Model"), valuation: createBaseMetric(17800000000, "$17.8B", "DCF") } },
+    base: { probability: 0.6, assumptions: [{ key: "Revenue Growth", value: "9%" }, { key: "EBITDA Margin", value: "25.5%" }], outputs: { revenue: { value: 3550000000, formatted: "$3.55B", source: "Model" }, ebitda: { value: 905000000, formatted: "$905M", source: "Model" }, valuation: { value: 14500000000, formatted: "$14.5B", source: "DCF" } } },
+    downside: { probability: 0.25, assumptions: [{ key: "Revenue Growth", value: "5%" }, { key: "EBITDA Margin", value: "22%" }], outputs: { revenue: { value: 3280000000, formatted: "$3.28B", source: "Model" }, ebitda: { value: 722000000, formatted: "$722M", source: "Model" }, valuation: { value: 11200000000, formatted: "$11.2B", source: "DCF" } } },
+    upside: { probability: 0.15, assumptions: [{ key: "Revenue Growth", value: "14%" }, { key: "EBITDA Margin", value: "27%" }], outputs: { revenue: { value: 3850000000, formatted: "$3.85B", source: "Model" }, ebitda: { value: 1040000000, formatted: "$1.04B", source: "Model" }, valuation: { value: 17800000000, formatted: "$17.8B", source: "DCF" } } },
   },
 
   risks: [
@@ -143,30 +189,6 @@ export const mockDashboardData: InvestorDashboard = {
     { id: "risk-2", category: "operational", title: "Management Succession", description: "CEO is 67 years old with no public succession plan", severity: "medium", trigger: "CEO departure announcement", mitigation: "Board engaged executive search firm" },
     { id: "risk-3", category: "financial", title: "Input Cost Inflation", description: "Raw material costs up 12% YoY", severity: "medium", trigger: "Margin compression >100bps", mitigation: "Price increases implemented Q4" },
   ],
-
-  public_market_metrics: {
-    net_cash_or_debt: createSimpleMetric(createBaseMetric(1200000000, "$1.2B Net Cash", "10-Q Balance Sheet")),
-    buyback_capacity: createSimpleMetric(createBaseMetric(500000000, "$500M", "Board Authorization")),
-    sbc_percent_revenue: createSimpleMetric(createBaseMetric(4.2, "4.2%", "Calculated from 10-Q")),
-    share_count_trend: createSimpleMetric(createBaseMetric(-1.2, "-1.2% YoY", "Share Count History")),
-    segments: [
-      { segment_name: "Industrial", growth_percent: 14.2, margin_percent: 28.5 },
-      { segment_name: "Commercial", growth_percent: 8.1, margin_percent: 22.3 },
-      { segment_name: "Services", growth_percent: 18.5, margin_percent: 35.2 },
-    ],
-    guidance_bridge: {
-      metric: "FY24 Revenue",
-      company_guidance_low: 3520,
-      company_guidance_high: 3580,
-      consensus: 3545,
-      delta_to_consensus: 0.3,
-    },
-    revisions_momentum: {
-      eps_revisions_30d: 4,
-      revenue_revisions_30d: 3,
-      direction: "up",
-    },
-  },
 
   path_indicators: [
     { label: "Revenue vs Plan", value: "+2.0% ahead", status: "on_track", next_check: "Q4 Earnings" },
