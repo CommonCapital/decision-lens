@@ -16,13 +16,20 @@ interface FinancialsGridProps {
   data: InvestorDashboard;
 }
 
+// Source references for traceability
+const SOURCES = {
+  bloomberg: { document: "Bloomberg Terminal", last_updated: "2024-12-14T09:00:00Z" },
+  tenQ: { document: "10-Q Filing", line: "Consolidated Statements", xbrl_tag: "us-gaap:Revenues", last_updated: "2024-12-14T06:00:00Z" },
+  tenQBalanceSheet: { document: "10-Q Filing", line: "Balance Sheet", last_updated: "2024-12-14T06:00:00Z" },
+  tenQCashFlow: { document: "10-Q Filing", line: "Cash Flow Statement", xbrl_tag: "us-gaap:NetCashProvidedByUsedInOperatingActivities", last_updated: "2024-12-14T06:00:00Z" },
+  calculated: { document: "Calculated", last_updated: new Date().toISOString() },
+  managementReconciliation: { document: "Management EBITDA Reconciliation", line: "Non-GAAP Exhibit", last_updated: "2024-12-14T06:00:00Z" },
+};
+
 export function FinancialsGrid({ data }: FinancialsGridProps) {
   const m = data.base_metrics;
   
-  // Get EBITDA with proper display
   const ebitdaDisplay = getEBITDADisplay(m);
-  
-  // Calculate derived KPIs
   const revenueGrowth = calcRevenueGrowth(m);
   const grossMargin = calcGrossMargin(m);
   const operatingMargin = calcOperatingMargin(m);
@@ -31,6 +38,17 @@ export function FinancialsGrid({ data }: FinancialsGridProps) {
   const rdIntensity = calcRDIntensity(m);
   const ev = calcEnterpriseValue(m);
 
+  // Add source references to formula inputs
+  const addSources = (inputs: { name: string; value: number | null; formatted: string }[]) => {
+    return inputs.map(input => ({
+      ...input,
+      source: input.name.includes("Revenue") ? SOURCES.tenQ :
+              input.name.includes("Debt") || input.name.includes("Cash") || input.name.includes("Market Cap") ? SOURCES.tenQBalanceSheet :
+              input.name.includes("Profit") || input.name.includes("Income") ? SOURCES.tenQ :
+              SOURCES.calculated
+    }));
+  };
+
   return (
     <section className="py-8 border-b border-border animate-fade-in">
       <div className="px-6">
@@ -38,7 +56,7 @@ export function FinancialsGrid({ data }: FinancialsGridProps) {
           Financial & Operating Metrics
         </h2>
 
-        {/* Market Metrics - Stock Price, Market Cap */}
+        {/* Market Metrics */}
         <h3 className="text-micro uppercase tracking-ultra-wide text-muted-foreground font-sans mb-4">
           Market Data
         </h3>
@@ -46,30 +64,30 @@ export function FinancialsGrid({ data }: FinancialsGridProps) {
           <FormulaMetricCard
             label="Stock Price"
             value={m?.stock_price ? `$${m.stock_price.toFixed(2)}` : "—"}
-            source="Bloomberg"
+            source={SOURCES.bloomberg}
             size="lg"
           />
           <FormulaMetricCard
             label="Market Cap"
             value={formatCurrency(m?.market_cap ?? null)}
-            source="Calculated"
+            source={{ ...SOURCES.calculated, xbrl_tag: "Stock Price × Shares Outstanding" }}
             size="lg"
           />
           <FormulaMetricCard
             label="Enterprise Value"
             value={ev.formatted}
             formula={ev.formula}
-            inputs={ev.inputs}
+            inputs={addSources(ev.inputs)}
             size="lg"
           />
           <FormulaMetricCard
             label="Shares Outstanding"
             value={m?.shares_outstanding ? `${(m.shares_outstanding / 1e6).toFixed(1)}M` : "—"}
-            source="10-Q Filing"
+            source={{ ...SOURCES.tenQ, xbrl_tag: "us-gaap:CommonStockSharesOutstanding" }}
           />
         </div>
 
-        {/* Core financials - Base Metrics */}
+        {/* Core financials */}
         <h3 className="text-micro uppercase tracking-ultra-wide text-muted-foreground font-sans mb-4 mt-8">
           Core Financials
         </h3>
@@ -77,35 +95,38 @@ export function FinancialsGrid({ data }: FinancialsGridProps) {
           <FormulaMetricCard
             label="Revenue"
             value={formatCurrency(m?.revenue ?? null)}
-            source="10-Q Filing"
+            source={{ ...SOURCES.tenQ, xbrl_tag: "us-gaap:Revenues" }}
             size="lg"
           />
           <FormulaMetricCard
             label="Revenue Growth"
             value={revenueGrowth.formatted}
             formula={revenueGrowth.formula}
-            inputs={revenueGrowth.inputs}
+            inputs={addSources(revenueGrowth.inputs)}
           />
           <FormulaMetricCard
             label={ebitdaDisplay.isProxy ? "EBITDA (Proxy)" : "EBITDA"}
             value={formatCurrency(ebitdaDisplay.value)}
-            source={ebitdaDisplay.label}
+            source={ebitdaDisplay.isProxy 
+              ? { document: "Calculated", xbrl_tag: "Operating Income + D&A" }
+              : SOURCES.managementReconciliation
+            }
             size="lg"
           />
           <FormulaMetricCard
             label="Gross Margin"
             value={grossMargin.formatted}
             formula={grossMargin.formula}
-            inputs={grossMargin.inputs}
+            inputs={addSources(grossMargin.inputs)}
           />
           <FormulaMetricCard
             label="Free Cash Flow"
             value={formatCurrency(m?.free_cash_flow ?? null)}
-            source="Cash Flow Statement"
+            source={SOURCES.tenQCashFlow}
           />
         </div>
 
-        {/* Derived Metrics - Second Row */}
+        {/* Operating Efficiency */}
         <h3 className="text-micro uppercase tracking-ultra-wide text-muted-foreground font-sans mb-4 mt-8">
           Operating Efficiency
         </h3>
@@ -114,25 +135,25 @@ export function FinancialsGrid({ data }: FinancialsGridProps) {
             label="Operating Margin"
             value={operatingMargin.formatted}
             formula={operatingMargin.formula}
-            inputs={operatingMargin.inputs}
+            inputs={addSources(operatingMargin.inputs)}
           />
           <FormulaMetricCard
             label="FCF Margin"
             value={fcfMargin.formatted}
             formula={fcfMargin.formula}
-            inputs={fcfMargin.inputs}
+            inputs={addSources(fcfMargin.inputs)}
           />
           <FormulaMetricCard
             label="Revenue / Employee"
             value={revenuePerEmployee.formatted}
             formula={revenuePerEmployee.formula}
-            inputs={revenuePerEmployee.inputs}
+            inputs={addSources(revenuePerEmployee.inputs)}
           />
           <FormulaMetricCard
             label="R&D Intensity"
             value={rdIntensity.formatted}
             formula={rdIntensity.formula}
-            inputs={rdIntensity.inputs}
+            inputs={addSources(rdIntensity.inputs)}
           />
         </div>
       </div>
