@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { Info } from "lucide-react";
+import { Info, AlertCircle } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -15,6 +15,7 @@ interface FormulaMetricCardProps {
   source?: string;
   size?: "sm" | "lg";
   className?: string;
+  hideIfEmpty?: boolean;
 }
 
 export function FormulaMetricCard({
@@ -24,10 +25,13 @@ export function FormulaMetricCard({
   inputs,
   source,
   size = "sm",
-  className
+  className,
+  hideIfEmpty = false
 }: FormulaMetricCardProps) {
-  // Don't render if value is null/empty
-  if (value === "—" || value === "" || value === null) {
+  const isEmpty = value === "—" || value === "" || value === null;
+  
+  // Only hide if explicitly requested AND value is empty
+  if (hideIfEmpty && isEmpty) {
     return null;
   }
 
@@ -81,9 +85,10 @@ export function FormulaMetricCard({
       
       <div className={cn(
         "font-mono font-medium",
-        size === "lg" ? "text-2xl" : "text-lg"
+        size === "lg" ? "text-2xl" : "text-lg",
+        isEmpty && "text-muted-foreground"
       )}>
-        {value}
+        {isEmpty ? "—" : value}
       </div>
       
       {source && !hasFormula && (
