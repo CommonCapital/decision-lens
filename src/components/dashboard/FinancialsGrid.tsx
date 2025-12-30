@@ -6,9 +6,9 @@ import {
   calcFCFMargin,
   calcRevenuePerEmployee,
   calcRDIntensity,
+  calcEnterpriseValue,
   getEBITDADisplay,
   formatCurrency,
-  formatPercent
 } from "@/lib/kpi-calculations";
 import { FormulaMetricCard } from "./FormulaMetricCard";
 
@@ -29,6 +29,7 @@ export function FinancialsGrid({ data }: FinancialsGridProps) {
   const fcfMargin = calcFCFMargin(m);
   const revenuePerEmployee = calcRevenuePerEmployee(m);
   const rdIntensity = calcRDIntensity(m);
+  const ev = calcEnterpriseValue(m);
 
   return (
     <section className="py-8 border-b border-border animate-fade-in">
@@ -37,7 +38,41 @@ export function FinancialsGrid({ data }: FinancialsGridProps) {
           Financial & Operating Metrics
         </h2>
 
+        {/* Market Metrics - Stock Price, Market Cap */}
+        <h3 className="text-micro uppercase tracking-ultra-wide text-muted-foreground font-sans mb-4">
+          Market Data
+        </h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-border mb-6">
+          <FormulaMetricCard
+            label="Stock Price"
+            value={m?.stock_price ? `$${m.stock_price.toFixed(2)}` : "—"}
+            source="Bloomberg"
+            size="lg"
+          />
+          <FormulaMetricCard
+            label="Market Cap"
+            value={formatCurrency(m?.market_cap ?? null)}
+            source="Calculated"
+            size="lg"
+          />
+          <FormulaMetricCard
+            label="Enterprise Value"
+            value={ev.formatted}
+            formula={ev.formula}
+            inputs={ev.inputs}
+            size="lg"
+          />
+          <FormulaMetricCard
+            label="Shares Outstanding"
+            value={m?.shares_outstanding ? `${(m.shares_outstanding / 1e6).toFixed(1)}M` : "—"}
+            source="10-Q Filing"
+          />
+        </div>
+
         {/* Core financials - Base Metrics */}
+        <h3 className="text-micro uppercase tracking-ultra-wide text-muted-foreground font-sans mb-4 mt-8">
+          Core Financials
+        </h3>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-px bg-border mb-6">
           <FormulaMetricCard
             label="Revenue"
