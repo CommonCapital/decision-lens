@@ -370,6 +370,34 @@ export const investorDashboardSchema = z.object({
   variant_view: variantViewSchema,
   kill_switch: killSwitchSchema,
 
+  // Public Market Metrics
+  net_cash_or_debt: metricSchema,
+  buyback_capacity: metricSchema,
+  sbc_percent_revenue: metricSchema,
+  share_count_trend: metricSchema,
+  
+  segments: z.array(z.object({
+    name: z.string().nullable().optional(),
+    revenue: metricSchema,
+    growth: metricSchema,
+    margin: metricSchema,
+  })).nullable().optional(),
+  
+  guidance_bridge: z.object({
+    low: z.number().nullable().optional(),
+    high: z.number().nullable().optional(),
+    current_consensus: z.number().nullable().optional(),
+    gap_percent: z.number().nullable().optional(),
+    source: z.string().nullable().optional(),
+  }).nullable().optional(),
+  
+  revisions_momentum: z.object({
+    direction: z.string().nullable().optional(),
+    magnitude: z.string().nullable().optional(),
+    trend: z.string().nullable().optional(),
+    source: z.string().nullable().optional(),
+  }).nullable().optional(),
+
   sources: z.array(z.object({
     name: z.string(),
     type: z.enum(["primary", "secondary"]),
