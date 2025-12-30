@@ -16,18 +16,23 @@ interface FinancialsGridProps {
   data: InvestorDashboard;
 }
 
-// Source references for traceability
-const SOURCES = {
-  bloomberg: { document: "Bloomberg Terminal", last_updated: "2024-12-14T09:00:00Z" },
-  tenQ: { document: "10-Q Filing", line: "Consolidated Statements", xbrl_tag: "us-gaap:Revenues", last_updated: "2024-12-14T06:00:00Z" },
-  tenQBalanceSheet: { document: "10-Q Filing", line: "Balance Sheet", last_updated: "2024-12-14T06:00:00Z" },
-  tenQCashFlow: { document: "10-Q Filing", line: "Cash Flow Statement", xbrl_tag: "us-gaap:NetCashProvidedByUsedInOperatingActivities", last_updated: "2024-12-14T06:00:00Z" },
-  calculated: { document: "Calculated", last_updated: new Date().toISOString() },
-  managementReconciliation: { document: "Management EBITDA Reconciliation", line: "Non-GAAP Exhibit", last_updated: "2024-12-14T06:00:00Z" },
-};
+// Get source reference from schema sources
+function getSourceFromSchema(sources: InvestorDashboard["sources"], name: string) {
+  const source = sources?.find(s => s.name.toLowerCase().includes(name.toLowerCase()));
+  return source ? { 
+    document: source.name, 
+    last_updated: source.last_refresh 
+  } : undefined;
+}
 
 export function FinancialsGrid({ data }: FinancialsGridProps) {
   const m = data.base_metrics;
+  const sources = data.sources;
+  
+  // Get sources from schema
+  const bloombergSource = getSourceFromSchema(sources, "Bloomberg");
+  const secSource = getSourceFromSchema(sources, "SEC") || getSourceFromSchema(sources, "EDGAR");
+  const factsetSource = getSourceFromSchema(sources, "FactSet");
   
   const ebitdaDisplay = getEBITDADisplay(m);
   const revenueGrowth = calcRevenueGrowth(m);
@@ -38,14 +43,20 @@ export function FinancialsGrid({ data }: FinancialsGridProps) {
   const rdIntensity = calcRDIntensity(m);
   const ev = calcEnterpriseValue(m);
 
+  // Source references derived from schema
+  const filingSource = secSource || { document: "10-Q Filing" };
+  const marketSource = bloombergSource || { document: "Market Data" };
+  const calculatedSource = { document: "Calculated" };
+
   // Add source references to formula inputs
   const addSources = (inputs: { name: string; value: number | null; formatted: string }[]) => {
     return inputs.map(input => ({
       ...input,
-      source: input.name.includes("Revenue") ? SOURCES.tenQ :
-              input.name.includes("Debt") || input.name.includes("Cash") || input.name.includes("Market Cap") ? SOURCES.tenQBalanceSheet :
-              input.name.includes("Profit") || input.name.includes("Income") ? SOURCES.tenQ :
-              SOURCES.calculated
+      source: input.name.includes("Revenue") || input.name.includes("Profit") || input.name.includes("Income") 
+        ? filingSource
+        : input.name.includes("Debt") || input.name.includes("Cash") || input.name.includes("Market Cap") 
+        ? filingSource
+        : calculatedSource
     }));
   };
 
@@ -64,13 +75,13 @@ export function FinancialsGrid({ data }: FinancialsGridProps) {
           <FormulaMetricCard
             label="Stock Price"
             value={m?.stock_price ? `$${m.stock_price.toFixed(2)}` : "—"}
-            source={SOURCES.bloomberg}
+            source={marketSource}
             size="lg"
           />
           <FormulaMetricCard
             label="Market Cap"
             value={formatCurrency(m?.market_cap ?? null)}
-            source={{ ...SOURCES.calculated, xbrl_tag: "Stock Price × Shares Outstanding" }}
+            source={calculatedSource}
             size="lg"
           />
           <FormulaMetricCard
@@ -83,7 +94,7 @@ export function FinancialsGrid({ data }: FinancialsGridProps) {
           <FormulaMetricCard
             label="Shares Outstanding"
             value={m?.shares_outstanding ? `${(m.shares_outstanding / 1e6).toFixed(1)}M` : "—"}
-            source={{ ...SOURCES.tenQ, xbrl_tag: "us-gaap:CommonStockSharesOutstanding" }}
+            source={filingSource}
           />
         </div>
 
@@ -95,7 +106,7 @@ export function FinancialsGrid({ data }: FinancialsGridProps) {
           <FormulaMetricCard
             label="Revenue"
             value={formatCurrency(m?.revenue ?? null)}
-            source={{ ...SOURCES.tenQ, xbrl_tag: "us-gaap:Revenues" }}
+            source={filingSource}
             size="lg"
           />
           <FormulaMetricCard
@@ -108,8 +119,8 @@ export function FinancialsGrid({ data }: FinancialsGridProps) {
             label={ebitdaDisplay.isProxy ? "EBITDA (Proxy)" : "EBITDA"}
             value={formatCurrency(ebitdaDisplay.value)}
             source={ebitdaDisplay.isProxy 
-              ? { document: "Calculated", xbrl_tag: "Operating Income + D&A" }
-              : SOURCES.managementReconciliation
+              ? { document: "Calculated (Operating Income + D&A)" }
+              : filingSource
             }
             size="lg"
           />
@@ -122,7 +133,7 @@ export function FinancialsGrid({ data }: FinancialsGridProps) {
           <FormulaMetricCard
             label="Free Cash Flow"
             value={formatCurrency(m?.free_cash_flow ?? null)}
-            source={SOURCES.tenQCashFlow}
+            source={filingSource}
           />
         </div>
 
