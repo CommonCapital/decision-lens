@@ -203,21 +203,21 @@ export const mockDashboardData: InvestorDashboard = {
 
   risks: [
     // Regulatory
-    { id: "RSK-001", category: "governance", title: "Antitrust Scrutiny", description: "DOJ investigation into market dominance in core segments", severity: "high", trigger: "Formal complaint or lawsuit filed", mitigation: "Legal counsel engaged; proactive divestitures under review" },
+    { id: "RSK-001", category: "regulatory", title: "Antitrust Scrutiny", description: "DOJ investigation into market dominance in core segments", severity: "high", probability: 0.3, trigger: "Formal complaint or lawsuit filed", trigger_metric: "lawsuit_filed", mitigation: "Legal counsel engaged; proactive divestitures under review", mitigation_action: "diversified_partnerships", status: "Active" },
     // Market
-    { id: "RSK-002", category: "market", title: "Customer Concentration", description: "Top 3 customers represent 34% of revenue, creating significant dependency", severity: "high", trigger: "Loss of any top-3 customer or >10% revenue at risk", mitigation: "Diversification initiatives targeting 15 new enterprise accounts" },
+    { id: "RSK-002", category: "market", title: "Customer Concentration", description: "Top 3 customers represent 34% of revenue, creating significant dependency", severity: "high", probability: 0.25, trigger: "Loss of any top-3 customer or >10% revenue at risk", trigger_metric: "customer_churn_rate", mitigation: "Diversification initiatives targeting 15 new enterprise accounts", mitigation_action: "customer_diversification", status: "Active" },
     // Operational
-    { id: "RSK-003", category: "operational", title: "Management Succession", description: "CEO is 67 years old with no public succession plan disclosed", severity: "medium", trigger: "CEO departure announcement or health issue", mitigation: "Board engaged Spencer Stuart for succession planning" },
+    { id: "RSK-003", category: "operational", title: "Management Succession", description: "CEO is 67 years old with no public succession plan disclosed", severity: "medium", probability: 0.35, trigger: "CEO departure announcement or health issue", trigger_metric: "executive_departure", mitigation: "Board engaged Spencer Stuart for succession planning", mitigation_action: "succession_planning", status: "Monitoring" },
     // Financial
-    { id: "RSK-004", category: "financial", title: "Input Cost Inflation", description: "Raw material costs up 12% YoY, pressuring gross margins", severity: "medium", trigger: "Margin compression >100bps vs guidance", mitigation: "Q4 price increases of 4-6% implemented; hedging contracts in place" },
+    { id: "RSK-004", category: "financial", title: "Input Cost Inflation", description: "Raw material costs up 12% YoY, pressuring gross margins", severity: "medium", probability: 0.45, trigger: "Margin compression >100bps vs guidance", trigger_metric: "gross_margin_delta", mitigation: "Q4 price increases of 4-6% implemented; hedging contracts in place", mitigation_action: "price_hedging", status: "Active" },
     // Cybersecurity
-    { id: "RSK-005", category: "operational", title: "Cybersecurity Vulnerability", description: "Critical manufacturing systems increasingly connected; 2 incidents in past 18 months", severity: "high", trigger: "Data breach or ransomware attack affecting operations", mitigation: "Enhanced security protocols; $12M investment in cyber infrastructure" },
-    // Strategic / Competitive
-    { id: "RSK-006", category: "market", title: "Competitive Disruption", description: "New entrant with 40% lower cost structure gaining share in Asia-Pacific", severity: "medium", trigger: "Loss of >2 major APAC contracts or pricing pressure >15%", mitigation: "Accelerated automation roadmap; exploring strategic partnership" },
-    // Liquidity
-    { id: "RSK-007", category: "liquidity", title: "Refinancing Risk", description: "$200M term loan maturing Q2 2025 in rising rate environment", severity: "low", trigger: "Refinancing spread >150bps above current facility", mitigation: "Proactive discussions with lenders; strong credit metrics support favorable terms" },
-    // Supply Chain
-    { id: "RSK-008", category: "operational", title: "Supply Chain Concentration", description: "Single-source supplier for critical component (18% of COGS)", severity: "medium", trigger: "Supplier disruption or lead time >60 days", mitigation: "Qualification of secondary supplier in progress; 90-day safety stock maintained" },
+    { id: "RSK-005", category: "cybersecurity", title: "Cybersecurity Vulnerability", description: "Critical manufacturing systems increasingly connected; 2 incidents in past 18 months", severity: "high", probability: 0.2, trigger: "Data breach or ransomware attack affecting operations", trigger_metric: "breach_alert", mitigation: "Enhanced security protocols; $12M investment in cyber infrastructure", mitigation_action: "enhance_security_protocols", status: "Monitoring" },
+    // Strategic
+    { id: "RSK-006", category: "strategic", title: "Competitive Disruption", description: "New entrant with 40% lower cost structure gaining share in Asia-Pacific", severity: "medium", probability: 0.3, trigger: "Loss of >2 major APAC contracts or pricing pressure >15%", trigger_metric: "market_share_loss", mitigation: "Accelerated automation roadmap; exploring strategic partnership", mitigation_action: "strategic_partnership", status: "Active" },
+    // Financial (Liquidity)
+    { id: "RSK-007", category: "financial", title: "Refinancing Risk", description: "$200M term loan maturing Q2 2025 in rising rate environment", severity: "low", probability: 0.15, trigger: "Refinancing spread >150bps above current facility", trigger_metric: "interest_spread", mitigation: "Proactive discussions with lenders; strong credit metrics support favorable terms", mitigation_action: "proactive_refinancing", status: "Monitoring" },
+    // Operational (Supply Chain)
+    { id: "RSK-008", category: "operational", title: "Supply Chain Concentration", description: "Single-source supplier for critical component (18% of COGS)", severity: "medium", probability: 0.25, trigger: "Supplier disruption or lead time >60 days", trigger_metric: "supplier_lead_time", mitigation: "Qualification of secondary supplier in progress; 90-day safety stock maintained", mitigation_action: "secondary_supplier", status: "Monitoring" },
   ],
 
   path_indicators: [
