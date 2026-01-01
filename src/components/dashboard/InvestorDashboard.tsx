@@ -13,6 +13,7 @@ import { DriverScenariosPanel } from "./DriverScenariosPanel";
 import { RisksPanel } from "./RisksPanel";
 import { DataLineage } from "./DataLineage";
 import { DecisionSufficiency } from "./DecisionSufficiency";
+import { MarketExpectationsPanel } from "./MarketExpectationsPanel";
 
 interface InvestorDashboardProps {
   data: InvestorDashboardType;
@@ -65,6 +66,10 @@ export function InvestorDashboard({ data }: InvestorDashboardProps) {
         )}
         
         <FinancialsGrid data={data} />
+        
+        {(data.guidance_bridge || data.revisions_momentum) && (
+          <MarketExpectationsPanel data={data} />
+        )}
         
         <ValuationSection valuation={data.valuation} />
         

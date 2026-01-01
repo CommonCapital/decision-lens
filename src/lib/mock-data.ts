@@ -184,10 +184,40 @@ export const mockDashboardData: InvestorDashboard = {
     upside: { probability: 0.15, assumptions: [{ key: "Revenue Growth", value: "14%" }, { key: "EBITDA Margin", value: "27%" }], outputs: { revenue: { value: 3850000000, formatted: "$3.85B", source: "Model" }, ebitda: { value: 1040000000, formatted: "$1.04B", source: "Model" }, valuation: { value: 17800000000, formatted: "$17.8B", source: "DCF" } } },
   },
 
+  // Guidance vs Consensus
+  guidance_bridge: {
+    low: 3400000000,
+    high: 3600000000,
+    current_consensus: 3520000000,
+    gap_percent: 1.4,
+    source: "FactSet Consensus",
+  },
+
+  // 30-Day Estimate Revisions
+  revisions_momentum: {
+    direction: "up",
+    magnitude: "+2.3%",
+    trend: "accelerating",
+    source: "Bloomberg Estimate Revisions",
+  },
+
   risks: [
-    { id: "risk-1", category: "market", title: "Customer Concentration", description: "Top 3 customers represent 34% of revenue", severity: "high", trigger: "Loss of any top-3 customer", mitigation: "Diversification initiatives underway" },
-    { id: "risk-2", category: "operational", title: "Management Succession", description: "CEO is 67 years old with no public succession plan", severity: "medium", trigger: "CEO departure announcement", mitigation: "Board engaged executive search firm" },
-    { id: "risk-3", category: "financial", title: "Input Cost Inflation", description: "Raw material costs up 12% YoY", severity: "medium", trigger: "Margin compression >100bps", mitigation: "Price increases implemented Q4" },
+    // Regulatory
+    { id: "RSK-001", category: "governance", title: "Antitrust Scrutiny", description: "DOJ investigation into market dominance in core segments", severity: "high", trigger: "Formal complaint or lawsuit filed", mitigation: "Legal counsel engaged; proactive divestitures under review" },
+    // Market
+    { id: "RSK-002", category: "market", title: "Customer Concentration", description: "Top 3 customers represent 34% of revenue, creating significant dependency", severity: "high", trigger: "Loss of any top-3 customer or >10% revenue at risk", mitigation: "Diversification initiatives targeting 15 new enterprise accounts" },
+    // Operational
+    { id: "RSK-003", category: "operational", title: "Management Succession", description: "CEO is 67 years old with no public succession plan disclosed", severity: "medium", trigger: "CEO departure announcement or health issue", mitigation: "Board engaged Spencer Stuart for succession planning" },
+    // Financial
+    { id: "RSK-004", category: "financial", title: "Input Cost Inflation", description: "Raw material costs up 12% YoY, pressuring gross margins", severity: "medium", trigger: "Margin compression >100bps vs guidance", mitigation: "Q4 price increases of 4-6% implemented; hedging contracts in place" },
+    // Cybersecurity
+    { id: "RSK-005", category: "operational", title: "Cybersecurity Vulnerability", description: "Critical manufacturing systems increasingly connected; 2 incidents in past 18 months", severity: "high", trigger: "Data breach or ransomware attack affecting operations", mitigation: "Enhanced security protocols; $12M investment in cyber infrastructure" },
+    // Strategic / Competitive
+    { id: "RSK-006", category: "market", title: "Competitive Disruption", description: "New entrant with 40% lower cost structure gaining share in Asia-Pacific", severity: "medium", trigger: "Loss of >2 major APAC contracts or pricing pressure >15%", mitigation: "Accelerated automation roadmap; exploring strategic partnership" },
+    // Liquidity
+    { id: "RSK-007", category: "liquidity", title: "Refinancing Risk", description: "$200M term loan maturing Q2 2025 in rising rate environment", severity: "low", trigger: "Refinancing spread >150bps above current facility", mitigation: "Proactive discussions with lenders; strong credit metrics support favorable terms" },
+    // Supply Chain
+    { id: "RSK-008", category: "operational", title: "Supply Chain Concentration", description: "Single-source supplier for critical component (18% of COGS)", severity: "medium", trigger: "Supplier disruption or lead time >60 days", mitigation: "Qualification of secondary supplier in progress; 90-day safety stock maintained" },
   ],
 
   path_indicators: [
