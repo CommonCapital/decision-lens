@@ -8,6 +8,17 @@ const tieOutStatusSchema = z.string().nullable().optional();
 const availabilityStatusSchema = z.string().nullable().optional();
 export const timeHorizonSchema = z.enum(["1D", "1W", "1M", "1Y", "5Y", "10Y"]);
 
+// === RISK CATEGORY ===
+
+export const riskCategorySchema = z.enum([
+  "regulatory",
+  "market", 
+  "operational",
+  "cybersecurity",
+  "financial",
+  "strategic"
+]);
+
 // === EBITDA AVAILABILITY ===
 
 const ebitdaAvailabilitySchema = z.enum(["reported", "proxy", "not_applicable"]);
@@ -173,7 +184,7 @@ const scenariosSchema = z.object({
 
 const riskSchema = z.object({
   id: z.string().nullable().optional(),
-  category: z.string().nullable().optional(),
+  category: riskCategorySchema.nullable().optional(),
   title: z.string().nullable().optional(),
   description: z.string().nullable().optional(),
   severity: z.string().nullable().optional(),
@@ -183,6 +194,8 @@ const riskSchema = z.object({
   mitigation: z.string().nullable().optional(),
   mitigation_action: z.string().nullable().optional(),
   status: z.enum(["Active", "Monitoring", "Resolved"]).nullable().optional(),
+  source: z.string().nullable().optional(),
+  source_reference: sourceReferenceSchema,
 }).nullable().optional();
 
 // === CHANGE ===
@@ -393,6 +406,8 @@ export const investorDashboardSchema = z.object({
     current_consensus: z.number().nullable().optional(),
     gap_percent: z.number().nullable().optional(),
     source: z.string().nullable().optional(),
+    source_reference: sourceReferenceSchema,
+    last_updated: z.string().nullable().optional(),
   }).nullable().optional(),
   
   revisions_momentum: z.object({
@@ -400,6 +415,8 @@ export const investorDashboardSchema = z.object({
     magnitude: z.string().nullable().optional(),
     trend: z.string().nullable().optional(),
     source: z.string().nullable().optional(),
+    source_reference: sourceReferenceSchema,
+    last_updated: z.string().nullable().optional(),
   }).nullable().optional(),
 
   sources: z.array(z.object({
@@ -430,6 +447,7 @@ export type Event = z.infer<typeof eventSchema>;
 export type Scenarios = z.infer<typeof scenariosSchema>;
 export type SingleScenario = z.infer<typeof singleScenarioSchema>;
 export type Risk = z.infer<typeof riskSchema>;
+export type RiskCategory = z.infer<typeof riskCategorySchema>;
 export type DataQuality = z.infer<typeof dataQualitySchema>;
 export type MetricDefinition = z.infer<typeof metricDefinitionSchema>;
 export type SourceReference = z.infer<typeof sourceReferenceSchema>;

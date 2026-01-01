@@ -191,6 +191,13 @@ export const mockDashboardData: InvestorDashboard = {
     current_consensus: 3520000000,
     gap_percent: 1.4,
     source: "FactSet Consensus",
+    source_reference: {
+      url: "https://factset.com/consensus/MHC",
+      document_type: "Consensus Estimates",
+      excerpt: "FY24 Revenue Guidance: $3.40B - $3.60B; Street Consensus: $3.52B",
+      accessed_at: "2024-12-14T08:30:00Z",
+    },
+    last_updated: "2024-12-14T08:30:00Z",
   },
 
   // 30-Day Estimate Revisions
@@ -199,25 +206,32 @@ export const mockDashboardData: InvestorDashboard = {
     magnitude: "+2.3%",
     trend: "accelerating",
     source: "Bloomberg Estimate Revisions",
+    source_reference: {
+      url: "https://bloomberg.com/estimates/MHC",
+      document_type: "Estimate Revisions Report",
+      excerpt: "30-day EPS revision: +2.3%; 12 analysts revised up, 2 revised down",
+      accessed_at: "2024-12-14T09:00:00Z",
+    },
+    last_updated: "2024-12-14T09:00:00Z",
   },
 
   risks: [
     // Regulatory
-    { id: "RSK-001", category: "regulatory", title: "Antitrust Scrutiny", description: "DOJ investigation into market dominance in core segments", severity: "high", probability: 0.3, trigger: "Formal complaint or lawsuit filed", trigger_metric: "lawsuit_filed", mitigation: "Legal counsel engaged; proactive divestitures under review", mitigation_action: "diversified_partnerships", status: "Active" },
+    { id: "RSK-001", category: "regulatory", title: "Antitrust Scrutiny", description: "DOJ investigation into market dominance in core segments", severity: "high", probability: 0.3, trigger: "Formal complaint or lawsuit filed", trigger_metric: "lawsuit_filed", mitigation: "Legal counsel engaged; proactive divestitures under review", mitigation_action: "diversified_partnerships", status: "Active", source: "SEC 10-K Risk Factors", source_reference: { url: "https://sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=MHC&type=10-K", document_type: "10-K Filing", excerpt: "Risk Factor 1A: Regulatory and Legal Risks", accessed_at: "2024-12-14T06:00:00Z" } },
     // Market
-    { id: "RSK-002", category: "market", title: "Customer Concentration", description: "Top 3 customers represent 34% of revenue, creating significant dependency", severity: "high", probability: 0.25, trigger: "Loss of any top-3 customer or >10% revenue at risk", trigger_metric: "customer_churn_rate", mitigation: "Diversification initiatives targeting 15 new enterprise accounts", mitigation_action: "customer_diversification", status: "Active" },
+    { id: "RSK-002", category: "market", title: "Customer Concentration", description: "Top 3 customers represent 34% of revenue, creating significant dependency", severity: "high", probability: 0.25, trigger: "Loss of any top-3 customer or >10% revenue at risk", trigger_metric: "customer_churn_rate", mitigation: "Diversification initiatives targeting 15 new enterprise accounts", mitigation_action: "customer_diversification", status: "Active", source: "SEC 10-K Customer Disclosure", source_reference: { url: "https://sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=MHC&type=10-K", document_type: "10-K Filing", excerpt: "Note 14: Major Customers - Top 3 customers represent 34% of consolidated revenue", accessed_at: "2024-12-14T06:00:00Z" } },
     // Operational
-    { id: "RSK-003", category: "operational", title: "Management Succession", description: "CEO is 67 years old with no public succession plan disclosed", severity: "medium", probability: 0.35, trigger: "CEO departure announcement or health issue", trigger_metric: "executive_departure", mitigation: "Board engaged Spencer Stuart for succession planning", mitigation_action: "succession_planning", status: "Monitoring" },
+    { id: "RSK-003", category: "operational", title: "Management Succession", description: "CEO is 67 years old with no public succession plan disclosed", severity: "medium", probability: 0.35, trigger: "CEO departure announcement or health issue", trigger_metric: "executive_departure", mitigation: "Board engaged Spencer Stuart for succession planning", mitigation_action: "succession_planning", status: "Monitoring", source: "Proxy Statement DEF 14A", source_reference: { url: "https://sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=MHC&type=DEF%2014A", document_type: "Proxy Statement", excerpt: "CEO Biography: John Smith, age 67, has served as CEO since 2015", accessed_at: "2024-12-14T06:00:00Z" } },
     // Financial
-    { id: "RSK-004", category: "financial", title: "Input Cost Inflation", description: "Raw material costs up 12% YoY, pressuring gross margins", severity: "medium", probability: 0.45, trigger: "Margin compression >100bps vs guidance", trigger_metric: "gross_margin_delta", mitigation: "Q4 price increases of 4-6% implemented; hedging contracts in place", mitigation_action: "price_hedging", status: "Active" },
+    { id: "RSK-004", category: "financial", title: "Input Cost Inflation", description: "Raw material costs up 12% YoY, pressuring gross margins", severity: "medium", probability: 0.45, trigger: "Margin compression >100bps vs guidance", trigger_metric: "gross_margin_delta", mitigation: "Q4 price increases of 4-6% implemented; hedging contracts in place", mitigation_action: "price_hedging", status: "Active", source: "Q3 Earnings Call Transcript", source_reference: { url: "https://factset.com/transcripts/MHC/Q3-2024", document_type: "Earnings Transcript", excerpt: "CFO: Raw material costs increased 12% year-over-year, partially offset by pricing actions", accessed_at: "2024-12-12T16:00:00Z" } },
     // Cybersecurity
-    { id: "RSK-005", category: "cybersecurity", title: "Cybersecurity Vulnerability", description: "Critical manufacturing systems increasingly connected; 2 incidents in past 18 months", severity: "high", probability: 0.2, trigger: "Data breach or ransomware attack affecting operations", trigger_metric: "breach_alert", mitigation: "Enhanced security protocols; $12M investment in cyber infrastructure", mitigation_action: "enhance_security_protocols", status: "Monitoring" },
+    { id: "RSK-005", category: "cybersecurity", title: "Cybersecurity Vulnerability", description: "Critical manufacturing systems increasingly connected; 2 incidents in past 18 months", severity: "high", probability: 0.2, trigger: "Data breach or ransomware attack affecting operations", trigger_metric: "breach_alert", mitigation: "Enhanced security protocols; $12M investment in cyber infrastructure", mitigation_action: "enhance_security_protocols", status: "Monitoring", source: "SEC 10-K Risk Factors", source_reference: { url: "https://sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=MHC&type=10-K", document_type: "10-K Filing", excerpt: "Risk Factor 1C: Cybersecurity Risks - We have experienced cybersecurity incidents", accessed_at: "2024-12-14T06:00:00Z" } },
     // Strategic
-    { id: "RSK-006", category: "strategic", title: "Competitive Disruption", description: "New entrant with 40% lower cost structure gaining share in Asia-Pacific", severity: "medium", probability: 0.3, trigger: "Loss of >2 major APAC contracts or pricing pressure >15%", trigger_metric: "market_share_loss", mitigation: "Accelerated automation roadmap; exploring strategic partnership", mitigation_action: "strategic_partnership", status: "Active" },
+    { id: "RSK-006", category: "strategic", title: "Competitive Disruption", description: "New entrant with 40% lower cost structure gaining share in Asia-Pacific", severity: "medium", probability: 0.3, trigger: "Loss of >2 major APAC contracts or pricing pressure >15%", trigger_metric: "market_share_loss", mitigation: "Accelerated automation roadmap; exploring strategic partnership", mitigation_action: "strategic_partnership", status: "Active", source: "Industry Research Report", source_reference: { url: "https://bernstein.com/research/industrials/MHC-competitive-analysis", document_type: "Analyst Report", excerpt: "New APAC competitor operating at 40% lower cost basis; taking share in mid-tier segment", accessed_at: "2024-12-10T14:00:00Z" } },
     // Financial (Liquidity)
-    { id: "RSK-007", category: "financial", title: "Refinancing Risk", description: "$200M term loan maturing Q2 2025 in rising rate environment", severity: "low", probability: 0.15, trigger: "Refinancing spread >150bps above current facility", trigger_metric: "interest_spread", mitigation: "Proactive discussions with lenders; strong credit metrics support favorable terms", mitigation_action: "proactive_refinancing", status: "Monitoring" },
+    { id: "RSK-007", category: "financial", title: "Refinancing Risk", description: "$200M term loan maturing Q2 2025 in rising rate environment", severity: "low", probability: 0.15, trigger: "Refinancing spread >150bps above current facility", trigger_metric: "interest_spread", mitigation: "Proactive discussions with lenders; strong credit metrics support favorable terms", mitigation_action: "proactive_refinancing", status: "Monitoring", source: "SEC 10-Q Debt Schedule", source_reference: { url: "https://sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=MHC&type=10-Q", document_type: "10-Q Filing", excerpt: "Note 8: Long-term Debt - $200M term loan facility matures April 2025", accessed_at: "2024-12-14T06:00:00Z" } },
     // Operational (Supply Chain)
-    { id: "RSK-008", category: "operational", title: "Supply Chain Concentration", description: "Single-source supplier for critical component (18% of COGS)", severity: "medium", probability: 0.25, trigger: "Supplier disruption or lead time >60 days", trigger_metric: "supplier_lead_time", mitigation: "Qualification of secondary supplier in progress; 90-day safety stock maintained", mitigation_action: "secondary_supplier", status: "Monitoring" },
+    { id: "RSK-008", category: "operational", title: "Supply Chain Concentration", description: "Single-source supplier for critical component (18% of COGS)", severity: "medium", probability: 0.25, trigger: "Supplier disruption or lead time >60 days", trigger_metric: "supplier_lead_time", mitigation: "Qualification of secondary supplier in progress; 90-day safety stock maintained", mitigation_action: "secondary_supplier", status: "Monitoring", source: "Management Discussion & Analysis", source_reference: { url: "https://sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=MHC&type=10-K", document_type: "10-K MD&A", excerpt: "Supply Chain: Single-source supplier for precision components representing 18% of COGS", accessed_at: "2024-12-14T06:00:00Z" } },
   ],
 
   path_indicators: [
