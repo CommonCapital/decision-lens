@@ -177,8 +177,12 @@ const riskSchema = z.object({
   title: z.string().nullable().optional(),
   description: z.string().nullable().optional(),
   severity: z.string().nullable().optional(),
+  probability: z.number().nullable().optional(),
   trigger: z.string().nullable().optional(),
+  trigger_metric: z.string().nullable().optional(),
   mitigation: z.string().nullable().optional(),
+  mitigation_action: z.string().nullable().optional(),
+  status: z.enum(["Active", "Monitoring", "Resolved"]).nullable().optional(),
 }).nullable().optional();
 
 // === CHANGE ===
