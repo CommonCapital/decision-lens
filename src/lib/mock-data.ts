@@ -116,17 +116,19 @@ export const mockDashboardData: InvestorDashboard = {
     sm_spend: 134000000,
     sm_spend_prior: 128000000,
     
-    // SaaS / Subscription (N/A for this industrial company)
-    arr: null,
-    arr_prior: null,
-    new_arr: null,
-    expansion_arr: null,
-    contraction_arr: null,
-    churned_arr: null,
-    monthly_churn_percent: null,
-    cac: null,
-    arpa: null,
+    // SaaS / Subscription - Demo values for unit economics
+    arr: 892000000,
+    arr_prior: 817000000,
+    new_arr: 98000000,
+    expansion_arr: 45000000,
+    contraction_arr: 28000000,
+    churned_arr: 40000000,
+    monthly_churn_percent: 1.2,
+    cac: 45000,
+    ltv: 180000,
+    arpa: 4500,
     gross_margin_percent: 50.0,
+    average_customer_lifespan_months: 48,
     
     // Customer Metrics
     customer_count: 2400,
@@ -286,6 +288,81 @@ export const mockDashboardData: InvestorDashboard = {
     { name: "Bloomberg Terminal", type: "primary", last_refresh: "2024-12-14T09:00:00Z" },
     { name: "FactSet", type: "secondary", last_refresh: "2024-12-14T08:30:00Z" },
   ],
+
+  // Unit Economics with Investor Context
+  unit_economics: {
+    cac: { 
+      value: 45000, 
+      formatted: "$45,000", 
+      source: "Internal S&M Analysis",
+      source_reference: { 
+        url: "https://internal.model/unit-economics", 
+        document_type: "Unit Economics Model", 
+        excerpt: "CAC = Total S&M Spend / New Customers Acquired = $134M / 2,978 = $45K",
+        accessed_at: "2024-12-14T09:00:00Z"
+      },
+      formula: "Total S&M Spend / New Customers Acquired",
+      formula_inputs: [
+        { name: "S&M Spend", value: 134000000, source: "10-Q" },
+        { name: "New Customers", value: 2978, source: "CRM Data" }
+      ]
+    },
+    ltv: { 
+      value: 180000, 
+      formatted: "$180,000", 
+      source: "Internal Model",
+      source_reference: { 
+        url: "https://internal.model/unit-economics", 
+        document_type: "Unit Economics Model", 
+        excerpt: "LTV = ARPA × Gross Margin % × Avg Customer Lifespan = $4,500 × 12 × 50% × 4 years = $180K",
+        accessed_at: "2024-12-14T09:00:00Z"
+      },
+      formula: "ARPA × 12 × Gross Margin % × Avg Customer Lifespan (years)",
+      formula_inputs: [
+        { name: "ARPA (monthly)", value: 4500, source: "Billing Data" },
+        { name: "Gross Margin", value: 50, source: "10-Q" },
+        { name: "Avg Lifespan (years)", value: 4, source: "Cohort Analysis" }
+      ]
+    },
+    ltv_cac_ratio: { 
+      value: 4.0, 
+      formatted: "4.0x", 
+      source: "Calculated",
+      formula: "LTV / CAC",
+      formula_inputs: [
+        { name: "LTV", value: 180000, source: "Model" },
+        { name: "CAC", value: 45000, source: "Model" }
+      ]
+    },
+    payback_period_months: { 
+      value: 20, 
+      formatted: "20 months", 
+      source: "Calculated",
+      formula: "CAC / (ARPA × Gross Margin %)",
+      formula_inputs: [
+        { name: "CAC", value: 45000, source: "Model" },
+        { name: "Monthly Contribution", value: 2250, source: "ARPA × GM%" }
+      ]
+    },
+    investor_context: {
+      ltv_cac_interpretation: "LTV/CAC of 4.0x indicates strong unit economics. Industry benchmark is 3.0x minimum for sustainable growth. Company earns $4 for every $1 spent acquiring customers, providing significant margin of safety for continued S&M investment.",
+      benchmark_comparison: "Above median for industrial SaaS (3.2x) and software peers (3.5x). Top quartile performers achieve 5.0x+. Current ratio supports aggressive growth investment.",
+      trend_analysis: "LTV/CAC improved from 3.6x to 4.0x YoY driven by: (1) 12% ARPA expansion, (2) reduced churn from 1.5% to 1.2% monthly, (3) stable CAC despite increased S&M spend.",
+      risk_factors: [
+        "CAC may increase as company exhausts early-adopter market",
+        "Churn could spike if economic conditions deteriorate", 
+        "LTV assumes stable gross margins; input cost inflation is a risk"
+      ],
+      action_implications: "Strong unit economics support thesis of continued market share gains. Monitor: (1) CAC trajectory as new market segments targeted, (2) cohort retention curves, (3) expansion revenue as % of new ARR."
+    },
+    source: "Internal Unit Economics Model",
+    source_reference: { 
+      url: "https://internal.model/unit-economics", 
+      document_type: "Unit Economics Analysis", 
+      excerpt: "Quarterly unit economics review - Q3 2024",
+      accessed_at: "2024-12-14T09:00:00Z"
+    }
+  },
 
   run_data_quality: { coverage: 88, auditability: 82, freshness_days: 1 },
 };

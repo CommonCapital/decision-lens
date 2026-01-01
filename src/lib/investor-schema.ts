@@ -365,8 +365,10 @@ const baseMetricsSchema = z.object({
   churned_arr: z.number().nullable().optional(),
   monthly_churn_percent: z.number().nullable().optional(),
   cac: z.number().nullable().optional(),
+  ltv: z.number().nullable().optional(),
   arpa: z.number().nullable().optional(),
   gross_margin_percent: z.number().nullable().optional(),
+  average_customer_lifespan_months: z.number().nullable().optional(),
   
   // Customer Metrics
   customer_count: z.number().nullable().optional(),
@@ -466,6 +468,23 @@ export const investorDashboardSchema = z.object({
     last_refresh: z.string(),
   })).optional().nullable(),
 
+  // Unit Economics with Investor Context
+  unit_economics: z.object({
+    cac: traceableValueSchema,
+    ltv: traceableValueSchema,
+    ltv_cac_ratio: traceableValueSchema,
+    payback_period_months: traceableValueSchema,
+    investor_context: z.object({
+      ltv_cac_interpretation: z.string().nullable().optional(),
+      benchmark_comparison: z.string().nullable().optional(),
+      trend_analysis: z.string().nullable().optional(),
+      risk_factors: z.array(z.string()).nullable().optional(),
+      action_implications: z.string().nullable().optional(),
+    }).nullable().optional(),
+    source: z.string().nullable().optional(),
+    source_reference: sourceReferenceSchema,
+  }).nullable().optional(),
+
   run_data_quality: dataQualitySchema,
 }).passthrough();
 
@@ -497,3 +516,5 @@ export type Valuation = z.infer<typeof valuationSchema>;
 export type ScenarioDriver = z.infer<typeof scenarioDriverSchema>;
 export type BaseMetrics = z.infer<typeof baseMetricsSchema>;
 export type EbitdaAvailability = z.infer<typeof ebitdaAvailabilitySchema>;
+export type TraceableValue = z.infer<typeof traceableValueSchema>;
+export type UnitEconomics = z.infer<typeof investorDashboardSchema>["unit_economics"];

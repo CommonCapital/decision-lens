@@ -97,11 +97,24 @@ export function PricePathProtection({ data }: PricePathProtectionProps) {
     && valuation.valuation_range_low > 0 && valuation.valuation_range_high > 0;
 
   const pathIndicators = data.path_indicators || [];
-  const protectionTriggers = data.risks?.slice(0, 3).map(risk => ({
+  
+  // Flatten risks from category structure to array for protection triggers
+  const flattenedRisks: Array<{ trigger?: string; title?: string; mitigation?: string }> = [];
+  const riskCategories = ["regulatory", "market", "operational", "cybersecurity", "financial", "strategic"] as const;
+  for (const cat of riskCategories) {
+    const catRisks = data.risks?.[cat];
+    if (catRisks) {
+      for (const risk of catRisks) {
+        if (risk) flattenedRisks.push(risk);
+      }
+    }
+  }
+  
+  const protectionTriggers = flattenedRisks.slice(0, 3).map(risk => ({
     condition: risk?.trigger || risk?.title || "Unknown",
     action: risk?.mitigation || "Review",
     status: "active" as const
-  })) || [];
+  }));
   const positionSizing = data.position_sizing;
   const variantView = data.variant_view;
   const killSwitch = data.kill_switch;
