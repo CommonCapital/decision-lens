@@ -1,9 +1,28 @@
 import { InvestorDashboard } from "@/lib/investor-schema";
-import { TrendingUp, TrendingDown, Minus, Target, BarChart3 } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, Target, BarChart3, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface MarketExpectationsPanelProps {
   data: InvestorDashboard;
+}
+
+// Helper to extract value from traceable value or number
+function getTraceableValue(val: any): number | null {
+  if (val == null) return null;
+  if (typeof val === "number") return val;
+  if (typeof val === "object" && val.value != null) return val.value;
+  return null;
+}
+
+function getTraceableFormatted(val: any): string | null {
+  if (val == null) return null;
+  if (typeof val === "object" && val.formatted) return val.formatted;
+  return null;
+}
+
+function getTraceableSource(val: any): { source?: string; source_reference?: any } | null {
+  if (val == null || typeof val !== "object") return null;
+  return { source: val.source, source_reference: val.source_reference };
 }
 
 function formatCurrency(value: number | null | undefined): string {
@@ -13,12 +32,55 @@ function formatCurrency(value: number | null | undefined): string {
   return `$${value.toLocaleString()}`;
 }
 
+function SourceLink({ sourceRef }: { sourceRef?: { url?: string; document_type?: string } }) {
+  if (!sourceRef?.url) return null;
+  return (
+    <a
+      href={sourceRef.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+    >
+      <ExternalLink className="w-3 h-3" />
+      {sourceRef.document_type || "Source"}
+    </a>
+  );
+}
+
+function TraceableMetric({ 
+  label, 
+  val, 
+  showSource = true 
+}: { 
+  label: string; 
+  val: any;
+  showSource?: boolean;
+}) {
+  const value = getTraceableValue(val);
+  const formatted = getTraceableFormatted(val);
+  const sourceInfo = getTraceableSource(val);
+
+  return (
+    <div>
+      <span className="text-micro text-muted-foreground block mb-1">{label}</span>
+      <span className="font-mono text-lg">{formatted || formatCurrency(value)}</span>
+      {showSource && sourceInfo?.source_reference && (
+        <div className="mt-1">
+          <SourceLink sourceRef={sourceInfo.source_reference} />
+        </div>
+      )}
+    </div>
+  );
+}
+
 function GuidanceBridge({ data }: { data: InvestorDashboard["guidance_bridge"] }) {
   if (!data) return null;
 
-  const { low, high, current_consensus, gap_percent, source } = data;
-  const gapIsPositive = (gap_percent ?? 0) > 0;
-  const gapIsNeutral = (gap_percent ?? 0) === 0;
+  const { low, high, current_consensus, gap_percent, source, source_reference } = data;
+  
+  const gapValue = getTraceableValue(gap_percent);
+  const gapIsPositive = (gapValue ?? 0) > 0;
+  const gapIsNeutral = (gapValue ?? 0) === 0;
 
   return (
     <div className="border border-border p-4">
@@ -30,18 +92,9 @@ function GuidanceBridge({ data }: { data: InvestorDashboard["guidance_bridge"] }
       </div>
 
       <div className="grid grid-cols-3 gap-4 mb-4">
-        <div>
-          <span className="text-micro text-muted-foreground block mb-1">Guidance Low</span>
-          <span className="font-mono text-lg">{formatCurrency(low)}</span>
-        </div>
-        <div>
-          <span className="text-micro text-muted-foreground block mb-1">Guidance High</span>
-          <span className="font-mono text-lg">{formatCurrency(high)}</span>
-        </div>
-        <div>
-          <span className="text-micro text-muted-foreground block mb-1">Current Consensus</span>
-          <span className="font-mono text-lg">{formatCurrency(current_consensus)}</span>
-        </div>
+        <TraceableMetric label="Guidance Low" val={low} />
+        <TraceableMetric label="Guidance High" val={high} />
+        <TraceableMetric label="Current Consensus" val={current_consensus} />
       </div>
 
       <div className="flex items-center justify-between pt-3 border-t border-border">
@@ -52,7 +105,7 @@ function GuidanceBridge({ data }: { data: InvestorDashboard["guidance_bridge"] }
             gapIsPositive ? "text-emerald-600 dark:text-emerald-400" : 
             gapIsNeutral ? "text-muted-foreground" : "text-rose-600 dark:text-rose-400"
           )}>
-            {gapIsPositive ? "+" : ""}{gap_percent?.toFixed(1) ?? "—"}%
+            {gapIsPositive ? "+" : ""}{gapValue?.toFixed(1) ?? "—"}%
           </span>
           {gapIsPositive ? (
             <TrendingUp className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
@@ -62,7 +115,10 @@ function GuidanceBridge({ data }: { data: InvestorDashboard["guidance_bridge"] }
             <TrendingDown className="w-3 h-3 text-rose-600 dark:text-rose-400" />
           )}
         </div>
-        <span className="text-micro text-muted-foreground">Source: {source ?? "—"}</span>
+        <div className="flex items-center gap-2">
+          <span className="text-micro text-muted-foreground">Source: {source ?? "—"}</span>
+          <SourceLink sourceRef={source_reference} />
+        </div>
       </div>
     </div>
   );
@@ -71,9 +127,12 @@ function GuidanceBridge({ data }: { data: InvestorDashboard["guidance_bridge"] }
 function RevisionsMomentum({ data }: { data: InvestorDashboard["revisions_momentum"] }) {
   if (!data) return null;
 
-  const { direction, magnitude, trend, source } = data;
+  const { direction, magnitude, trend, source, source_reference } = data;
   const isUp = direction === "up";
   const isDown = direction === "down";
+  
+  const magnitudeFormatted = getTraceableFormatted(magnitude);
+  const magnitudeValue = getTraceableValue(magnitude);
 
   return (
     <div className="border border-border p-4">
@@ -111,8 +170,13 @@ function RevisionsMomentum({ data }: { data: InvestorDashboard["revisions_moment
             isUp ? "text-emerald-600 dark:text-emerald-400" :
             isDown ? "text-rose-600 dark:text-rose-400" : "text-foreground"
           )}>
-            {magnitude ?? "—"}
+            {magnitudeFormatted || (magnitudeValue != null ? `${magnitudeValue > 0 ? '+' : ''}${magnitudeValue}%` : "—")}
           </span>
+          {getTraceableSource(magnitude)?.source_reference && (
+            <div className="mt-1">
+              <SourceLink sourceRef={getTraceableSource(magnitude)?.source_reference} />
+            </div>
+          )}
         </div>
         <div>
           <span className="text-micro text-muted-foreground block mb-1">Trend</span>
@@ -126,8 +190,9 @@ function RevisionsMomentum({ data }: { data: InvestorDashboard["revisions_moment
         </div>
       </div>
 
-      <div className="pt-3 border-t border-border">
+      <div className="pt-3 border-t border-border flex items-center justify-between">
         <span className="text-micro text-muted-foreground">Source: {source ?? "—"}</span>
+        <SourceLink sourceRef={source_reference} />
       </div>
     </div>
   );

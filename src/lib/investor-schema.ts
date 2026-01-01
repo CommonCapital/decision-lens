@@ -182,9 +182,8 @@ const scenariosSchema = z.object({
 
 // === RISK ===
 
-const riskSchema = z.object({
+const riskItemSchema = z.object({
   id: z.string().nullable().optional(),
-  category: riskCategorySchema.nullable().optional(),
   title: z.string().nullable().optional(),
   description: z.string().nullable().optional(),
   severity: z.string().nullable().optional(),
@@ -197,6 +196,19 @@ const riskSchema = z.object({
   source: z.string().nullable().optional(),
   source_reference: sourceReferenceSchema,
 }).nullable().optional();
+
+// Risks structured by required category - each category must be present
+const risksSchema = z.object({
+  regulatory: z.array(riskItemSchema),
+  market: z.array(riskItemSchema),
+  operational: z.array(riskItemSchema),
+  cybersecurity: z.array(riskItemSchema),
+  financial: z.array(riskItemSchema),
+  strategic: z.array(riskItemSchema),
+}).nullable().optional();
+
+// Legacy single risk schema for backwards compatibility
+const riskSchema = riskItemSchema;
 
 // === CHANGE ===
 
@@ -246,6 +258,21 @@ const killSwitchSchema = z.object({
   conditions: z.array(z.string()).nullable().optional(),
 }).nullable().optional();
 
+// === TRACEABLE METRIC (value with source/formula) ===
+
+const traceableValueSchema = z.object({
+  value: z.number().nullable().optional(),
+  formatted: z.string().nullable().optional(),
+  source: z.string().nullable().optional(),
+  source_reference: sourceReferenceSchema,
+  formula: z.string().nullable().optional(),
+  formula_inputs: z.array(z.object({
+    name: z.string().nullable().optional(),
+    value: z.number().nullable().optional(),
+    source: z.string().nullable().optional(),
+  })).nullable().optional(),
+}).nullable().optional();
+
 // === VALUATION ===
 
 const valuationSchema = z.object({
@@ -255,21 +282,35 @@ const valuationSchema = z.object({
   why_range_exists: z.string().nullable().optional(),
   
   dcf: z.object({
-    terminal_growth_rate: z.number().nullable().optional(),
-    wacc: z.number().nullable().optional(),
-    implied_value: z.number().nullable().optional(),
-    implied_value_per_share: z.number().nullable().optional(),
+    terminal_growth_rate: traceableValueSchema,
+    wacc: traceableValueSchema,
+    implied_value: traceableValueSchema,
+    implied_value_per_share: traceableValueSchema,
+    source: z.string().nullable().optional(),
+    source_reference: sourceReferenceSchema,
+    methodology: z.string().nullable().optional(),
   }).nullable().optional(),
   
   trading_comps: z.object({
-    implied_value_range_low: z.number().nullable().optional(),
-    implied_value_range_high: z.number().nullable().optional(),
+    implied_value_range_low: traceableValueSchema,
+    implied_value_range_high: traceableValueSchema,
+    peer_set: z.array(z.string()).nullable().optional(),
+    multiple_used: z.string().nullable().optional(),
+    source: z.string().nullable().optional(),
+    source_reference: sourceReferenceSchema,
     confidence: dataQualitySchema,
   }).nullable().optional(),
   
   precedent_transactions: z.object({
-    implied_value_range_low: z.number().nullable().optional(),
-    implied_value_range_high: z.number().nullable().optional(),
+    implied_value_range_low: traceableValueSchema,
+    implied_value_range_high: traceableValueSchema,
+    transactions: z.array(z.object({
+      name: z.string().nullable().optional(),
+      date: z.string().nullable().optional(),
+      multiple: z.number().nullable().optional(),
+    })).nullable().optional(),
+    source: z.string().nullable().optional(),
+    source_reference: sourceReferenceSchema,
     confidence: dataQualitySchema,
   }).nullable().optional(),
 }).nullable().optional();
@@ -380,7 +421,7 @@ export const investorDashboardSchema = z.object({
 
   events: z.array(eventSchema).nullable().optional(),
   scenarios: scenariosSchema.optional().nullable(),
-  risks: z.array(riskSchema).optional().nullable(),
+  risks: risksSchema,
 
   path_indicators: z.array(pathIndicatorSchema).nullable().optional(),
   position_sizing: positionSizingSchema,
@@ -401,10 +442,10 @@ export const investorDashboardSchema = z.object({
   })).nullable().optional(),
   
   guidance_bridge: z.object({
-    low: z.number().nullable().optional(),
-    high: z.number().nullable().optional(),
-    current_consensus: z.number().nullable().optional(),
-    gap_percent: z.number().nullable().optional(),
+    low: traceableValueSchema,
+    high: traceableValueSchema,
+    current_consensus: traceableValueSchema,
+    gap_percent: traceableValueSchema,
     source: z.string().nullable().optional(),
     source_reference: sourceReferenceSchema,
     last_updated: z.string().nullable().optional(),
@@ -412,7 +453,7 @@ export const investorDashboardSchema = z.object({
   
   revisions_momentum: z.object({
     direction: z.string().nullable().optional(),
-    magnitude: z.string().nullable().optional(),
+    magnitude: traceableValueSchema,
     trend: z.string().nullable().optional(),
     source: z.string().nullable().optional(),
     source_reference: sourceReferenceSchema,
