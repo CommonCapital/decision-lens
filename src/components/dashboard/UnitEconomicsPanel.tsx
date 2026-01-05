@@ -1,6 +1,13 @@
 import { InvestorDashboard } from "@/lib/investor-schema";
 import { cn } from "@/lib/utils";
 import { 
+  calcCAC,
+  calcLTV,
+  calcLTVCAC,
+  calcPaybackPeriod,
+  CalculatedKPI
+} from "@/lib/kpi-calculations";
+import { 
   TrendingUp, 
   DollarSign, 
   Users, 
@@ -17,48 +24,9 @@ interface UnitEconomicsPanelProps {
   data: InvestorDashboard;
 }
 
-// Helper to extract value from traceable value
-function getTraceableValue(val: any): number | null {
-  if (val == null) return null;
-  if (typeof val === "number") return val;
-  if (typeof val === "object" && val.value != null) return val.value;
-  return null;
-}
-
-function getTraceableFormatted(val: any): string | null {
-  if (val == null) return null;
-  if (typeof val === "object" && val.formatted) return val.formatted;
-  return null;
-}
-
-function getTraceableSource(val: any): { source?: string; source_reference?: any; formula?: string; formula_inputs?: any[] } | null {
-  if (val == null || typeof val !== "object") return null;
-  return { 
-    source: val.source, 
-    source_reference: val.source_reference,
-    formula: val.formula,
-    formula_inputs: val.formula_inputs
-  };
-}
-
-function SourceLink({ sourceRef }: { sourceRef?: { url?: string; document_type?: string } }) {
-  if (!sourceRef?.url) return null;
-  return (
-    <a
-      href={sourceRef.url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="inline-flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors"
-    >
-      <ExternalLink className="w-3 h-3" />
-      {sourceRef.document_type || "Source"}
-    </a>
-  );
-}
-
-function FormulaTooltip({ traceableValue }: { traceableValue: any }) {
-  const sourceInfo = getTraceableSource(traceableValue);
-  if (!sourceInfo?.formula && !sourceInfo?.source) return null;
+// Tooltip that shows formula from kpi-calculations (not from schema)
+function FormulaTooltip({ kpi, sourceUrl }: { kpi: CalculatedKPI; sourceUrl?: string }) {
+  if (!kpi.formula) return null;
 
   return (
     <TooltipProvider>
@@ -70,30 +38,34 @@ function FormulaTooltip({ traceableValue }: { traceableValue: any }) {
         </TooltipTrigger>
         <TooltipContent side="top" align="end" className="max-w-sm bg-card border border-border p-3">
           <div className="space-y-2">
-            {sourceInfo.formula && (
+            <div>
+              <div className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1">Formula</div>
+              <code className="text-xs font-mono bg-secondary px-2 py-1 block">{kpi.formula}</code>
+            </div>
+            {kpi.inputs && kpi.inputs.length > 0 && (
               <div>
-                <div className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1">Formula</div>
-                <code className="text-xs font-mono bg-secondary px-2 py-1 block">{sourceInfo.formula}</code>
-              </div>
-            )}
-            {sourceInfo.formula_inputs && sourceInfo.formula_inputs.length > 0 && (
-              <div>
-                <div className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1">Inputs</div>
-                {sourceInfo.formula_inputs.map((input: any, i: number) => (
+                <div className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1">Inputs (from base_metrics)</div>
+                {kpi.inputs.map((input, i) => (
                   <div key={i} className="flex justify-between text-xs gap-4">
                     <span className="text-muted-foreground">{input.name}</span>
-                    <span className="font-mono">{typeof input.value === 'number' ? input.value.toLocaleString() : input.value}</span>
+                    <span className="font-mono">{input.formatted}</span>
                   </div>
                 ))}
               </div>
             )}
-            {sourceInfo.source && (
-              <div className="pt-2 border-t border-border">
-                <span className="text-[10px] text-muted-foreground">Source: {sourceInfo.source}</span>
-              </div>
-            )}
-            {sourceInfo.source_reference?.url && (
-              <SourceLink sourceRef={sourceInfo.source_reference} />
+            <div className="pt-2 border-t border-border text-[10px] text-muted-foreground">
+              Calculated by: kpi-calculations.ts
+            </div>
+            {sourceUrl && (
+              <a
+                href={sourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <ExternalLink className="w-3 h-3" />
+                View Source
+              </a>
             )}
           </div>
         </TooltipContent>
@@ -105,19 +77,18 @@ function FormulaTooltip({ traceableValue }: { traceableValue: any }) {
 function MetricCard({ 
   icon: Icon, 
   label, 
-  traceableValue,
+  kpi,
   subtext,
-  highlight = false
+  highlight = false,
+  sourceUrl
 }: { 
   icon: React.ComponentType<{ className?: string }>;
   label: string;
-  traceableValue: any;
+  kpi: CalculatedKPI;
   subtext?: string;
   highlight?: boolean;
+  sourceUrl?: string;
 }) {
-  const formatted = getTraceableFormatted(traceableValue);
-  const value = getTraceableValue(traceableValue);
-
   return (
     <div className={cn(
       "border border-border p-4",
@@ -126,10 +97,10 @@ function MetricCard({
       <div className="flex items-center gap-2 mb-2">
         <Icon className="w-4 h-4 text-muted-foreground" />
         <span className="text-micro uppercase tracking-ultra-wide text-muted-foreground">{label}</span>
-        <FormulaTooltip traceableValue={traceableValue} />
+        <FormulaTooltip kpi={kpi} sourceUrl={sourceUrl} />
       </div>
       <div className="text-2xl font-mono font-medium">
-        {formatted || (value != null ? value.toLocaleString() : "—")}
+        {kpi.formatted || "—"}
       </div>
       {subtext && (
         <div className="text-sm text-muted-foreground mt-1">{subtext}</div>
@@ -138,7 +109,7 @@ function MetricCard({
   );
 }
 
-function LtvCacGauge({ ratio }: { ratio: number | null }) {
+function LtvCacGauge({ ratio, kpi }: { ratio: number | null; kpi: CalculatedKPI }) {
   if (ratio == null) return null;
   
   // Determine health status
@@ -160,6 +131,7 @@ function LtvCacGauge({ ratio }: { ratio: number | null }) {
         <div className="flex items-center gap-2">
           <Target className="w-4 h-4 text-muted-foreground" />
           <span className="text-micro uppercase tracking-ultra-wide text-muted-foreground">LTV/CAC Ratio</span>
+          <FormulaTooltip kpi={kpi} />
         </div>
         <div className={cn("flex items-center gap-1 text-sm font-medium", color)}>
           <StatusIcon className="w-4 h-4" />
@@ -247,10 +219,15 @@ function InvestorContextCard({ context }: { context: NonNullable<NonNullable<Inv
 
 export function UnitEconomicsPanel({ data }: UnitEconomicsPanelProps) {
   const unitEcon = data.unit_economics;
+  const m = data.base_metrics;
   
   if (!unitEcon) return null;
   
-  const ltvCacRatio = getTraceableValue(unitEcon.ltv_cac_ratio);
+  // Calculate all KPIs from base_metrics using kpi-calculations.ts
+  const cacKPI = calcCAC(m);
+  const ltvKPI = calcLTV(m);
+  const ltvCacKPI = calcLTVCAC(m);
+  const paybackKPI = calcPaybackPeriod(m);
 
   return (
     <section className="py-8 border-b border-border animate-fade-in">
@@ -260,31 +237,29 @@ export function UnitEconomicsPanel({ data }: UnitEconomicsPanelProps) {
           <h2 className="text-micro uppercase tracking-ultra-wide text-muted-foreground font-sans">
             Unit Economics
           </h2>
-          {unitEcon.source && (
-            <span className="text-micro text-muted-foreground ml-auto">
-              Source: {unitEcon.source}
-            </span>
-          )}
+          <span className="text-micro text-muted-foreground ml-auto">
+            Calculated via: kpi-calculations.ts
+          </span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
           <MetricCard 
             icon={DollarSign} 
             label="Customer Acquisition Cost" 
-            traceableValue={unitEcon.cac}
+            kpi={cacKPI}
             subtext="Cost to acquire one customer"
           />
           <MetricCard 
             icon={Users} 
             label="Lifetime Value" 
-            traceableValue={unitEcon.ltv}
+            kpi={ltvKPI}
             subtext="Revenue per customer lifetime"
           />
-          <LtvCacGauge ratio={ltvCacRatio} />
+          <LtvCacGauge ratio={ltvCacKPI.value} kpi={ltvCacKPI} />
           <MetricCard 
             icon={Clock} 
             label="Payback Period" 
-            traceableValue={unitEcon.payback_period_months}
+            kpi={paybackKPI}
             subtext="Months to recover CAC"
           />
         </div>

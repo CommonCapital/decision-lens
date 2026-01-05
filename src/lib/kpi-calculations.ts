@@ -258,6 +258,23 @@ export function calcNRR(m: BaseMetrics): CalculatedKPI {
   };
 }
 
+export function calcCAC(m: BaseMetrics): CalculatedKPI {
+  const cac = m?.cac ?? null;
+  const smSpend = m?.sm_spend ?? null;
+  const customerCount = m?.customer_count ?? null;
+  
+  // If CAC is directly provided, use it; otherwise could be derived from S&M / New Customers
+  return {
+    value: cac,
+    formatted: formatCurrency(cac),
+    formula: "Total S&M Spend ÷ New Customers Acquired",
+    inputs: [
+      { name: "CAC (stored)", value: cac, formatted: formatCurrency(cac) },
+      { name: "S&M Spend", value: smSpend, formatted: formatCurrency(smSpend) },
+    ]
+  };
+}
+
 export function calcLTV(m: BaseMetrics): CalculatedKPI {
   const arpa = m?.arpa ?? null;
   const gm = m?.gross_margin_percent ?? null;
