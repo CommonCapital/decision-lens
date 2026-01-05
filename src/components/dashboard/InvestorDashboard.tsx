@@ -80,7 +80,7 @@ export function InvestorDashboard({ data }: InvestorDashboardProps) {
         
         <EventsTimeline events={data.events} />
         
-        <DriverScenariosPanel scenarios={data.scenarios} />
+        <DriverScenariosPanel scenarios={data.scenarios} baseMetrics={data.base_metrics} />
         
         <RisksPanel risks={data.risks} />
         
