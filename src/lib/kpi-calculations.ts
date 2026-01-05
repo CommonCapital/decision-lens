@@ -475,6 +475,76 @@ export function calcImpliedUpside(data: InvestorDashboard): CalculatedKPI {
   };
 }
 
+// === SCENARIO CALCULATIONS ===
+
+export interface ScenarioCalculationInputs {
+  revenueTTM: number;
+  ebitdaTTM: number;
+  growthRate: number; // as decimal, e.g., 0.09 for 9%
+  ebitdaMargin: number; // as decimal, e.g., 0.255 for 25.5%
+  exitMultiple: number;
+  wacc: number; // as decimal
+}
+
+export interface CalculatedScenarioOutputs {
+  revenue: CalculatedKPI;
+  ebitda: CalculatedKPI;
+  valuation: CalculatedKPI;
+}
+
+export function calcScenarioOutputs(inputs: ScenarioCalculationInputs): CalculatedScenarioOutputs {
+  const { revenueTTM, ebitdaTTM, growthRate, ebitdaMargin, exitMultiple, wacc } = inputs;
+  
+  // Revenue = TTM × (1 + Growth Rate)
+  const projectedRevenue = revenueTTM * (1 + growthRate);
+  
+  // EBITDA = Projected Revenue × EBITDA Margin
+  const projectedEBITDA = projectedRevenue * ebitdaMargin;
+  
+  // Simple DCF approximation: EBITDA × Exit Multiple / (1 + WACC)
+  // In a real model this would be a proper DCF with terminal value
+  const impliedValuation = (projectedEBITDA * exitMultiple) / (1 + wacc);
+  
+  return {
+    revenue: {
+      value: projectedRevenue,
+      formatted: formatCurrency(projectedRevenue),
+      formula: "Revenue TTM × (1 + Growth Rate)",
+      inputs: [
+        { name: "Revenue TTM", value: revenueTTM, formatted: formatCurrency(revenueTTM) },
+        { name: "Growth Rate", value: growthRate * 100, formatted: `${(growthRate * 100).toFixed(1)}%` },
+      ]
+    },
+    ebitda: {
+      value: projectedEBITDA,
+      formatted: formatCurrency(projectedEBITDA),
+      formula: "Projected Revenue × EBITDA Margin",
+      inputs: [
+        { name: "Projected Revenue", value: projectedRevenue, formatted: formatCurrency(projectedRevenue) },
+        { name: "EBITDA Margin", value: ebitdaMargin * 100, formatted: `${(ebitdaMargin * 100).toFixed(1)}%` },
+      ]
+    },
+    valuation: {
+      value: impliedValuation,
+      formatted: formatCurrency(impliedValuation),
+      formula: "EBITDA × Exit Multiple ÷ (1 + WACC)",
+      inputs: [
+        { name: "Projected EBITDA", value: projectedEBITDA, formatted: formatCurrency(projectedEBITDA) },
+        { name: "Exit Multiple", value: exitMultiple, formatted: `${exitMultiple.toFixed(1)}x` },
+        { name: "WACC", value: wacc * 100, formatted: `${(wacc * 100).toFixed(1)}%` },
+      ]
+    }
+  };
+}
+
+// Parse driver value to extract growth rate (e.g., "9%" -> 0.09)
+export function parseDriverPercent(value: string | number | null | undefined): number | null {
+  if (value === null || value === undefined) return null;
+  if (typeof value === 'number') return value / 100;
+  const match = String(value).match(/([\d.]+)/);
+  return match ? parseFloat(match[1]) / 100 : null;
+}
+
 // === FORMAT UTILITIES ===
 
 export { formatCurrency, formatPercent, formatMultiple, formatNumber };

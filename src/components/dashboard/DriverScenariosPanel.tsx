@@ -1,6 +1,6 @@
-import { Scenarios, SingleScenario, ScenarioDriver } from "@/lib/investor-schema";
+import { Scenarios, SingleScenario, ScenarioDriver, BaseMetrics } from "@/lib/investor-schema";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { EmptySection } from "./EmptySection";
 import { ArrowDown, ArrowUp } from "lucide-react";
 import {
@@ -8,9 +8,11 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { calcScenarioOutputs, parseDriverPercent, formatCurrency, CalculatedKPI } from "@/lib/kpi-calculations";
 
 interface DriverScenariosPanelProps {
   scenarios?: Scenarios | null;
+  baseMetrics?: BaseMetrics | null;
 }
 
 type ScenarioName = "base" | "downside" | "upside";
@@ -21,9 +23,56 @@ const scenarioLabels: Record<ScenarioName, string> = {
   upside: "Upside",
 };
 
-export function DriverScenariosPanel({ scenarios }: DriverScenariosPanelProps) {
+// Default valuation parameters by scenario type
+const defaultScenarioParams: Record<ScenarioName, { exitMultiple: number; wacc: number }> = {
+  base: { exitMultiple: 12.0, wacc: 0.082 },
+  downside: { exitMultiple: 10.5, wacc: 0.09 },
+  upside: { exitMultiple: 14.0, wacc: 0.075 },
+};
+
+export function DriverScenariosPanel({ scenarios, baseMetrics }: DriverScenariosPanelProps) {
   const [activeScenario, setActiveScenario] = useState<ScenarioName>("base");
   const [showDrivers, setShowDrivers] = useState(true);
+
+  // Calculate scenario outputs from base_metrics + drivers
+  const calculatedOutputs = useMemo(() => {
+    if (!baseMetrics?.revenue_ttm || !baseMetrics?.ebitda_ttm) return null;
+    
+    const results: Record<ScenarioName, ReturnType<typeof calcScenarioOutputs> | null> = {
+      base: null,
+      downside: null,
+      upside: null,
+    };
+    
+    const scenarioNames: ScenarioName[] = ["base", "downside", "upside"];
+    
+    for (const name of scenarioNames) {
+      const scenario = scenarios?.[name];
+      if (!scenario) continue;
+      
+      // Extract growth rate and EBITDA margin from drivers
+      const growthDriver = scenario.drivers?.find(d => d?.name === "Revenue Growth");
+      const marginDriver = scenario.drivers?.find(d => d?.name === "EBITDA Margin");
+      
+      const growthRate = parseDriverPercent(growthDriver?.value);
+      const ebitdaMargin = parseDriverPercent(marginDriver?.value);
+      
+      if (growthRate === null || ebitdaMargin === null) continue;
+      
+      const params = defaultScenarioParams[name];
+      
+      results[name] = calcScenarioOutputs({
+        revenueTTM: baseMetrics.revenue_ttm,
+        ebitdaTTM: baseMetrics.ebitda_ttm,
+        growthRate,
+        ebitdaMargin,
+        exitMultiple: params.exitMultiple,
+        wacc: params.wacc,
+      });
+    }
+    
+    return results;
+  }, [scenarios, baseMetrics]);
 
   if (!scenarios) {
     return (
@@ -69,19 +118,20 @@ export function DriverScenariosPanel({ scenarios }: DriverScenariosPanelProps) {
   }
 
   const current = scenarios[activeScenario] || availableScenarios[0]?.scenario;
+  const currentCalc = calculatedOutputs?.[activeScenario];
   
   if (!current) {
     return null;
   }
 
-  // Extract valuation values from each scenario
-  const getValuation = (scenario: SingleScenario | null | undefined): number => {
-    return (scenario?.outputs?.valuation?.value as number) || 0;
+  // Extract valuation values from CALCULATED outputs (not mock data)
+  const getCalculatedValuation = (name: ScenarioName): number => {
+    return calculatedOutputs?.[name]?.valuation?.value || 0;
   };
   
-  const baseVal = getValuation(scenarios.base);
-  const downsideVal = getValuation(scenarios.downside);
-  const upsideVal = getValuation(scenarios.upside);
+  const baseVal = getCalculatedValuation("base");
+  const downsideVal = getCalculatedValuation("downside");
+  const upsideVal = getCalculatedValuation("upside");
   
   // Calculate min/max range across all scenarios with valid valuations
   const validValuations = [baseVal, downsideVal, upsideVal].filter(v => v > 0);
@@ -96,6 +146,10 @@ export function DriverScenariosPanel({ scenarios }: DriverScenariosPanelProps) {
   const upsideProb = scenarios.upside?.probability || 0;
   
   const expectedValue = (baseVal * baseProb) + (downsideVal * downsideProb) + (upsideVal * upsideProb);
+  
+  // Get TTM values from base metrics for display
+  const revenueTTM = baseMetrics?.revenue_ttm || 0;
+  const ebitdaTTM = baseMetrics?.ebitda_ttm || 0;
 
   return (
     <section className="py-8 border-b border-border animate-fade-in">
@@ -163,9 +217,10 @@ export function DriverScenariosPanel({ scenarios }: DriverScenariosPanelProps) {
           
           {/* Visual range */}
           <div className="relative h-10 bg-secondary border border-border">
-            {availableScenarios.map(({ name, scenario }) => {
-              const val = (scenario?.outputs?.valuation?.value as number) || 0;
+            {availableScenarios.map(({ name }) => {
+              const val = calculatedOutputs?.[name]?.valuation?.value || 0;
               const position = range > 0 ? ((val - minVal) / range) * 100 : 50;
+              const formatted = calculatedOutputs?.[name]?.valuation?.formatted || "N/A";
 
               return (
                 <div
@@ -186,7 +241,7 @@ export function DriverScenariosPanel({ scenarios }: DriverScenariosPanelProps) {
                       {scenarioLabels[name]}
                     </span>
                     <span className="text-micro font-mono">
-                      {scenario?.outputs?.valuation?.formatted || "N/A"}
+                      {formatted}
                     </span>
                   </div>
                 </div>
@@ -370,109 +425,106 @@ export function DriverScenariosPanel({ scenarios }: DriverScenariosPanelProps) {
             </div>
           </div>
 
-          {/* Outputs with Traceability */}
+          {/* Outputs with Traceability - CALCULATED, not mock */}
           <div>
             <h3 className="text-micro uppercase tracking-ultra-wide text-muted-foreground font-sans mb-4 border-b border-border pb-2">
               {scenarioLabels[activeScenario]} Outputs
-              {current?.outputs?.revenue?.period && (
-                <span className="ml-2 text-[10px] bg-secondary px-2 py-0.5">{current.outputs.revenue.period}</span>
-              )}
+              <span className="ml-2 text-[10px] bg-secondary px-2 py-0.5">FY25E (Annual)</span>
             </h3>
             <div className="bg-secondary/30 border border-border p-3 mb-4">
               <p className="text-[10px] text-muted-foreground">
-                <strong>Note:</strong> Scenario outputs are <strong>annual projections (FY25E)</strong> based on TTM FY24 Revenue of $3.26B 
-                (sum of Q1: $795M + Q2: $834M + Q3: $868M + Q4: $892M). 
-                Quarterly Analysis shows individual quarter values (e.g., Q4: $892M Revenue, $224M EBITDA).
+                <strong>Calculated from schema:</strong> Outputs derived from base_metrics.revenue_ttm ({formatCurrency(revenueTTM)}) 
+                and base_metrics.ebitda_ttm ({formatCurrency(ebitdaTTM)}) × scenario drivers.
               </p>
             </div>
             <div className="grid grid-cols-2 gap-px bg-border">
-              {/* Revenue */}
+              {/* Revenue - CALCULATED */}
               <div className="bg-card p-4">
                 <span className="text-micro uppercase tracking-ultra-wide text-muted-foreground block mb-1">
                   Revenue
                 </span>
-                <span className="font-mono text-xl">{current?.outputs?.revenue?.formatted || "N/A"}</span>
-                {current?.outputs?.revenue?.formula && (
+                <span className="font-mono text-xl">{currentCalc?.revenue?.formatted || "N/A"}</span>
+                {currentCalc?.revenue && (
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <p className="text-[10px] text-muted-foreground mt-1 cursor-help underline decoration-dashed">
-                        {current.outputs.revenue.formula}
+                        {currentCalc.revenue.formula}
                       </p>
                     </TooltipTrigger>
                     <TooltipContent className="max-w-xs">
                       <div className="text-xs space-y-1">
-                        {current.outputs.revenue.formula_inputs?.map((input, i) => (
+                        <p className="font-medium mb-2">Calculated Inputs:</p>
+                        {currentCalc.revenue.inputs?.map((input, i) => (
                           <div key={i} className="flex justify-between gap-4">
-                            <span>{input?.name}:</span>
-                            <span className="font-mono">
-                              {typeof input?.value === 'number' 
-                                ? (input.value >= 1e9 ? `$${(input.value / 1e9).toFixed(2)}B` : input.value >= 1e6 ? `$${(input.value / 1e6).toFixed(0)}M` : `${(input.value * 100).toFixed(0)}%`)
-                                : input?.value}
-                            </span>
+                            <span>{input.name}:</span>
+                            <span className="font-mono">{input.formatted}</span>
                           </div>
                         ))}
+                        <div className="border-t border-border pt-2 mt-2">
+                          <p className="text-muted-foreground">Source: base_metrics.revenue_ttm + scenario.drivers</p>
+                        </div>
                       </div>
                     </TooltipContent>
                   </Tooltip>
                 )}
               </div>
               
-              {/* EBITDA */}
+              {/* EBITDA - CALCULATED */}
               <div className="bg-card p-4">
                 <span className="text-micro uppercase tracking-ultra-wide text-muted-foreground block mb-1">
                   EBITDA
                 </span>
-                <span className="font-mono text-xl">{current?.outputs?.ebitda?.formatted || "N/A"}</span>
-                {current?.outputs?.ebitda?.formula && (
+                <span className="font-mono text-xl">{currentCalc?.ebitda?.formatted || "N/A"}</span>
+                {currentCalc?.ebitda && (
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <p className="text-[10px] text-muted-foreground mt-1 cursor-help underline decoration-dashed">
-                        {current.outputs.ebitda.formula}
+                        {currentCalc.ebitda.formula}
                       </p>
                     </TooltipTrigger>
                     <TooltipContent className="max-w-xs">
                       <div className="text-xs space-y-1">
-                        {current.outputs.ebitda.formula_inputs?.map((input, i) => (
+                        <p className="font-medium mb-2">Calculated Inputs:</p>
+                        {currentCalc.ebitda.inputs?.map((input, i) => (
                           <div key={i} className="flex justify-between gap-4">
-                            <span>{input?.name}:</span>
-                            <span className="font-mono">
-                              {typeof input?.value === 'number' 
-                                ? (input.value >= 1e9 ? `$${(input.value / 1e9).toFixed(2)}B` : input.value >= 1e6 ? `$${(input.value / 1e6).toFixed(0)}M` : `${(input.value * 100).toFixed(0)}%`)
-                                : input?.value}
-                            </span>
+                            <span>{input.name}:</span>
+                            <span className="font-mono">{input.formatted}</span>
                           </div>
                         ))}
+                        <div className="border-t border-border pt-2 mt-2">
+                          <p className="text-muted-foreground">Source: Projected Revenue × EBITDA Margin driver</p>
+                        </div>
                       </div>
                     </TooltipContent>
                   </Tooltip>
                 )}
               </div>
               
-              {/* Implied Valuation */}
+              {/* Implied Valuation - CALCULATED */}
               <div className="bg-card p-4 col-span-2">
                 <span className="text-micro uppercase tracking-ultra-wide text-muted-foreground block mb-1">
                   Implied Valuation
                 </span>
-                <span className="font-mono text-2xl">{current?.outputs?.valuation?.formatted || "N/A"}</span>
-                {current?.outputs?.valuation?.formula && (
+                <span className="font-mono text-2xl">{currentCalc?.valuation?.formatted || "N/A"}</span>
+                {currentCalc?.valuation && (
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <p className="text-[10px] text-muted-foreground mt-1 cursor-help underline decoration-dashed">
-                        {current.outputs.valuation.formula}
+                        {currentCalc.valuation.formula}
                       </p>
                     </TooltipTrigger>
                     <TooltipContent className="max-w-xs">
                       <div className="text-xs space-y-1">
-                        {current.outputs.valuation.formula_inputs?.map((input, i) => (
+                        <p className="font-medium mb-2">Calculated Inputs:</p>
+                        {currentCalc.valuation.inputs?.map((input, i) => (
                           <div key={i} className="flex justify-between gap-4">
-                            <span>{input?.name}:</span>
-                            <span className="font-mono">
-                              {typeof input?.value === 'number' 
-                                ? (input.value >= 1e9 ? `$${(input.value / 1e9).toFixed(2)}B` : input.value >= 1e6 ? `$${(input.value / 1e6).toFixed(0)}M` : `${input.value}`)
-                                : input?.value}
-                            </span>
+                            <span>{input.name}:</span>
+                            <span className="font-mono">{input.formatted}</span>
                           </div>
                         ))}
+                        <div className="border-t border-border pt-2 mt-2">
+                          <p className="text-muted-foreground">Valuation model: DCF approximation using exit multiple</p>
+                        </div>
                       </div>
                     </TooltipContent>
                   </Tooltip>
