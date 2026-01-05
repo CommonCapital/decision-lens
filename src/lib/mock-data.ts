@@ -93,7 +93,7 @@ export const mockDashboardData: InvestorDashboard = {
     current_liabilities: 890000000,
     accounts_receivable: 420000000,
     
-    // Income Statement
+    // Income Statement (Quarterly - Q4 2024)
     revenue: 892000000,
     revenue_prior: 817000000,
     gross_profit: 446000000,
@@ -101,7 +101,14 @@ export const mockDashboardData: InvestorDashboard = {
     depreciation_amortization: 26000000,
     interest_expense: 18000000,
     
-    // EBITDA (dual structure) - Reported is available
+    // Income Statement (TTM - Trailing Twelve Months ending Q4 2024)
+    // These are the annual base figures that scenario projections build upon
+    revenue_ttm: 3260000000, // Sum of Q1-Q4: 795M + 834M + 868M + 892M = 3.26B (from time_series)
+    ebitda_ttm: 819000000, // Sum of Q1-Q4: 185M + 198M + 212M + 224M = 819M (from time_series)
+    gross_profit_ttm: 1630000000,
+    operating_income_ttm: 792000000,
+    
+    // EBITDA (dual structure) - Reported is available (Quarterly)
     ebitda_reported: 224000000,
     ebitda_proxy: null,
     ebitda_availability: "reported",
@@ -207,9 +214,123 @@ export const mockDashboardData: InvestorDashboard = {
   ],
 
   scenarios: {
-    base: { probability: 0.6, assumptions: [{ key: "Revenue Growth", value: "9%" }, { key: "EBITDA Margin", value: "25.5%" }], outputs: { revenue: { value: 3550000000, formatted: "$3.55B", source: "Model" }, ebitda: { value: 905000000, formatted: "$905M", source: "Model" }, valuation: { value: 14500000000, formatted: "$14.5B", source: "DCF" } } },
-    downside: { probability: 0.25, assumptions: [{ key: "Revenue Growth", value: "5%" }, { key: "EBITDA Margin", value: "22%" }], outputs: { revenue: { value: 3280000000, formatted: "$3.28B", source: "Model" }, ebitda: { value: 722000000, formatted: "$722M", source: "Model" }, valuation: { value: 11200000000, formatted: "$11.2B", source: "DCF" } } },
-    upside: { probability: 0.15, assumptions: [{ key: "Revenue Growth", value: "14%" }, { key: "EBITDA Margin", value: "27%" }], outputs: { revenue: { value: 3850000000, formatted: "$3.85B", source: "Model" }, ebitda: { value: 1040000000, formatted: "$1.04B", source: "Model" }, valuation: { value: 17800000000, formatted: "$17.8B", source: "DCF" } } },
+    base: { 
+      probability: 0.6, 
+      assumptions: [{ key: "Revenue Growth", value: "9%" }, { key: "EBITDA Margin", value: "25.5%" }], 
+      outputs: { 
+        revenue: { 
+          value: 3553400000, 
+          formatted: "$3.55B", 
+          source: "Model Projection",
+          period: "FY25E",
+          formula: "Revenue TTM × (1 + Growth Rate)",
+          formula_inputs: [
+            { name: "Revenue TTM", value: 3260000000, source: "SEC Filings", source_reference: { url: "https://sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=MHC&type=10-K", document_type: "10-K Filing", excerpt: "Total Revenue: $3.26B", accessed_at: "2024-12-14T06:00:00Z" } },
+            { name: "Growth Rate", value: 0.09, source: "Base Case Assumption" }
+          ]
+        }, 
+        ebitda: { 
+          value: 906117000, 
+          formatted: "$906M", 
+          source: "Model Projection",
+          period: "FY25E",
+          formula: "Projected Revenue × EBITDA Margin",
+          formula_inputs: [
+            { name: "Projected Revenue", value: 3553400000, source: "Calculated" },
+            { name: "EBITDA Margin", value: 0.255, source: "Base Case Assumption" }
+          ]
+        }, 
+        valuation: { 
+          value: 14500000000, 
+          formatted: "$14.5B", 
+          source: "DCF Model",
+          formula: "Discounted Cash Flow with Terminal Value",
+          formula_inputs: [
+            { name: "FY25E EBITDA", value: 906117000, source: "Calculated" },
+            { name: "Exit Multiple", value: 12.0, source: "Trading Comps Median" },
+            { name: "WACC", value: 0.082, source: "Internal Model" }
+          ]
+        } 
+      } 
+    },
+    downside: { 
+      probability: 0.25, 
+      assumptions: [{ key: "Revenue Growth", value: "5%" }, { key: "EBITDA Margin", value: "22%" }], 
+      outputs: { 
+        revenue: { 
+          value: 3423000000, 
+          formatted: "$3.42B", 
+          source: "Model Projection",
+          period: "FY25E",
+          formula: "Revenue TTM × (1 + Growth Rate)",
+          formula_inputs: [
+            { name: "Revenue TTM", value: 3260000000, source: "SEC Filings", source_reference: { url: "https://sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=MHC&type=10-K", document_type: "10-K Filing", excerpt: "Total Revenue: $3.26B", accessed_at: "2024-12-14T06:00:00Z" } },
+            { name: "Growth Rate", value: 0.05, source: "Downside Assumption" }
+          ]
+        }, 
+        ebitda: { 
+          value: 753060000, 
+          formatted: "$753M", 
+          source: "Model Projection",
+          period: "FY25E",
+          formula: "Projected Revenue × EBITDA Margin",
+          formula_inputs: [
+            { name: "Projected Revenue", value: 3423000000, source: "Calculated" },
+            { name: "EBITDA Margin", value: 0.22, source: "Downside Assumption" }
+          ]
+        }, 
+        valuation: { 
+          value: 11200000000, 
+          formatted: "$11.2B", 
+          source: "DCF Model",
+          formula: "Discounted Cash Flow with Terminal Value",
+          formula_inputs: [
+            { name: "FY25E EBITDA", value: 753060000, source: "Calculated" },
+            { name: "Exit Multiple", value: 10.5, source: "Trading Comps 25th Percentile" },
+            { name: "WACC", value: 0.09, source: "Stressed Discount Rate" }
+          ]
+        } 
+      } 
+    },
+    upside: { 
+      probability: 0.15, 
+      assumptions: [{ key: "Revenue Growth", value: "14%" }, { key: "EBITDA Margin", value: "27%" }], 
+      outputs: { 
+        revenue: { 
+          value: 3716400000, 
+          formatted: "$3.72B", 
+          source: "Model Projection",
+          period: "FY25E",
+          formula: "Revenue TTM × (1 + Growth Rate)",
+          formula_inputs: [
+            { name: "Revenue TTM", value: 3260000000, source: "SEC Filings", source_reference: { url: "https://sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=MHC&type=10-K", document_type: "10-K Filing", excerpt: "Total Revenue: $3.26B", accessed_at: "2024-12-14T06:00:00Z" } },
+            { name: "Growth Rate", value: 0.14, source: "Upside Assumption" }
+          ]
+        }, 
+        ebitda: { 
+          value: 1003428000, 
+          formatted: "$1.00B", 
+          source: "Model Projection",
+          period: "FY25E",
+          formula: "Projected Revenue × EBITDA Margin",
+          formula_inputs: [
+            { name: "Projected Revenue", value: 3716400000, source: "Calculated" },
+            { name: "EBITDA Margin", value: 0.27, source: "Upside Assumption" }
+          ]
+        }, 
+        valuation: { 
+          value: 17800000000, 
+          formatted: "$17.8B", 
+          source: "DCF Model",
+          formula: "Discounted Cash Flow with Terminal Value",
+          formula_inputs: [
+            { name: "FY25E EBITDA", value: 1003428000, source: "Calculated" },
+            { name: "Exit Multiple", value: 13.5, source: "Trading Comps 75th Percentile" },
+            { name: "WACC", value: 0.075, source: "Optimistic Discount Rate" }
+          ]
+        } 
+      } 
+    },
   },
 
   // Guidance vs Consensus - with field-level traceability
