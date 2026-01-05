@@ -1,12 +1,20 @@
-import { BaseMetrics, InvestorDashboard } from "./investor-schema";
+import { BaseMetrics, InvestorDashboard, SourceReference } from "./investor-schema";
 
 // === KPI FORMULAS ===
+
+export interface CalculatedKPIInput {
+  name: string;
+  value: number | null;
+  formatted: string;
+  source?: string;
+  sourceReference?: SourceReference | null;
+}
 
 export interface CalculatedKPI {
   value: number | null;
   formatted: string;
   formula: string;
-  inputs: { name: string; value: number | null; formatted: string }[];
+  inputs: CalculatedKPIInput[];
 }
 
 function formatCurrency(value: number | null): string {
@@ -484,6 +492,11 @@ export interface ScenarioCalculationInputs {
   ebitdaMargin: number; // as decimal, e.g., 0.255 for 25.5%
   exitMultiple: number;
   wacc: number; // as decimal
+  // Source references for traceability
+  growthRateSource?: string;
+  growthRateSourceRef?: SourceReference | null;
+  ebitdaMarginSource?: string;
+  ebitdaMarginSourceRef?: SourceReference | null;
 }
 
 export interface CalculatedScenarioOutputs {
@@ -493,7 +506,10 @@ export interface CalculatedScenarioOutputs {
 }
 
 export function calcScenarioOutputs(inputs: ScenarioCalculationInputs): CalculatedScenarioOutputs {
-  const { revenueTTM, ebitdaTTM, growthRate, ebitdaMargin, exitMultiple, wacc } = inputs;
+  const { 
+    revenueTTM, ebitdaTTM, growthRate, ebitdaMargin, exitMultiple, wacc,
+    growthRateSource, growthRateSourceRef, ebitdaMarginSource, ebitdaMarginSourceRef
+  } = inputs;
   
   // Revenue = TTM × (1 + Growth Rate)
   const projectedRevenue = revenueTTM * (1 + growthRate);
@@ -511,8 +527,19 @@ export function calcScenarioOutputs(inputs: ScenarioCalculationInputs): Calculat
       formatted: formatCurrency(projectedRevenue),
       formula: "Revenue TTM × (1 + Growth Rate)",
       inputs: [
-        { name: "Revenue TTM", value: revenueTTM, formatted: formatCurrency(revenueTTM) },
-        { name: "Growth Rate", value: growthRate * 100, formatted: `${(growthRate * 100).toFixed(1)}%` },
+        { 
+          name: "Revenue TTM", 
+          value: revenueTTM, 
+          formatted: formatCurrency(revenueTTM),
+          source: "base_metrics.revenue_ttm"
+        },
+        { 
+          name: "Growth Rate", 
+          value: growthRate * 100, 
+          formatted: `${(growthRate * 100).toFixed(1)}%`,
+          source: growthRateSource || "scenario.drivers",
+          sourceReference: growthRateSourceRef
+        },
       ]
     },
     ebitda: {
@@ -520,8 +547,19 @@ export function calcScenarioOutputs(inputs: ScenarioCalculationInputs): Calculat
       formatted: formatCurrency(projectedEBITDA),
       formula: "Projected Revenue × EBITDA Margin",
       inputs: [
-        { name: "Projected Revenue", value: projectedRevenue, formatted: formatCurrency(projectedRevenue) },
-        { name: "EBITDA Margin", value: ebitdaMargin * 100, formatted: `${(ebitdaMargin * 100).toFixed(1)}%` },
+        { 
+          name: "Projected Revenue", 
+          value: projectedRevenue, 
+          formatted: formatCurrency(projectedRevenue),
+          source: "Calculated above"
+        },
+        { 
+          name: "EBITDA Margin", 
+          value: ebitdaMargin * 100, 
+          formatted: `${(ebitdaMargin * 100).toFixed(1)}%`,
+          source: ebitdaMarginSource || "scenario.drivers",
+          sourceReference: ebitdaMarginSourceRef
+        },
       ]
     },
     valuation: {
