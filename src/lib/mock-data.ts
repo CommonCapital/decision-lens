@@ -432,9 +432,13 @@ export const mockDashboardData: InvestorDashboard = {
   },
 
   sources: [
-    { name: "SEC EDGAR", type: "primary", last_refresh: "2024-12-14T06:00:00Z" },
-    { name: "Bloomberg Terminal", type: "primary", last_refresh: "2024-12-14T09:00:00Z" },
-    { name: "FactSet", type: "secondary", last_refresh: "2024-12-14T08:30:00Z" },
+    { name: "SEC EDGAR", type: "primary", last_refresh: "2024-12-14T06:00:00Z", refresh_frequency: "quarterly", status: "connected", priority: 1, url: "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=MHC", metrics_covered: ["Revenue", "EBITDA", "Debt", "Cash", "Shares Outstanding"], next_refresh: "2025-02-15T06:00:00Z" },
+    { name: "Bloomberg Terminal", type: "primary", last_refresh: "2024-12-14T09:00:00Z", refresh_frequency: "realtime", status: "connected", priority: 2, url: "https://bloomberg.com/quote/MHC:US", metrics_covered: ["Stock Price", "Market Cap", "Volume", "P/E Ratio"], next_refresh: null },
+    { name: "FactSet", type: "secondary", last_refresh: "2024-12-14T08:30:00Z", refresh_frequency: "hourly", status: "connected", priority: 3, url: "https://factset.com", metrics_covered: ["Analyst Estimates", "Consensus Revisions", "Price Targets"] },
+    { name: "Internal CRM", type: "secondary", last_refresh: "2024-12-13T18:00:00Z", refresh_frequency: "daily", status: "connected", priority: 4, url: null, metrics_covered: ["Customer Count", "CAC", "LTV", "Churn Rate"], next_refresh: "2024-12-14T18:00:00Z" },
+    { name: "Bernstein Research", type: "secondary", last_refresh: "2024-12-10T14:00:00Z", refresh_frequency: "weekly", status: "connected", priority: 5, url: "https://bernstein.com/research/industrials", metrics_covered: ["Industry Analysis", "Growth Forecasts", "Competitive Intel"] },
+    { name: "S&P Capital IQ", type: "secondary", last_refresh: "2024-12-12T10:00:00Z", refresh_frequency: "daily", status: "stale", priority: 6, url: "https://capitaliq.spglobal.com", metrics_covered: ["Comps Analysis", "Transaction Multiples", "Credit Metrics"], next_refresh: "2024-12-14T10:00:00Z" },
+    { name: "Management Presentations", type: "primary", last_refresh: "2024-11-15T09:00:00Z", refresh_frequency: "quarterly", status: "connected", priority: 7, url: "https://ir.meridianholdings.com/events", metrics_covered: ["Guidance", "Strategic Initiatives", "Capital Allocation"] },
   ],
 
   // Unit Economics with Investor Context

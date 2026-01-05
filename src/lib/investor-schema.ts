@@ -496,6 +496,12 @@ export const investorDashboardSchema = z.object({
     name: z.string(),
     type: z.enum(["primary", "secondary"]),
     last_refresh: z.string(),
+    refresh_frequency: z.enum(["realtime", "hourly", "daily", "weekly", "quarterly", "manual"]).optional(),
+    status: z.enum(["connected", "stale", "error", "pending"]).optional(),
+    priority: z.number().optional(), // Lower = higher priority
+    url: z.string().optional(),
+    metrics_covered: z.array(z.string()).optional(),
+    next_refresh: z.string().optional(),
   })).optional().nullable(),
 
   // Unit Economics with Investor Context
