@@ -287,6 +287,34 @@ export function calcLTVCAC(m: BaseMetrics): CalculatedKPI {
   };
 }
 
+export function calcPaybackPeriod(m: BaseMetrics): CalculatedKPI {
+  // Formula: CAC / (ARPA × Gross Margin %)
+  // All inputs must be in schema: cac, arpa, gross_margin_percent
+  const cac = m?.cac ?? null;
+  const arpa = m?.arpa ?? null;
+  const gm = m?.gross_margin_percent ?? null;
+  
+  // Monthly contribution = ARPA × Gross Margin %
+  const monthlyContribution = arpa !== null && gm !== null ? arpa * (gm / 100) : null;
+  
+  // Payback = CAC / Monthly Contribution
+  const value = cac !== null && monthlyContribution && monthlyContribution > 0
+    ? cac / monthlyContribution
+    : null;
+  
+  return {
+    value,
+    formatted: value !== null ? `${value.toFixed(0)} months` : "—",
+    formula: "CAC ÷ (ARPA × Gross Margin %)",
+    inputs: [
+      { name: "CAC", value: cac, formatted: formatCurrency(cac) },
+      { name: "ARPA", value: arpa, formatted: formatCurrency(arpa) },
+      { name: "Gross Margin %", value: gm, formatted: gm !== null ? `${gm.toFixed(1)}%` : "—" },
+      { name: "Monthly Contribution", value: monthlyContribution, formatted: formatCurrency(monthlyContribution) },
+    ]
+  };
+}
+
 // === PROTECTION CATEGORY ===
 
 export function calcNetCash(m: BaseMetrics): CalculatedKPI {
