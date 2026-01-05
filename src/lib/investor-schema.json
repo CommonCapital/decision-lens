@@ -3,6 +3,7 @@
   "title": "InvestorDashboard",
   "description": "Schema for investor dashboard data. Follows atomic metric philosophy: only base, non-derivable data is stored. All KPIs are calculated on-demand via kpi-calculations.ts.",
   "type": "object",
+  "required": ["company_type"],
   "properties": {
     "company_type": {
       "type": "string",
@@ -49,7 +50,7 @@
         "ebitda_proxy": { "type": ["number", "null"], "description": "Proxy EBITDA (Operating Income + D&A)" },
         "ebitda_availability": {
           "type": ["string", "null"],
-          "enum": ["reported", "proxy", "not_applicable"],
+          "enum": ["reported", "proxy", "not_applicable", null],
           "description": "Source of EBITDA value"
         },
         "free_cash_flow": { "type": ["number", "null"], "description": "Free cash flow" },
@@ -82,50 +83,589 @@
       "type": ["object", "null"],
       "description": "Historical time series data for charting",
       "properties": {
-        "stock_price": { "$comment": "See timeSeriesMetric structure" },
-        "revenue": { "$comment": "See timeSeriesMetric structure" },
-        "ebitda": { "$comment": "See timeSeriesMetric structure" },
-        "volume": { "$comment": "See timeSeriesMetric structure" }
-      },
-      "additionalProperties": {
-        "type": ["object", "null"],
-        "properties": {
-          "horizons": {
-            "type": ["object", "null"],
-            "properties": {
-              "1D": { "$comment": "See horizonStats structure" },
-              "1W": { "$comment": "See horizonStats structure" },
-              "1M": { "$comment": "See horizonStats structure" },
-              "1Y": { "$comment": "See horizonStats structure" },
-              "5Y": { "$comment": "See horizonStats structure" },
-              "10Y": { "$comment": "See horizonStats structure" }
-            },
-            "additionalProperties": {
+        "stock_price": {
+          "type": ["object", "null"],
+          "properties": {
+            "horizons": {
               "type": ["object", "null"],
               "properties": {
-                "quarters": {
+                "1D": {
                   "type": ["object", "null"],
                   "properties": {
-                    "Q1": { "type": ["number", "null"] },
-                    "Q2": { "type": ["number", "null"] },
-                    "Q3": { "type": ["number", "null"] },
-                    "Q4": { "type": ["number", "null"] }
+                    "quarters": {
+                      "type": ["object", "null"],
+                      "properties": {
+                        "Q1": { "type": ["number", "null"] },
+                        "Q2": { "type": ["number", "null"] },
+                        "Q3": { "type": ["number", "null"] },
+                        "Q4": { "type": ["number", "null"] }
+                      }
+                    },
+                    "high": { "type": ["number", "null"] },
+                    "low": { "type": ["number", "null"] },
+                    "average": { "type": ["number", "null"] },
+                    "volatility": { "type": ["number", "null"] },
+                    "change_percent": { "type": ["number", "null"] }
                   }
                 },
-                "high": { "type": ["number", "null"] },
-                "low": { "type": ["number", "null"] },
-                "average": { "type": ["number", "null"] },
-                "volatility": { "type": ["number", "null"] },
-                "change_percent": { "type": ["number", "null"] }
+                "1W": {
+                  "type": ["object", "null"],
+                  "properties": {
+                    "quarters": {
+                      "type": ["object", "null"],
+                      "properties": {
+                        "Q1": { "type": ["number", "null"] },
+                        "Q2": { "type": ["number", "null"] },
+                        "Q3": { "type": ["number", "null"] },
+                        "Q4": { "type": ["number", "null"] }
+                      }
+                    },
+                    "high": { "type": ["number", "null"] },
+                    "low": { "type": ["number", "null"] },
+                    "average": { "type": ["number", "null"] },
+                    "volatility": { "type": ["number", "null"] },
+                    "change_percent": { "type": ["number", "null"] }
+                  }
+                },
+                "1M": {
+                  "type": ["object", "null"],
+                  "properties": {
+                    "quarters": {
+                      "type": ["object", "null"],
+                      "properties": {
+                        "Q1": { "type": ["number", "null"] },
+                        "Q2": { "type": ["number", "null"] },
+                        "Q3": { "type": ["number", "null"] },
+                        "Q4": { "type": ["number", "null"] }
+                      }
+                    },
+                    "high": { "type": ["number", "null"] },
+                    "low": { "type": ["number", "null"] },
+                    "average": { "type": ["number", "null"] },
+                    "volatility": { "type": ["number", "null"] },
+                    "change_percent": { "type": ["number", "null"] }
+                  }
+                },
+                "1Y": {
+                  "type": ["object", "null"],
+                  "properties": {
+                    "quarters": {
+                      "type": ["object", "null"],
+                      "properties": {
+                        "Q1": { "type": ["number", "null"] },
+                        "Q2": { "type": ["number", "null"] },
+                        "Q3": { "type": ["number", "null"] },
+                        "Q4": { "type": ["number", "null"] }
+                      }
+                    },
+                    "high": { "type": ["number", "null"] },
+                    "low": { "type": ["number", "null"] },
+                    "average": { "type": ["number", "null"] },
+                    "volatility": { "type": ["number", "null"] },
+                    "change_percent": { "type": ["number", "null"] }
+                  }
+                },
+                "5Y": {
+                  "type": ["object", "null"],
+                  "properties": {
+                    "quarters": {
+                      "type": ["object", "null"],
+                      "properties": {
+                        "Q1": { "type": ["number", "null"] },
+                        "Q2": { "type": ["number", "null"] },
+                        "Q3": { "type": ["number", "null"] },
+                        "Q4": { "type": ["number", "null"] }
+                      }
+                    },
+                    "high": { "type": ["number", "null"] },
+                    "low": { "type": ["number", "null"] },
+                    "average": { "type": ["number", "null"] },
+                    "volatility": { "type": ["number", "null"] },
+                    "change_percent": { "type": ["number", "null"] }
+                  }
+                },
+                "10Y": {
+                  "type": ["object", "null"],
+                  "properties": {
+                    "quarters": {
+                      "type": ["object", "null"],
+                      "properties": {
+                        "Q1": { "type": ["number", "null"] },
+                        "Q2": { "type": ["number", "null"] },
+                        "Q3": { "type": ["number", "null"] },
+                        "Q4": { "type": ["number", "null"] }
+                      }
+                    },
+                    "high": { "type": ["number", "null"] },
+                    "low": { "type": ["number", "null"] },
+                    "average": { "type": ["number", "null"] },
+                    "volatility": { "type": ["number", "null"] },
+                    "change_percent": { "type": ["number", "null"] }
+                  }
+                }
+              }
+            },
+            "availability": { "type": ["string", "null"] },
+            "unavailable_reason": { "type": ["string", "null"] },
+            "confidence": { "type": ["number", "null"] },
+            "data_quality": {
+              "type": ["object", "null"],
+              "properties": {
+                "coverage": { "type": ["number", "null"] },
+                "auditability": { "type": ["number", "null"] },
+                "freshness_days": { "type": ["number", "null"] }
+              }
+            },
+            "source": { "type": ["string", "null"] },
+            "decision_context": {
+              "type": ["object", "null"],
+              "properties": {
+                "confidence_level": { "type": ["string", "null"] },
+                "sufficiency_status": { "type": ["string", "null"] },
+                "knowns": { "type": ["array", "null"], "items": { "type": "string" } },
+                "unknowns": { "type": ["array", "null"], "items": { "type": "string" } },
+                "what_changes_conclusion": { "type": ["array", "null"], "items": { "type": "string" } }
               }
             }
-          },
-          "availability": { "type": ["string", "null"] },
-          "unavailable_reason": { "type": ["string", "null"] },
-          "confidence": { "type": ["number", "null"] },
-          "data_quality": { "$comment": "See dataQuality structure" },
-          "source": { "type": ["string", "null"] },
-          "decision_context": { "$comment": "See decisionContext structure" }
+          }
+        },
+        "revenue": {
+          "type": ["object", "null"],
+          "properties": {
+            "horizons": {
+              "type": ["object", "null"],
+              "properties": {
+                "1D": {
+                  "type": ["object", "null"],
+                  "properties": {
+                    "quarters": {
+                      "type": ["object", "null"],
+                      "properties": {
+                        "Q1": { "type": ["number", "null"] },
+                        "Q2": { "type": ["number", "null"] },
+                        "Q3": { "type": ["number", "null"] },
+                        "Q4": { "type": ["number", "null"] }
+                      }
+                    },
+                    "high": { "type": ["number", "null"] },
+                    "low": { "type": ["number", "null"] },
+                    "average": { "type": ["number", "null"] },
+                    "volatility": { "type": ["number", "null"] },
+                    "change_percent": { "type": ["number", "null"] }
+                  }
+                },
+                "1W": {
+                  "type": ["object", "null"],
+                  "properties": {
+                    "quarters": {
+                      "type": ["object", "null"],
+                      "properties": {
+                        "Q1": { "type": ["number", "null"] },
+                        "Q2": { "type": ["number", "null"] },
+                        "Q3": { "type": ["number", "null"] },
+                        "Q4": { "type": ["number", "null"] }
+                      }
+                    },
+                    "high": { "type": ["number", "null"] },
+                    "low": { "type": ["number", "null"] },
+                    "average": { "type": ["number", "null"] },
+                    "volatility": { "type": ["number", "null"] },
+                    "change_percent": { "type": ["number", "null"] }
+                  }
+                },
+                "1M": {
+                  "type": ["object", "null"],
+                  "properties": {
+                    "quarters": {
+                      "type": ["object", "null"],
+                      "properties": {
+                        "Q1": { "type": ["number", "null"] },
+                        "Q2": { "type": ["number", "null"] },
+                        "Q3": { "type": ["number", "null"] },
+                        "Q4": { "type": ["number", "null"] }
+                      }
+                    },
+                    "high": { "type": ["number", "null"] },
+                    "low": { "type": ["number", "null"] },
+                    "average": { "type": ["number", "null"] },
+                    "volatility": { "type": ["number", "null"] },
+                    "change_percent": { "type": ["number", "null"] }
+                  }
+                },
+                "1Y": {
+                  "type": ["object", "null"],
+                  "properties": {
+                    "quarters": {
+                      "type": ["object", "null"],
+                      "properties": {
+                        "Q1": { "type": ["number", "null"] },
+                        "Q2": { "type": ["number", "null"] },
+                        "Q3": { "type": ["number", "null"] },
+                        "Q4": { "type": ["number", "null"] }
+                      }
+                    },
+                    "high": { "type": ["number", "null"] },
+                    "low": { "type": ["number", "null"] },
+                    "average": { "type": ["number", "null"] },
+                    "volatility": { "type": ["number", "null"] },
+                    "change_percent": { "type": ["number", "null"] }
+                  }
+                },
+                "5Y": {
+                  "type": ["object", "null"],
+                  "properties": {
+                    "quarters": {
+                      "type": ["object", "null"],
+                      "properties": {
+                        "Q1": { "type": ["number", "null"] },
+                        "Q2": { "type": ["number", "null"] },
+                        "Q3": { "type": ["number", "null"] },
+                        "Q4": { "type": ["number", "null"] }
+                      }
+                    },
+                    "high": { "type": ["number", "null"] },
+                    "low": { "type": ["number", "null"] },
+                    "average": { "type": ["number", "null"] },
+                    "volatility": { "type": ["number", "null"] },
+                    "change_percent": { "type": ["number", "null"] }
+                  }
+                },
+                "10Y": {
+                  "type": ["object", "null"],
+                  "properties": {
+                    "quarters": {
+                      "type": ["object", "null"],
+                      "properties": {
+                        "Q1": { "type": ["number", "null"] },
+                        "Q2": { "type": ["number", "null"] },
+                        "Q3": { "type": ["number", "null"] },
+                        "Q4": { "type": ["number", "null"] }
+                      }
+                    },
+                    "high": { "type": ["number", "null"] },
+                    "low": { "type": ["number", "null"] },
+                    "average": { "type": ["number", "null"] },
+                    "volatility": { "type": ["number", "null"] },
+                    "change_percent": { "type": ["number", "null"] }
+                  }
+                }
+              }
+            },
+            "availability": { "type": ["string", "null"] },
+            "unavailable_reason": { "type": ["string", "null"] },
+            "confidence": { "type": ["number", "null"] },
+            "data_quality": {
+              "type": ["object", "null"],
+              "properties": {
+                "coverage": { "type": ["number", "null"] },
+                "auditability": { "type": ["number", "null"] },
+                "freshness_days": { "type": ["number", "null"] }
+              }
+            },
+            "source": { "type": ["string", "null"] },
+            "decision_context": {
+              "type": ["object", "null"],
+              "properties": {
+                "confidence_level": { "type": ["string", "null"] },
+                "sufficiency_status": { "type": ["string", "null"] },
+                "knowns": { "type": ["array", "null"], "items": { "type": "string" } },
+                "unknowns": { "type": ["array", "null"], "items": { "type": "string" } },
+                "what_changes_conclusion": { "type": ["array", "null"], "items": { "type": "string" } }
+              }
+            }
+          }
+        },
+        "ebitda": {
+          "type": ["object", "null"],
+          "properties": {
+            "horizons": {
+              "type": ["object", "null"],
+              "properties": {
+                "1D": {
+                  "type": ["object", "null"],
+                  "properties": {
+                    "quarters": {
+                      "type": ["object", "null"],
+                      "properties": {
+                        "Q1": { "type": ["number", "null"] },
+                        "Q2": { "type": ["number", "null"] },
+                        "Q3": { "type": ["number", "null"] },
+                        "Q4": { "type": ["number", "null"] }
+                      }
+                    },
+                    "high": { "type": ["number", "null"] },
+                    "low": { "type": ["number", "null"] },
+                    "average": { "type": ["number", "null"] },
+                    "volatility": { "type": ["number", "null"] },
+                    "change_percent": { "type": ["number", "null"] }
+                  }
+                },
+                "1W": {
+                  "type": ["object", "null"],
+                  "properties": {
+                    "quarters": {
+                      "type": ["object", "null"],
+                      "properties": {
+                        "Q1": { "type": ["number", "null"] },
+                        "Q2": { "type": ["number", "null"] },
+                        "Q3": { "type": ["number", "null"] },
+                        "Q4": { "type": ["number", "null"] }
+                      }
+                    },
+                    "high": { "type": ["number", "null"] },
+                    "low": { "type": ["number", "null"] },
+                    "average": { "type": ["number", "null"] },
+                    "volatility": { "type": ["number", "null"] },
+                    "change_percent": { "type": ["number", "null"] }
+                  }
+                },
+                "1M": {
+                  "type": ["object", "null"],
+                  "properties": {
+                    "quarters": {
+                      "type": ["object", "null"],
+                      "properties": {
+                        "Q1": { "type": ["number", "null"] },
+                        "Q2": { "type": ["number", "null"] },
+                        "Q3": { "type": ["number", "null"] },
+                        "Q4": { "type": ["number", "null"] }
+                      }
+                    },
+                    "high": { "type": ["number", "null"] },
+                    "low": { "type": ["number", "null"] },
+                    "average": { "type": ["number", "null"] },
+                    "volatility": { "type": ["number", "null"] },
+                    "change_percent": { "type": ["number", "null"] }
+                  }
+                },
+                "1Y": {
+                  "type": ["object", "null"],
+                  "properties": {
+                    "quarters": {
+                      "type": ["object", "null"],
+                      "properties": {
+                        "Q1": { "type": ["number", "null"] },
+                        "Q2": { "type": ["number", "null"] },
+                        "Q3": { "type": ["number", "null"] },
+                        "Q4": { "type": ["number", "null"] }
+                      }
+                    },
+                    "high": { "type": ["number", "null"] },
+                    "low": { "type": ["number", "null"] },
+                    "average": { "type": ["number", "null"] },
+                    "volatility": { "type": ["number", "null"] },
+                    "change_percent": { "type": ["number", "null"] }
+                  }
+                },
+                "5Y": {
+                  "type": ["object", "null"],
+                  "properties": {
+                    "quarters": {
+                      "type": ["object", "null"],
+                      "properties": {
+                        "Q1": { "type": ["number", "null"] },
+                        "Q2": { "type": ["number", "null"] },
+                        "Q3": { "type": ["number", "null"] },
+                        "Q4": { "type": ["number", "null"] }
+                      }
+                    },
+                    "high": { "type": ["number", "null"] },
+                    "low": { "type": ["number", "null"] },
+                    "average": { "type": ["number", "null"] },
+                    "volatility": { "type": ["number", "null"] },
+                    "change_percent": { "type": ["number", "null"] }
+                  }
+                },
+                "10Y": {
+                  "type": ["object", "null"],
+                  "properties": {
+                    "quarters": {
+                      "type": ["object", "null"],
+                      "properties": {
+                        "Q1": { "type": ["number", "null"] },
+                        "Q2": { "type": ["number", "null"] },
+                        "Q3": { "type": ["number", "null"] },
+                        "Q4": { "type": ["number", "null"] }
+                      }
+                    },
+                    "high": { "type": ["number", "null"] },
+                    "low": { "type": ["number", "null"] },
+                    "average": { "type": ["number", "null"] },
+                    "volatility": { "type": ["number", "null"] },
+                    "change_percent": { "type": ["number", "null"] }
+                  }
+                }
+              }
+            },
+            "availability": { "type": ["string", "null"] },
+            "unavailable_reason": { "type": ["string", "null"] },
+            "confidence": { "type": ["number", "null"] },
+            "data_quality": {
+              "type": ["object", "null"],
+              "properties": {
+                "coverage": { "type": ["number", "null"] },
+                "auditability": { "type": ["number", "null"] },
+                "freshness_days": { "type": ["number", "null"] }
+              }
+            },
+            "source": { "type": ["string", "null"] },
+            "decision_context": {
+              "type": ["object", "null"],
+              "properties": {
+                "confidence_level": { "type": ["string", "null"] },
+                "sufficiency_status": { "type": ["string", "null"] },
+                "knowns": { "type": ["array", "null"], "items": { "type": "string" } },
+                "unknowns": { "type": ["array", "null"], "items": { "type": "string" } },
+                "what_changes_conclusion": { "type": ["array", "null"], "items": { "type": "string" } }
+              }
+            }
+          }
+        },
+        "volume": {
+          "type": ["object", "null"],
+          "properties": {
+            "horizons": {
+              "type": ["object", "null"],
+              "properties": {
+                "1D": {
+                  "type": ["object", "null"],
+                  "properties": {
+                    "quarters": {
+                      "type": ["object", "null"],
+                      "properties": {
+                        "Q1": { "type": ["number", "null"] },
+                        "Q2": { "type": ["number", "null"] },
+                        "Q3": { "type": ["number", "null"] },
+                        "Q4": { "type": ["number", "null"] }
+                      }
+                    },
+                    "high": { "type": ["number", "null"] },
+                    "low": { "type": ["number", "null"] },
+                    "average": { "type": ["number", "null"] },
+                    "volatility": { "type": ["number", "null"] },
+                    "change_percent": { "type": ["number", "null"] }
+                  }
+                },
+                "1W": {
+                  "type": ["object", "null"],
+                  "properties": {
+                    "quarters": {
+                      "type": ["object", "null"],
+                      "properties": {
+                        "Q1": { "type": ["number", "null"] },
+                        "Q2": { "type": ["number", "null"] },
+                        "Q3": { "type": ["number", "null"] },
+                        "Q4": { "type": ["number", "null"] }
+                      }
+                    },
+                    "high": { "type": ["number", "null"] },
+                    "low": { "type": ["number", "null"] },
+                    "average": { "type": ["number", "null"] },
+                    "volatility": { "type": ["number", "null"] },
+                    "change_percent": { "type": ["number", "null"] }
+                  }
+                },
+                "1M": {
+                  "type": ["object", "null"],
+                  "properties": {
+                    "quarters": {
+                      "type": ["object", "null"],
+                      "properties": {
+                        "Q1": { "type": ["number", "null"] },
+                        "Q2": { "type": ["number", "null"] },
+                        "Q3": { "type": ["number", "null"] },
+                        "Q4": { "type": ["number", "null"] }
+                      }
+                    },
+                    "high": { "type": ["number", "null"] },
+                    "low": { "type": ["number", "null"] },
+                    "average": { "type": ["number", "null"] },
+                    "volatility": { "type": ["number", "null"] },
+                    "change_percent": { "type": ["number", "null"] }
+                  }
+                },
+                "1Y": {
+                  "type": ["object", "null"],
+                  "properties": {
+                    "quarters": {
+                      "type": ["object", "null"],
+                      "properties": {
+                        "Q1": { "type": ["number", "null"] },
+                        "Q2": { "type": ["number", "null"] },
+                        "Q3": { "type": ["number", "null"] },
+                        "Q4": { "type": ["number", "null"] }
+                      }
+                    },
+                    "high": { "type": ["number", "null"] },
+                    "low": { "type": ["number", "null"] },
+                    "average": { "type": ["number", "null"] },
+                    "volatility": { "type": ["number", "null"] },
+                    "change_percent": { "type": ["number", "null"] }
+                  }
+                },
+                "5Y": {
+                  "type": ["object", "null"],
+                  "properties": {
+                    "quarters": {
+                      "type": ["object", "null"],
+                      "properties": {
+                        "Q1": { "type": ["number", "null"] },
+                        "Q2": { "type": ["number", "null"] },
+                        "Q3": { "type": ["number", "null"] },
+                        "Q4": { "type": ["number", "null"] }
+                      }
+                    },
+                    "high": { "type": ["number", "null"] },
+                    "low": { "type": ["number", "null"] },
+                    "average": { "type": ["number", "null"] },
+                    "volatility": { "type": ["number", "null"] },
+                    "change_percent": { "type": ["number", "null"] }
+                  }
+                },
+                "10Y": {
+                  "type": ["object", "null"],
+                  "properties": {
+                    "quarters": {
+                      "type": ["object", "null"],
+                      "properties": {
+                        "Q1": { "type": ["number", "null"] },
+                        "Q2": { "type": ["number", "null"] },
+                        "Q3": { "type": ["number", "null"] },
+                        "Q4": { "type": ["number", "null"] }
+                      }
+                    },
+                    "high": { "type": ["number", "null"] },
+                    "low": { "type": ["number", "null"] },
+                    "average": { "type": ["number", "null"] },
+                    "volatility": { "type": ["number", "null"] },
+                    "change_percent": { "type": ["number", "null"] }
+                  }
+                }
+              }
+            },
+            "availability": { "type": ["string", "null"] },
+            "unavailable_reason": { "type": ["string", "null"] },
+            "confidence": { "type": ["number", "null"] },
+            "data_quality": {
+              "type": ["object", "null"],
+              "properties": {
+                "coverage": { "type": ["number", "null"] },
+                "auditability": { "type": ["number", "null"] },
+                "freshness_days": { "type": ["number", "null"] }
+              }
+            },
+            "source": { "type": ["string", "null"] },
+            "decision_context": {
+              "type": ["object", "null"],
+              "properties": {
+                "confidence_level": { "type": ["string", "null"] },
+                "sufficiency_status": { "type": ["string", "null"] },
+                "knowns": { "type": ["array", "null"], "items": { "type": "string" } },
+                "unknowns": { "type": ["array", "null"], "items": { "type": "string" } },
+                "what_changes_conclusion": { "type": ["array", "null"], "items": { "type": "string" } }
+              }
+            }
+          }
         }
       }
     },
@@ -167,32 +707,183 @@
         "dcf": {
           "type": ["object", "null"],
           "properties": {
-            "terminal_growth_rate": { "$comment": "atomicValue: value + source_reference" },
-            "wacc": { "$comment": "atomicValue: value + source_reference" },
-            "implied_value": { "$comment": "atomicValue: value + source_reference" },
-            "implied_value_per_share": { "$comment": "atomicValue: value + source_reference" },
+            "terminal_growth_rate": {
+              "type": ["object", "null"],
+              "properties": {
+                "value": { "type": ["number", "null"] },
+                "formatted": { "type": ["string", "null"] },
+                "source": { "type": ["string", "null"] },
+                "source_reference": {
+                  "type": ["object", "null"],
+                  "properties": {
+                    "url": { "type": ["string", "null"] },
+                    "document_type": { "type": ["string", "null"] },
+                    "excerpt": { "type": ["string", "null"] },
+                    "accessed_at": { "type": ["string", "null"] }
+                  }
+                }
+              }
+            },
+            "wacc": {
+              "type": ["object", "null"],
+              "properties": {
+                "value": { "type": ["number", "null"] },
+                "formatted": { "type": ["string", "null"] },
+                "source": { "type": ["string", "null"] },
+                "source_reference": {
+                  "type": ["object", "null"],
+                  "properties": {
+                    "url": { "type": ["string", "null"] },
+                    "document_type": { "type": ["string", "null"] },
+                    "excerpt": { "type": ["string", "null"] },
+                    "accessed_at": { "type": ["string", "null"] }
+                  }
+                }
+              }
+            },
+            "implied_value": {
+              "type": ["object", "null"],
+              "properties": {
+                "value": { "type": ["number", "null"] },
+                "formatted": { "type": ["string", "null"] },
+                "source": { "type": ["string", "null"] },
+                "source_reference": {
+                  "type": ["object", "null"],
+                  "properties": {
+                    "url": { "type": ["string", "null"] },
+                    "document_type": { "type": ["string", "null"] },
+                    "excerpt": { "type": ["string", "null"] },
+                    "accessed_at": { "type": ["string", "null"] }
+                  }
+                }
+              }
+            },
+            "implied_value_per_share": {
+              "type": ["object", "null"],
+              "properties": {
+                "value": { "type": ["number", "null"] },
+                "formatted": { "type": ["string", "null"] },
+                "source": { "type": ["string", "null"] },
+                "source_reference": {
+                  "type": ["object", "null"],
+                  "properties": {
+                    "url": { "type": ["string", "null"] },
+                    "document_type": { "type": ["string", "null"] },
+                    "excerpt": { "type": ["string", "null"] },
+                    "accessed_at": { "type": ["string", "null"] }
+                  }
+                }
+              }
+            },
             "source": { "type": ["string", "null"] },
-            "source_reference": { "$comment": "See sourceReference structure" },
+            "source_reference": {
+              "type": ["object", "null"],
+              "properties": {
+                "url": { "type": ["string", "null"] },
+                "document_type": { "type": ["string", "null"] },
+                "excerpt": { "type": ["string", "null"] },
+                "accessed_at": { "type": ["string", "null"] }
+              }
+            },
             "methodology": { "type": ["string", "null"] }
           }
         },
         "trading_comps": {
           "type": ["object", "null"],
           "properties": {
-            "implied_value_range_low": { "$comment": "atomicValue" },
-            "implied_value_range_high": { "$comment": "atomicValue" },
+            "implied_value_range_low": {
+              "type": ["object", "null"],
+              "properties": {
+                "value": { "type": ["number", "null"] },
+                "formatted": { "type": ["string", "null"] },
+                "source": { "type": ["string", "null"] },
+                "source_reference": {
+                  "type": ["object", "null"],
+                  "properties": {
+                    "url": { "type": ["string", "null"] },
+                    "document_type": { "type": ["string", "null"] },
+                    "excerpt": { "type": ["string", "null"] },
+                    "accessed_at": { "type": ["string", "null"] }
+                  }
+                }
+              }
+            },
+            "implied_value_range_high": {
+              "type": ["object", "null"],
+              "properties": {
+                "value": { "type": ["number", "null"] },
+                "formatted": { "type": ["string", "null"] },
+                "source": { "type": ["string", "null"] },
+                "source_reference": {
+                  "type": ["object", "null"],
+                  "properties": {
+                    "url": { "type": ["string", "null"] },
+                    "document_type": { "type": ["string", "null"] },
+                    "excerpt": { "type": ["string", "null"] },
+                    "accessed_at": { "type": ["string", "null"] }
+                  }
+                }
+              }
+            },
             "peer_set": { "type": ["array", "null"], "items": { "type": "string" } },
             "multiple_used": { "type": ["string", "null"] },
             "source": { "type": ["string", "null"] },
-            "source_reference": { "$comment": "See sourceReference structure" },
-            "confidence": { "$comment": "See dataQuality structure" }
+            "source_reference": {
+              "type": ["object", "null"],
+              "properties": {
+                "url": { "type": ["string", "null"] },
+                "document_type": { "type": ["string", "null"] },
+                "excerpt": { "type": ["string", "null"] },
+                "accessed_at": { "type": ["string", "null"] }
+              }
+            },
+            "confidence": {
+              "type": ["object", "null"],
+              "properties": {
+                "coverage": { "type": ["number", "null"] },
+                "auditability": { "type": ["number", "null"] },
+                "freshness_days": { "type": ["number", "null"] }
+              }
+            }
           }
         },
         "precedent_transactions": {
           "type": ["object", "null"],
           "properties": {
-            "implied_value_range_low": { "$comment": "atomicValue" },
-            "implied_value_range_high": { "$comment": "atomicValue" },
+            "implied_value_range_low": {
+              "type": ["object", "null"],
+              "properties": {
+                "value": { "type": ["number", "null"] },
+                "formatted": { "type": ["string", "null"] },
+                "source": { "type": ["string", "null"] },
+                "source_reference": {
+                  "type": ["object", "null"],
+                  "properties": {
+                    "url": { "type": ["string", "null"] },
+                    "document_type": { "type": ["string", "null"] },
+                    "excerpt": { "type": ["string", "null"] },
+                    "accessed_at": { "type": ["string", "null"] }
+                  }
+                }
+              }
+            },
+            "implied_value_range_high": {
+              "type": ["object", "null"],
+              "properties": {
+                "value": { "type": ["number", "null"] },
+                "formatted": { "type": ["string", "null"] },
+                "source": { "type": ["string", "null"] },
+                "source_reference": {
+                  "type": ["object", "null"],
+                  "properties": {
+                    "url": { "type": ["string", "null"] },
+                    "document_type": { "type": ["string", "null"] },
+                    "excerpt": { "type": ["string", "null"] },
+                    "accessed_at": { "type": ["string", "null"] }
+                  }
+                }
+              }
+            },
             "transactions": {
               "type": ["array", "null"],
               "items": {
@@ -205,8 +896,23 @@
               }
             },
             "source": { "type": ["string", "null"] },
-            "source_reference": { "$comment": "See sourceReference structure" },
-            "confidence": { "$comment": "See dataQuality structure" }
+            "source_reference": {
+              "type": ["object", "null"],
+              "properties": {
+                "url": { "type": ["string", "null"] },
+                "document_type": { "type": ["string", "null"] },
+                "excerpt": { "type": ["string", "null"] },
+                "accessed_at": { "type": ["string", "null"] }
+              }
+            },
+            "confidence": {
+              "type": ["object", "null"],
+              "properties": {
+                "coverage": { "type": ["number", "null"] },
+                "auditability": { "type": ["number", "null"] },
+                "freshness_days": { "type": ["number", "null"] }
+              }
+            }
           }
         }
       }
@@ -235,7 +941,25 @@
     },
     "ai_insights": {
       "type": ["array", "null"],
-      "description": "AI-generated insights (same structure as hypotheses)"
+      "description": "AI-generated insights (same structure as hypotheses)",
+      "items": {
+        "type": ["object", "null"],
+        "properties": {
+          "id": { "type": ["string", "null"] },
+          "type": { "type": ["string", "null"] },
+          "title": { "type": ["string", "null"] },
+          "summary": { "type": ["string", "null"] },
+          "details": { "type": ["string", "null"] },
+          "assumptions": { "type": ["array", "null"], "items": { "type": "string" } },
+          "falsification_criteria": { "type": ["array", "null"], "items": { "type": "string" } },
+          "confidence_band": { "type": ["string", "null"], "description": "Low | Medium | High" },
+          "source": { "type": ["string", "null"] },
+          "generated_at": { "type": ["string", "null"] },
+          "horizon_relevance": { "type": ["array", "null"], "items": { "type": "string" } },
+          "impact_score": { "type": ["number", "null"] },
+          "action_required": { "type": ["boolean", "null"] }
+        }
+      }
     },
     "events": {
       "type": ["array", "null"],
@@ -256,68 +980,512 @@
       "type": ["object", "null"],
       "description": "Base, downside, and upside scenarios with probability weights",
       "properties": {
-        "base": { "$comment": "See singleScenario structure" },
-        "downside": { "$comment": "See singleScenario structure" },
-        "upside": { "$comment": "See singleScenario structure" }
-      },
-      "additionalProperties": {
-        "type": ["object", "null"],
-        "properties": {
-          "probability": { "type": ["number", "null"], "description": "Probability weight (0-1)" },
-          "assumptions": {
-            "type": ["array", "null"],
-            "items": {
-              "type": ["object", "null"],
-              "properties": {
-                "key": { "type": ["string", "null"] },
-                "value": { "type": ["string", "null"] },
-                "source": { "type": ["string", "null"] },
-                "source_reference": { "$comment": "See sourceReference structure" }
-              }
-            }
-          },
-          "drivers": {
-            "type": ["array", "null"],
-            "items": {
-              "type": ["object", "null"],
-              "properties": {
-                "name": { "type": ["string", "null"] },
-                "category": { "type": ["string", "null"] },
-                "value": { "type": ["string", "null"] },
-                "unit": { "type": ["string", "null"] },
-                "source": { "type": ["string", "null"] },
-                "source_reference": { "$comment": "See sourceReference structure" }
-              }
-            }
-          },
-          "outputs": {
-            "type": ["object", "null"],
-            "properties": {
-              "revenue": { "$comment": "See scenarioOutputMetric structure" },
-              "ebitda": { "$comment": "See scenarioOutputMetric structure" },
-              "valuation": { "$comment": "See scenarioOutputMetric structure" }
-            },
-            "additionalProperties": {
-              "type": ["object", "null"],
-              "properties": {
-                "value": { "type": ["number", "string", "null"] },
-                "formatted": { "type": ["string", "null"] },
-                "source": { "type": ["string", "null"] },
-                "formula": { "type": ["string", "null"], "description": "Formula for scenario outputs only (drivers to output)" },
-                "formula_inputs": {
-                  "type": ["array", "null"],
-                  "items": {
+        "base": {
+          "type": ["object", "null"],
+          "properties": {
+            "probability": { "type": ["number", "null"], "description": "Probability weight (0-1)" },
+            "assumptions": {
+              "type": ["array", "null"],
+              "items": {
+                "type": ["object", "null"],
+                "properties": {
+                  "key": { "type": ["string", "null"] },
+                  "value": { "type": ["string", "null"] },
+                  "source": { "type": ["string", "null"] },
+                  "source_reference": {
                     "type": ["object", "null"],
                     "properties": {
-                      "name": { "type": ["string", "null"] },
-                      "value": { "type": ["number", "string", "null"] },
-                      "source": { "type": ["string", "null"] },
-                      "source_reference": { "$comment": "See sourceReference structure" }
+                      "url": { "type": ["string", "null"] },
+                      "document_type": { "type": ["string", "null"] },
+                      "excerpt": { "type": ["string", "null"] },
+                      "accessed_at": { "type": ["string", "null"] }
+                    }
+                  }
+                }
+              }
+            },
+            "drivers": {
+              "type": ["array", "null"],
+              "items": {
+                "type": ["object", "null"],
+                "properties": {
+                  "name": { "type": ["string", "null"] },
+                  "category": { "type": ["string", "null"] },
+                  "value": { "type": ["string", "null"] },
+                  "unit": { "type": ["string", "null"] },
+                  "source": { "type": ["string", "null"] },
+                  "source_reference": {
+                    "type": ["object", "null"],
+                    "properties": {
+                      "url": { "type": ["string", "null"] },
+                      "document_type": { "type": ["string", "null"] },
+                      "excerpt": { "type": ["string", "null"] },
+                      "accessed_at": { "type": ["string", "null"] }
+                    }
+                  }
+                }
+              }
+            },
+            "outputs": {
+              "type": ["object", "null"],
+              "properties": {
+                "revenue": {
+                  "type": ["object", "null"],
+                  "properties": {
+                    "value": { "type": ["number", "string", "null"] },
+                    "formatted": { "type": ["string", "null"] },
+                    "source": { "type": ["string", "null"] },
+                    "formula": { "type": ["string", "null"] },
+                    "formula_inputs": {
+                      "type": ["array", "null"],
+                      "items": {
+                        "type": ["object", "null"],
+                        "properties": {
+                          "name": { "type": ["string", "null"] },
+                          "value": { "type": ["number", "string", "null"] },
+                          "source": { "type": ["string", "null"] },
+                          "source_reference": {
+                            "type": ["object", "null"],
+                            "properties": {
+                              "url": { "type": ["string", "null"] },
+                              "document_type": { "type": ["string", "null"] },
+                              "excerpt": { "type": ["string", "null"] },
+                              "accessed_at": { "type": ["string", "null"] }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "period": { "type": ["string", "null"] },
+                    "source_reference": {
+                      "type": ["object", "null"],
+                      "properties": {
+                        "url": { "type": ["string", "null"] },
+                        "document_type": { "type": ["string", "null"] },
+                        "excerpt": { "type": ["string", "null"] },
+                        "accessed_at": { "type": ["string", "null"] }
+                      }
                     }
                   }
                 },
-                "period": { "type": ["string", "null"] },
-                "source_reference": { "$comment": "See sourceReference structure" }
+                "ebitda": {
+                  "type": ["object", "null"],
+                  "properties": {
+                    "value": { "type": ["number", "string", "null"] },
+                    "formatted": { "type": ["string", "null"] },
+                    "source": { "type": ["string", "null"] },
+                    "formula": { "type": ["string", "null"] },
+                    "formula_inputs": {
+                      "type": ["array", "null"],
+                      "items": {
+                        "type": ["object", "null"],
+                        "properties": {
+                          "name": { "type": ["string", "null"] },
+                          "value": { "type": ["number", "string", "null"] },
+                          "source": { "type": ["string", "null"] },
+                          "source_reference": {
+                            "type": ["object", "null"],
+                            "properties": {
+                              "url": { "type": ["string", "null"] },
+                              "document_type": { "type": ["string", "null"] },
+                              "excerpt": { "type": ["string", "null"] },
+                              "accessed_at": { "type": ["string", "null"] }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "period": { "type": ["string", "null"] },
+                    "source_reference": {
+                      "type": ["object", "null"],
+                      "properties": {
+                        "url": { "type": ["string", "null"] },
+                        "document_type": { "type": ["string", "null"] },
+                        "excerpt": { "type": ["string", "null"] },
+                        "accessed_at": { "type": ["string", "null"] }
+                      }
+                    }
+                  }
+                },
+                "valuation": {
+                  "type": ["object", "null"],
+                  "properties": {
+                    "value": { "type": ["number", "string", "null"] },
+                    "formatted": { "type": ["string", "null"] },
+                    "source": { "type": ["string", "null"] },
+                    "formula": { "type": ["string", "null"] },
+                    "formula_inputs": {
+                      "type": ["array", "null"],
+                      "items": {
+                        "type": ["object", "null"],
+                        "properties": {
+                          "name": { "type": ["string", "null"] },
+                          "value": { "type": ["number", "string", "null"] },
+                          "source": { "type": ["string", "null"] },
+                          "source_reference": {
+                            "type": ["object", "null"],
+                            "properties": {
+                              "url": { "type": ["string", "null"] },
+                              "document_type": { "type": ["string", "null"] },
+                              "excerpt": { "type": ["string", "null"] },
+                              "accessed_at": { "type": ["string", "null"] }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "period": { "type": ["string", "null"] },
+                    "source_reference": {
+                      "type": ["object", "null"],
+                      "properties": {
+                        "url": { "type": ["string", "null"] },
+                        "document_type": { "type": ["string", "null"] },
+                        "excerpt": { "type": ["string", "null"] },
+                        "accessed_at": { "type": ["string", "null"] }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "downside": {
+          "type": ["object", "null"],
+          "properties": {
+            "probability": { "type": ["number", "null"], "description": "Probability weight (0-1)" },
+            "assumptions": {
+              "type": ["array", "null"],
+              "items": {
+                "type": ["object", "null"],
+                "properties": {
+                  "key": { "type": ["string", "null"] },
+                  "value": { "type": ["string", "null"] },
+                  "source": { "type": ["string", "null"] },
+                  "source_reference": {
+                    "type": ["object", "null"],
+                    "properties": {
+                      "url": { "type": ["string", "null"] },
+                      "document_type": { "type": ["string", "null"] },
+                      "excerpt": { "type": ["string", "null"] },
+                      "accessed_at": { "type": ["string", "null"] }
+                    }
+                  }
+                }
+              }
+            },
+            "drivers": {
+              "type": ["array", "null"],
+              "items": {
+                "type": ["object", "null"],
+                "properties": {
+                  "name": { "type": ["string", "null"] },
+                  "category": { "type": ["string", "null"] },
+                  "value": { "type": ["string", "null"] },
+                  "unit": { "type": ["string", "null"] },
+                  "source": { "type": ["string", "null"] },
+                  "source_reference": {
+                    "type": ["object", "null"],
+                    "properties": {
+                      "url": { "type": ["string", "null"] },
+                      "document_type": { "type": ["string", "null"] },
+                      "excerpt": { "type": ["string", "null"] },
+                      "accessed_at": { "type": ["string", "null"] }
+                    }
+                  }
+                }
+              }
+            },
+            "outputs": {
+              "type": ["object", "null"],
+              "properties": {
+                "revenue": {
+                  "type": ["object", "null"],
+                  "properties": {
+                    "value": { "type": ["number", "string", "null"] },
+                    "formatted": { "type": ["string", "null"] },
+                    "source": { "type": ["string", "null"] },
+                    "formula": { "type": ["string", "null"] },
+                    "formula_inputs": {
+                      "type": ["array", "null"],
+                      "items": {
+                        "type": ["object", "null"],
+                        "properties": {
+                          "name": { "type": ["string", "null"] },
+                          "value": { "type": ["number", "string", "null"] },
+                          "source": { "type": ["string", "null"] },
+                          "source_reference": {
+                            "type": ["object", "null"],
+                            "properties": {
+                              "url": { "type": ["string", "null"] },
+                              "document_type": { "type": ["string", "null"] },
+                              "excerpt": { "type": ["string", "null"] },
+                              "accessed_at": { "type": ["string", "null"] }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "period": { "type": ["string", "null"] },
+                    "source_reference": {
+                      "type": ["object", "null"],
+                      "properties": {
+                        "url": { "type": ["string", "null"] },
+                        "document_type": { "type": ["string", "null"] },
+                        "excerpt": { "type": ["string", "null"] },
+                        "accessed_at": { "type": ["string", "null"] }
+                      }
+                    }
+                  }
+                },
+                "ebitda": {
+                  "type": ["object", "null"],
+                  "properties": {
+                    "value": { "type": ["number", "string", "null"] },
+                    "formatted": { "type": ["string", "null"] },
+                    "source": { "type": ["string", "null"] },
+                    "formula": { "type": ["string", "null"] },
+                    "formula_inputs": {
+                      "type": ["array", "null"],
+                      "items": {
+                        "type": ["object", "null"],
+                        "properties": {
+                          "name": { "type": ["string", "null"] },
+                          "value": { "type": ["number", "string", "null"] },
+                          "source": { "type": ["string", "null"] },
+                          "source_reference": {
+                            "type": ["object", "null"],
+                            "properties": {
+                              "url": { "type": ["string", "null"] },
+                              "document_type": { "type": ["string", "null"] },
+                              "excerpt": { "type": ["string", "null"] },
+                              "accessed_at": { "type": ["string", "null"] }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "period": { "type": ["string", "null"] },
+                    "source_reference": {
+                      "type": ["object", "null"],
+                      "properties": {
+                        "url": { "type": ["string", "null"] },
+                        "document_type": { "type": ["string", "null"] },
+                        "excerpt": { "type": ["string", "null"] },
+                        "accessed_at": { "type": ["string", "null"] }
+                      }
+                    }
+                  }
+                },
+                "valuation": {
+                  "type": ["object", "null"],
+                  "properties": {
+                    "value": { "type": ["number", "string", "null"] },
+                    "formatted": { "type": ["string", "null"] },
+                    "source": { "type": ["string", "null"] },
+                    "formula": { "type": ["string", "null"] },
+                    "formula_inputs": {
+                      "type": ["array", "null"],
+                      "items": {
+                        "type": ["object", "null"],
+                        "properties": {
+                          "name": { "type": ["string", "null"] },
+                          "value": { "type": ["number", "string", "null"] },
+                          "source": { "type": ["string", "null"] },
+                          "source_reference": {
+                            "type": ["object", "null"],
+                            "properties": {
+                              "url": { "type": ["string", "null"] },
+                              "document_type": { "type": ["string", "null"] },
+                              "excerpt": { "type": ["string", "null"] },
+                              "accessed_at": { "type": ["string", "null"] }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "period": { "type": ["string", "null"] },
+                    "source_reference": {
+                      "type": ["object", "null"],
+                      "properties": {
+                        "url": { "type": ["string", "null"] },
+                        "document_type": { "type": ["string", "null"] },
+                        "excerpt": { "type": ["string", "null"] },
+                        "accessed_at": { "type": ["string", "null"] }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "upside": {
+          "type": ["object", "null"],
+          "properties": {
+            "probability": { "type": ["number", "null"], "description": "Probability weight (0-1)" },
+            "assumptions": {
+              "type": ["array", "null"],
+              "items": {
+                "type": ["object", "null"],
+                "properties": {
+                  "key": { "type": ["string", "null"] },
+                  "value": { "type": ["string", "null"] },
+                  "source": { "type": ["string", "null"] },
+                  "source_reference": {
+                    "type": ["object", "null"],
+                    "properties": {
+                      "url": { "type": ["string", "null"] },
+                      "document_type": { "type": ["string", "null"] },
+                      "excerpt": { "type": ["string", "null"] },
+                      "accessed_at": { "type": ["string", "null"] }
+                    }
+                  }
+                }
+              }
+            },
+            "drivers": {
+              "type": ["array", "null"],
+              "items": {
+                "type": ["object", "null"],
+                "properties": {
+                  "name": { "type": ["string", "null"] },
+                  "category": { "type": ["string", "null"] },
+                  "value": { "type": ["string", "null"] },
+                  "unit": { "type": ["string", "null"] },
+                  "source": { "type": ["string", "null"] },
+                  "source_reference": {
+                    "type": ["object", "null"],
+                    "properties": {
+                      "url": { "type": ["string", "null"] },
+                      "document_type": { "type": ["string", "null"] },
+                      "excerpt": { "type": ["string", "null"] },
+                      "accessed_at": { "type": ["string", "null"] }
+                    }
+                  }
+                }
+              }
+            },
+            "outputs": {
+              "type": ["object", "null"],
+              "properties": {
+                "revenue": {
+                  "type": ["object", "null"],
+                  "properties": {
+                    "value": { "type": ["number", "string", "null"] },
+                    "formatted": { "type": ["string", "null"] },
+                    "source": { "type": ["string", "null"] },
+                    "formula": { "type": ["string", "null"] },
+                    "formula_inputs": {
+                      "type": ["array", "null"],
+                      "items": {
+                        "type": ["object", "null"],
+                        "properties": {
+                          "name": { "type": ["string", "null"] },
+                          "value": { "type": ["number", "string", "null"] },
+                          "source": { "type": ["string", "null"] },
+                          "source_reference": {
+                            "type": ["object", "null"],
+                            "properties": {
+                              "url": { "type": ["string", "null"] },
+                              "document_type": { "type": ["string", "null"] },
+                              "excerpt": { "type": ["string", "null"] },
+                              "accessed_at": { "type": ["string", "null"] }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "period": { "type": ["string", "null"] },
+                    "source_reference": {
+                      "type": ["object", "null"],
+                      "properties": {
+                        "url": { "type": ["string", "null"] },
+                        "document_type": { "type": ["string", "null"] },
+                        "excerpt": { "type": ["string", "null"] },
+                        "accessed_at": { "type": ["string", "null"] }
+                      }
+                    }
+                  }
+                },
+                "ebitda": {
+                  "type": ["object", "null"],
+                  "properties": {
+                    "value": { "type": ["number", "string", "null"] },
+                    "formatted": { "type": ["string", "null"] },
+                    "source": { "type": ["string", "null"] },
+                    "formula": { "type": ["string", "null"] },
+                    "formula_inputs": {
+                      "type": ["array", "null"],
+                      "items": {
+                        "type": ["object", "null"],
+                        "properties": {
+                          "name": { "type": ["string", "null"] },
+                          "value": { "type": ["number", "string", "null"] },
+                          "source": { "type": ["string", "null"] },
+                          "source_reference": {
+                            "type": ["object", "null"],
+                            "properties": {
+                              "url": { "type": ["string", "null"] },
+                              "document_type": { "type": ["string", "null"] },
+                              "excerpt": { "type": ["string", "null"] },
+                              "accessed_at": { "type": ["string", "null"] }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "period": { "type": ["string", "null"] },
+                    "source_reference": {
+                      "type": ["object", "null"],
+                      "properties": {
+                        "url": { "type": ["string", "null"] },
+                        "document_type": { "type": ["string", "null"] },
+                        "excerpt": { "type": ["string", "null"] },
+                        "accessed_at": { "type": ["string", "null"] }
+                      }
+                    }
+                  }
+                },
+                "valuation": {
+                  "type": ["object", "null"],
+                  "properties": {
+                    "value": { "type": ["number", "string", "null"] },
+                    "formatted": { "type": ["string", "null"] },
+                    "source": { "type": ["string", "null"] },
+                    "formula": { "type": ["string", "null"] },
+                    "formula_inputs": {
+                      "type": ["array", "null"],
+                      "items": {
+                        "type": ["object", "null"],
+                        "properties": {
+                          "name": { "type": ["string", "null"] },
+                          "value": { "type": ["number", "string", "null"] },
+                          "source": { "type": ["string", "null"] },
+                          "source_reference": {
+                            "type": ["object", "null"],
+                            "properties": {
+                              "url": { "type": ["string", "null"] },
+                              "document_type": { "type": ["string", "null"] },
+                              "excerpt": { "type": ["string", "null"] },
+                              "accessed_at": { "type": ["string", "null"] }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "period": { "type": ["string", "null"] },
+                    "source_reference": {
+                      "type": ["object", "null"],
+                      "properties": {
+                        "url": { "type": ["string", "null"] },
+                        "document_type": { "type": ["string", "null"] },
+                        "excerpt": { "type": ["string", "null"] },
+                        "accessed_at": { "type": ["string", "null"] }
+                      }
+                    }
+                  }
+                }
               }
             }
           }
@@ -328,30 +1496,172 @@
       "type": ["object", "null"],
       "description": "Risks categorized by type",
       "properties": {
-        "regulatory": { "type": "array", "items": { "$comment": "See riskItem structure" } },
-        "market": { "type": "array", "items": { "$comment": "See riskItem structure" } },
-        "operational": { "type": "array", "items": { "$comment": "See riskItem structure" } },
-        "cybersecurity": { "type": "array", "items": { "$comment": "See riskItem structure" } },
-        "financial": { "type": "array", "items": { "$comment": "See riskItem structure" } },
-        "strategic": { "type": "array", "items": { "$comment": "See riskItem structure" } }
-      },
-      "additionalProperties": {
-        "type": "array",
-        "items": {
-          "type": ["object", "null"],
-          "properties": {
-            "id": { "type": ["string", "null"] },
-            "title": { "type": ["string", "null"] },
-            "description": { "type": ["string", "null"] },
-            "severity": { "type": ["string", "null"] },
-            "probability": { "type": ["number", "null"] },
-            "trigger": { "type": ["string", "null"] },
-            "trigger_metric": { "type": ["string", "null"] },
-            "mitigation": { "type": ["string", "null"] },
-            "mitigation_action": { "type": ["string", "null"] },
-            "status": { "type": ["string", "null"], "enum": ["Active", "Monitoring", "Resolved"] },
-            "source": { "type": ["string", "null"] },
-            "source_reference": { "$comment": "See sourceReference structure" }
+        "regulatory": {
+          "type": "array",
+          "items": {
+            "type": ["object", "null"],
+            "properties": {
+              "id": { "type": ["string", "null"] },
+              "title": { "type": ["string", "null"] },
+              "description": { "type": ["string", "null"] },
+              "severity": { "type": ["string", "null"] },
+              "probability": { "type": ["number", "null"] },
+              "trigger": { "type": ["string", "null"] },
+              "trigger_metric": { "type": ["string", "null"] },
+              "mitigation": { "type": ["string", "null"] },
+              "mitigation_action": { "type": ["string", "null"] },
+              "status": { "type": ["string", "null"], "enum": ["Active", "Monitoring", "Resolved", null] },
+              "source": { "type": ["string", "null"] },
+              "source_reference": {
+                "type": ["object", "null"],
+                "properties": {
+                  "url": { "type": ["string", "null"] },
+                  "document_type": { "type": ["string", "null"] },
+                  "excerpt": { "type": ["string", "null"] },
+                  "accessed_at": { "type": ["string", "null"] }
+                }
+              }
+            }
+          }
+        },
+        "market": {
+          "type": "array",
+          "items": {
+            "type": ["object", "null"],
+            "properties": {
+              "id": { "type": ["string", "null"] },
+              "title": { "type": ["string", "null"] },
+              "description": { "type": ["string", "null"] },
+              "severity": { "type": ["string", "null"] },
+              "probability": { "type": ["number", "null"] },
+              "trigger": { "type": ["string", "null"] },
+              "trigger_metric": { "type": ["string", "null"] },
+              "mitigation": { "type": ["string", "null"] },
+              "mitigation_action": { "type": ["string", "null"] },
+              "status": { "type": ["string", "null"], "enum": ["Active", "Monitoring", "Resolved", null] },
+              "source": { "type": ["string", "null"] },
+              "source_reference": {
+                "type": ["object", "null"],
+                "properties": {
+                  "url": { "type": ["string", "null"] },
+                  "document_type": { "type": ["string", "null"] },
+                  "excerpt": { "type": ["string", "null"] },
+                  "accessed_at": { "type": ["string", "null"] }
+                }
+              }
+            }
+          }
+        },
+        "operational": {
+          "type": "array",
+          "items": {
+            "type": ["object", "null"],
+            "properties": {
+              "id": { "type": ["string", "null"] },
+              "title": { "type": ["string", "null"] },
+              "description": { "type": ["string", "null"] },
+              "severity": { "type": ["string", "null"] },
+              "probability": { "type": ["number", "null"] },
+              "trigger": { "type": ["string", "null"] },
+              "trigger_metric": { "type": ["string", "null"] },
+              "mitigation": { "type": ["string", "null"] },
+              "mitigation_action": { "type": ["string", "null"] },
+              "status": { "type": ["string", "null"], "enum": ["Active", "Monitoring", "Resolved", null] },
+              "source": { "type": ["string", "null"] },
+              "source_reference": {
+                "type": ["object", "null"],
+                "properties": {
+                  "url": { "type": ["string", "null"] },
+                  "document_type": { "type": ["string", "null"] },
+                  "excerpt": { "type": ["string", "null"] },
+                  "accessed_at": { "type": ["string", "null"] }
+                }
+              }
+            }
+          }
+        },
+        "cybersecurity": {
+          "type": "array",
+          "items": {
+            "type": ["object", "null"],
+            "properties": {
+              "id": { "type": ["string", "null"] },
+              "title": { "type": ["string", "null"] },
+              "description": { "type": ["string", "null"] },
+              "severity": { "type": ["string", "null"] },
+              "probability": { "type": ["number", "null"] },
+              "trigger": { "type": ["string", "null"] },
+              "trigger_metric": { "type": ["string", "null"] },
+              "mitigation": { "type": ["string", "null"] },
+              "mitigation_action": { "type": ["string", "null"] },
+              "status": { "type": ["string", "null"], "enum": ["Active", "Monitoring", "Resolved", null] },
+              "source": { "type": ["string", "null"] },
+              "source_reference": {
+                "type": ["object", "null"],
+                "properties": {
+                  "url": { "type": ["string", "null"] },
+                  "document_type": { "type": ["string", "null"] },
+                  "excerpt": { "type": ["string", "null"] },
+                  "accessed_at": { "type": ["string", "null"] }
+                }
+              }
+            }
+          }
+        },
+        "financial": {
+          "type": "array",
+          "items": {
+            "type": ["object", "null"],
+            "properties": {
+              "id": { "type": ["string", "null"] },
+              "title": { "type": ["string", "null"] },
+              "description": { "type": ["string", "null"] },
+              "severity": { "type": ["string", "null"] },
+              "probability": { "type": ["number", "null"] },
+              "trigger": { "type": ["string", "null"] },
+              "trigger_metric": { "type": ["string", "null"] },
+              "mitigation": { "type": ["string", "null"] },
+              "mitigation_action": { "type": ["string", "null"] },
+              "status": { "type": ["string", "null"], "enum": ["Active", "Monitoring", "Resolved", null] },
+              "source": { "type": ["string", "null"] },
+              "source_reference": {
+                "type": ["object", "null"],
+                "properties": {
+                  "url": { "type": ["string", "null"] },
+                  "document_type": { "type": ["string", "null"] },
+                  "excerpt": { "type": ["string", "null"] },
+                  "accessed_at": { "type": ["string", "null"] }
+                }
+              }
+            }
+          }
+        },
+        "strategic": {
+          "type": "array",
+          "items": {
+            "type": ["object", "null"],
+            "properties": {
+              "id": { "type": ["string", "null"] },
+              "title": { "type": ["string", "null"] },
+              "description": { "type": ["string", "null"] },
+              "severity": { "type": ["string", "null"] },
+              "probability": { "type": ["number", "null"] },
+              "trigger": { "type": ["string", "null"] },
+              "trigger_metric": { "type": ["string", "null"] },
+              "mitigation": { "type": ["string", "null"] },
+              "mitigation_action": { "type": ["string", "null"] },
+              "status": { "type": ["string", "null"], "enum": ["Active", "Monitoring", "Resolved", null] },
+              "source": { "type": ["string", "null"] },
+              "source_reference": {
+                "type": ["object", "null"],
+                "properties": {
+                  "url": { "type": ["string", "null"] },
+                  "document_type": { "type": ["string", "null"] },
+                  "excerpt": { "type": ["string", "null"] },
+                  "accessed_at": { "type": ["string", "null"] }
+                }
+              }
+            }
           }
         }
       }
@@ -400,19 +1710,270 @@
         "conditions": { "type": ["array", "null"], "items": { "type": "string" } }
       }
     },
-    "net_cash_or_debt": { "$comment": "See metric structure" },
-    "buyback_capacity": { "$comment": "See metric structure" },
-    "sbc_percent_revenue": { "$comment": "See metric structure" },
-    "share_count_trend": { "$comment": "See metric structure" },
+    "net_cash_or_debt": {
+      "type": ["object", "null"],
+      "properties": {
+        "value": { "type": ["number", "string", "null"] },
+        "formatted": { "type": ["string", "null"] },
+        "unit": { "type": ["string", "null"] },
+        "source": { "type": ["string", "null"] },
+        "source_reference": {
+          "type": ["object", "null"],
+          "properties": {
+            "url": { "type": ["string", "null"] },
+            "document_type": { "type": ["string", "null"] },
+            "excerpt": { "type": ["string", "null"] },
+            "accessed_at": { "type": ["string", "null"] }
+          }
+        },
+        "tie_out_status": { "type": ["string", "null"] },
+        "last_updated": { "type": ["string", "null"] },
+        "availability": { "type": ["string", "null"] },
+        "unavailable_reason": { "type": ["string", "null"] },
+        "confidence": { "type": ["number", "null"] },
+        "data_quality": {
+          "type": ["object", "null"],
+          "properties": {
+            "coverage": { "type": ["number", "null"] },
+            "auditability": { "type": ["number", "null"] },
+            "freshness_days": { "type": ["number", "null"] }
+          }
+        },
+        "decision_context": {
+          "type": ["object", "null"],
+          "properties": {
+            "confidence_level": { "type": ["string", "null"] },
+            "sufficiency_status": { "type": ["string", "null"] },
+            "knowns": { "type": ["array", "null"], "items": { "type": "string" } },
+            "unknowns": { "type": ["array", "null"], "items": { "type": "string" } },
+            "what_changes_conclusion": { "type": ["array", "null"], "items": { "type": "string" } }
+          }
+        },
+        "definition": {
+          "type": ["object", "null"],
+          "properties": {
+            "metric_name": { "type": ["string", "null"] },
+            "period": { "type": ["string", "null"] },
+            "basis": { "type": ["string", "null"] },
+            "currency": { "type": ["string", "null"] },
+            "unit": { "type": ["string", "null"] }
+          }
+        }
+      }
+    },
+    "buyback_capacity": {
+      "type": ["object", "null"],
+      "properties": {
+        "value": { "type": ["number", "string", "null"] },
+        "formatted": { "type": ["string", "null"] },
+        "unit": { "type": ["string", "null"] },
+        "source": { "type": ["string", "null"] },
+        "source_reference": {
+          "type": ["object", "null"],
+          "properties": {
+            "url": { "type": ["string", "null"] },
+            "document_type": { "type": ["string", "null"] },
+            "excerpt": { "type": ["string", "null"] },
+            "accessed_at": { "type": ["string", "null"] }
+          }
+        },
+        "tie_out_status": { "type": ["string", "null"] },
+        "last_updated": { "type": ["string", "null"] },
+        "availability": { "type": ["string", "null"] },
+        "unavailable_reason": { "type": ["string", "null"] },
+        "confidence": { "type": ["number", "null"] },
+        "data_quality": {
+          "type": ["object", "null"],
+          "properties": {
+            "coverage": { "type": ["number", "null"] },
+            "auditability": { "type": ["number", "null"] },
+            "freshness_days": { "type": ["number", "null"] }
+          }
+        },
+        "decision_context": {
+          "type": ["object", "null"],
+          "properties": {
+            "confidence_level": { "type": ["string", "null"] },
+            "sufficiency_status": { "type": ["string", "null"] },
+            "knowns": { "type": ["array", "null"], "items": { "type": "string" } },
+            "unknowns": { "type": ["array", "null"], "items": { "type": "string" } },
+            "what_changes_conclusion": { "type": ["array", "null"], "items": { "type": "string" } }
+          }
+        },
+        "definition": {
+          "type": ["object", "null"],
+          "properties": {
+            "metric_name": { "type": ["string", "null"] },
+            "period": { "type": ["string", "null"] },
+            "basis": { "type": ["string", "null"] },
+            "currency": { "type": ["string", "null"] },
+            "unit": { "type": ["string", "null"] }
+          }
+        }
+      }
+    },
+    "sbc_percent_revenue": {
+      "type": ["object", "null"],
+      "properties": {
+        "value": { "type": ["number", "string", "null"] },
+        "formatted": { "type": ["string", "null"] },
+        "unit": { "type": ["string", "null"] },
+        "source": { "type": ["string", "null"] },
+        "source_reference": {
+          "type": ["object", "null"],
+          "properties": {
+            "url": { "type": ["string", "null"] },
+            "document_type": { "type": ["string", "null"] },
+            "excerpt": { "type": ["string", "null"] },
+            "accessed_at": { "type": ["string", "null"] }
+          }
+        },
+        "tie_out_status": { "type": ["string", "null"] },
+        "last_updated": { "type": ["string", "null"] },
+        "availability": { "type": ["string", "null"] },
+        "unavailable_reason": { "type": ["string", "null"] },
+        "confidence": { "type": ["number", "null"] },
+        "data_quality": {
+          "type": ["object", "null"],
+          "properties": {
+            "coverage": { "type": ["number", "null"] },
+            "auditability": { "type": ["number", "null"] },
+            "freshness_days": { "type": ["number", "null"] }
+          }
+        },
+        "decision_context": {
+          "type": ["object", "null"],
+          "properties": {
+            "confidence_level": { "type": ["string", "null"] },
+            "sufficiency_status": { "type": ["string", "null"] },
+            "knowns": { "type": ["array", "null"], "items": { "type": "string" } },
+            "unknowns": { "type": ["array", "null"], "items": { "type": "string" } },
+            "what_changes_conclusion": { "type": ["array", "null"], "items": { "type": "string" } }
+          }
+        },
+        "definition": {
+          "type": ["object", "null"],
+          "properties": {
+            "metric_name": { "type": ["string", "null"] },
+            "period": { "type": ["string", "null"] },
+            "basis": { "type": ["string", "null"] },
+            "currency": { "type": ["string", "null"] },
+            "unit": { "type": ["string", "null"] }
+          }
+        }
+      }
+    },
+    "share_count_trend": {
+      "type": ["object", "null"],
+      "properties": {
+        "value": { "type": ["number", "string", "null"] },
+        "formatted": { "type": ["string", "null"] },
+        "unit": { "type": ["string", "null"] },
+        "source": { "type": ["string", "null"] },
+        "source_reference": {
+          "type": ["object", "null"],
+          "properties": {
+            "url": { "type": ["string", "null"] },
+            "document_type": { "type": ["string", "null"] },
+            "excerpt": { "type": ["string", "null"] },
+            "accessed_at": { "type": ["string", "null"] }
+          }
+        },
+        "tie_out_status": { "type": ["string", "null"] },
+        "last_updated": { "type": ["string", "null"] },
+        "availability": { "type": ["string", "null"] },
+        "unavailable_reason": { "type": ["string", "null"] },
+        "confidence": { "type": ["number", "null"] },
+        "data_quality": {
+          "type": ["object", "null"],
+          "properties": {
+            "coverage": { "type": ["number", "null"] },
+            "auditability": { "type": ["number", "null"] },
+            "freshness_days": { "type": ["number", "null"] }
+          }
+        },
+        "decision_context": {
+          "type": ["object", "null"],
+          "properties": {
+            "confidence_level": { "type": ["string", "null"] },
+            "sufficiency_status": { "type": ["string", "null"] },
+            "knowns": { "type": ["array", "null"], "items": { "type": "string" } },
+            "unknowns": { "type": ["array", "null"], "items": { "type": "string" } },
+            "what_changes_conclusion": { "type": ["array", "null"], "items": { "type": "string" } }
+          }
+        },
+        "definition": {
+          "type": ["object", "null"],
+          "properties": {
+            "metric_name": { "type": ["string", "null"] },
+            "period": { "type": ["string", "null"] },
+            "basis": { "type": ["string", "null"] },
+            "currency": { "type": ["string", "null"] },
+            "unit": { "type": ["string", "null"] }
+          }
+        }
+      }
+    },
     "segments": {
       "type": ["array", "null"],
       "items": {
         "type": "object",
         "properties": {
           "name": { "type": ["string", "null"] },
-          "revenue": { "$comment": "See metric structure" },
-          "growth": { "$comment": "See metric structure" },
-          "margin": { "$comment": "See metric structure" }
+          "revenue": {
+            "type": ["object", "null"],
+            "properties": {
+              "value": { "type": ["number", "string", "null"] },
+              "formatted": { "type": ["string", "null"] },
+              "unit": { "type": ["string", "null"] },
+              "source": { "type": ["string", "null"] },
+              "source_reference": {
+                "type": ["object", "null"],
+                "properties": {
+                  "url": { "type": ["string", "null"] },
+                  "document_type": { "type": ["string", "null"] },
+                  "excerpt": { "type": ["string", "null"] },
+                  "accessed_at": { "type": ["string", "null"] }
+                }
+              }
+            }
+          },
+          "growth": {
+            "type": ["object", "null"],
+            "properties": {
+              "value": { "type": ["number", "string", "null"] },
+              "formatted": { "type": ["string", "null"] },
+              "unit": { "type": ["string", "null"] },
+              "source": { "type": ["string", "null"] },
+              "source_reference": {
+                "type": ["object", "null"],
+                "properties": {
+                  "url": { "type": ["string", "null"] },
+                  "document_type": { "type": ["string", "null"] },
+                  "excerpt": { "type": ["string", "null"] },
+                  "accessed_at": { "type": ["string", "null"] }
+                }
+              }
+            }
+          },
+          "margin": {
+            "type": ["object", "null"],
+            "properties": {
+              "value": { "type": ["number", "string", "null"] },
+              "formatted": { "type": ["string", "null"] },
+              "unit": { "type": ["string", "null"] },
+              "source": { "type": ["string", "null"] },
+              "source_reference": {
+                "type": ["object", "null"],
+                "properties": {
+                  "url": { "type": ["string", "null"] },
+                  "document_type": { "type": ["string", "null"] },
+                  "excerpt": { "type": ["string", "null"] },
+                  "accessed_at": { "type": ["string", "null"] }
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -420,12 +1981,84 @@
       "type": ["object", "null"],
       "description": "Guidance vs consensus tracking. gap_percent is CALCULATED in kpi-calculations.ts.",
       "properties": {
-        "low": { "$comment": "atomicValue: value + source_reference" },
-        "high": { "$comment": "atomicValue: value + source_reference" },
-        "current_consensus": { "$comment": "atomicValue: value + source_reference" },
-        "gap_percent": { "$comment": "atomicValue: value + source_reference (stored for display, formula in kpi-calculations)" },
+        "low": {
+          "type": ["object", "null"],
+          "properties": {
+            "value": { "type": ["number", "null"] },
+            "formatted": { "type": ["string", "null"] },
+            "source": { "type": ["string", "null"] },
+            "source_reference": {
+              "type": ["object", "null"],
+              "properties": {
+                "url": { "type": ["string", "null"] },
+                "document_type": { "type": ["string", "null"] },
+                "excerpt": { "type": ["string", "null"] },
+                "accessed_at": { "type": ["string", "null"] }
+              }
+            }
+          }
+        },
+        "high": {
+          "type": ["object", "null"],
+          "properties": {
+            "value": { "type": ["number", "null"] },
+            "formatted": { "type": ["string", "null"] },
+            "source": { "type": ["string", "null"] },
+            "source_reference": {
+              "type": ["object", "null"],
+              "properties": {
+                "url": { "type": ["string", "null"] },
+                "document_type": { "type": ["string", "null"] },
+                "excerpt": { "type": ["string", "null"] },
+                "accessed_at": { "type": ["string", "null"] }
+              }
+            }
+          }
+        },
+        "current_consensus": {
+          "type": ["object", "null"],
+          "properties": {
+            "value": { "type": ["number", "null"] },
+            "formatted": { "type": ["string", "null"] },
+            "source": { "type": ["string", "null"] },
+            "source_reference": {
+              "type": ["object", "null"],
+              "properties": {
+                "url": { "type": ["string", "null"] },
+                "document_type": { "type": ["string", "null"] },
+                "excerpt": { "type": ["string", "null"] },
+                "accessed_at": { "type": ["string", "null"] }
+              }
+            }
+          }
+        },
+        "gap_percent": {
+          "type": ["object", "null"],
+          "properties": {
+            "value": { "type": ["number", "null"] },
+            "formatted": { "type": ["string", "null"] },
+            "source": { "type": ["string", "null"] },
+            "source_reference": {
+              "type": ["object", "null"],
+              "properties": {
+                "url": { "type": ["string", "null"] },
+                "document_type": { "type": ["string", "null"] },
+                "excerpt": { "type": ["string", "null"] },
+                "accessed_at": { "type": ["string", "null"] }
+              }
+            }
+          }
+        },
         "source": { "type": ["string", "null"] },
-        "source_reference": { "$comment": "See sourceReference structure" },
+        "source_reference": {
+          "type": ["object", "null"],
+          "properties": {
+            "url": { "type": ["string", "null"] },
+            "document_type": { "type": ["string", "null"] },
+            "excerpt": { "type": ["string", "null"] },
+            "accessed_at": { "type": ["string", "null"] }
+          }
+        },
         "last_updated": { "type": ["string", "null"] }
       }
     },
@@ -433,10 +2066,34 @@
       "type": ["object", "null"],
       "properties": {
         "direction": { "type": ["string", "null"] },
-        "magnitude": { "$comment": "atomicValue: value + source_reference" },
+        "magnitude": {
+          "type": ["object", "null"],
+          "properties": {
+            "value": { "type": ["number", "null"] },
+            "formatted": { "type": ["string", "null"] },
+            "source": { "type": ["string", "null"] },
+            "source_reference": {
+              "type": ["object", "null"],
+              "properties": {
+                "url": { "type": ["string", "null"] },
+                "document_type": { "type": ["string", "null"] },
+                "excerpt": { "type": ["string", "null"] },
+                "accessed_at": { "type": ["string", "null"] }
+              }
+            }
+          }
+        },
         "trend": { "type": ["string", "null"] },
         "source": { "type": ["string", "null"] },
-        "source_reference": { "$comment": "See sourceReference structure" },
+        "source_reference": {
+          "type": ["object", "null"],
+          "properties": {
+            "url": { "type": ["string", "null"] },
+            "document_type": { "type": ["string", "null"] },
+            "excerpt": { "type": ["string", "null"] },
+            "accessed_at": { "type": ["string", "null"] }
+          }
+        },
         "last_updated": { "type": ["string", "null"] }
       }
     },
@@ -445,6 +2102,7 @@
       "description": "Data sources with refresh status and priority",
       "items": {
         "type": "object",
+        "required": ["name", "type", "last_refresh"],
         "properties": {
           "name": { "type": "string" },
           "type": { "type": "string", "enum": ["primary", "secondary"] },
@@ -455,18 +2113,81 @@
           "url": { "type": "string" },
           "metrics_covered": { "type": "array", "items": { "type": "string" } },
           "next_refresh": { "type": "string" }
-        },
-        "required": ["name", "type", "last_refresh"]
+        }
       }
     },
     "unit_economics": {
       "type": ["object", "null"],
       "description": "Unit economics with investor context. LTV/CAC ratio and payback are CALCULATED in kpi-calculations.ts.",
       "properties": {
-        "cac": { "$comment": "atomicValue: value + source_reference" },
-        "ltv": { "$comment": "atomicValue: value + source_reference" },
-        "ltv_cac_ratio": { "$comment": "atomicValue: value + source_reference (can be stored or calculated)" },
-        "payback_period_months": { "$comment": "atomicValue: value + source_reference (can be stored or calculated)" },
+        "cac": {
+          "type": ["object", "null"],
+          "properties": {
+            "value": { "type": ["number", "null"] },
+            "formatted": { "type": ["string", "null"] },
+            "source": { "type": ["string", "null"] },
+            "source_reference": {
+              "type": ["object", "null"],
+              "properties": {
+                "url": { "type": ["string", "null"] },
+                "document_type": { "type": ["string", "null"] },
+                "excerpt": { "type": ["string", "null"] },
+                "accessed_at": { "type": ["string", "null"] }
+              }
+            }
+          }
+        },
+        "ltv": {
+          "type": ["object", "null"],
+          "properties": {
+            "value": { "type": ["number", "null"] },
+            "formatted": { "type": ["string", "null"] },
+            "source": { "type": ["string", "null"] },
+            "source_reference": {
+              "type": ["object", "null"],
+              "properties": {
+                "url": { "type": ["string", "null"] },
+                "document_type": { "type": ["string", "null"] },
+                "excerpt": { "type": ["string", "null"] },
+                "accessed_at": { "type": ["string", "null"] }
+              }
+            }
+          }
+        },
+        "ltv_cac_ratio": {
+          "type": ["object", "null"],
+          "properties": {
+            "value": { "type": ["number", "null"] },
+            "formatted": { "type": ["string", "null"] },
+            "source": { "type": ["string", "null"] },
+            "source_reference": {
+              "type": ["object", "null"],
+              "properties": {
+                "url": { "type": ["string", "null"] },
+                "document_type": { "type": ["string", "null"] },
+                "excerpt": { "type": ["string", "null"] },
+                "accessed_at": { "type": ["string", "null"] }
+              }
+            }
+          }
+        },
+        "payback_period_months": {
+          "type": ["object", "null"],
+          "properties": {
+            "value": { "type": ["number", "null"] },
+            "formatted": { "type": ["string", "null"] },
+            "source": { "type": ["string", "null"] },
+            "source_reference": {
+              "type": ["object", "null"],
+              "properties": {
+                "url": { "type": ["string", "null"] },
+                "document_type": { "type": ["string", "null"] },
+                "excerpt": { "type": ["string", "null"] },
+                "accessed_at": { "type": ["string", "null"] }
+              }
+            }
+          }
+        },
         "investor_context": {
           "type": ["object", "null"],
           "properties": {
@@ -478,82 +2199,25 @@
           }
         },
         "source": { "type": ["string", "null"] },
-        "source_reference": { "$comment": "See sourceReference structure" }
+        "source_reference": {
+          "type": ["object", "null"],
+          "properties": {
+            "url": { "type": ["string", "null"] },
+            "document_type": { "type": ["string", "null"] },
+            "excerpt": { "type": ["string", "null"] },
+            "accessed_at": { "type": ["string", "null"] }
+          }
+        }
       }
     },
-    "run_data_quality": { "$comment": "See dataQuality structure" }
-  },
-  "required": ["company_type"],
-  "definitions": {
-    "sourceReference": {
+    "run_data_quality": {
       "type": ["object", "null"],
-      "description": "Reference to original data source - this IS stored in schema (cannot be derived)",
       "properties": {
-        "url": { "type": ["string", "null"], "description": "URL to source document" },
-        "document_type": { "type": ["string", "null"], "description": "e.g., 10-K, 10-Q, 8-K, Press Release" },
-        "excerpt": { "type": ["string", "null"], "description": "Relevant excerpt from source" },
-        "accessed_at": { "type": ["string", "null"], "description": "ISO timestamp of when source was accessed" }
-      }
-    },
-    "dataQuality": {
-      "type": ["object", "null"],
-      "description": "Three-part data quality metric",
-      "properties": {
-        "coverage": { "type": ["number", "null"], "description": "% of exhibits populated (0-100)" },
-        "auditability": { "type": ["number", "null"], "description": "% source-linked (0-100)" },
-        "freshness_days": { "type": ["number", "null"], "description": "Age in days" }
-      }
-    },
-    "decisionContext": {
-      "type": ["object", "null"],
-      "description": "Decision layer for actionable confidence signals",
-      "properties": {
-        "confidence_level": { "type": ["string", "null"], "description": "high | medium | low" },
-        "sufficiency_status": { "type": ["string", "null"], "description": "sufficient | insufficient" },
-        "knowns": { "type": ["array", "null"], "items": { "type": "string" } },
-        "unknowns": { "type": ["array", "null"], "items": { "type": "string" } },
-        "what_changes_conclusion": { "type": ["array", "null"], "items": { "type": "string" } }
-      }
-    },
-    "metricDefinition": {
-      "type": ["object", "null"],
-      "description": "Metadata for headline metrics (Definition Pill)",
-      "properties": {
-        "metric_name": { "type": ["string", "null"] },
-        "period": { "type": ["string", "null"], "description": "e.g., Q3 2024, TTM" },
-        "basis": { "type": ["string", "null"], "description": "GAAP | Non-GAAP" },
-        "currency": { "type": ["string", "null"] },
-        "unit": { "type": ["string", "null"] }
-      }
-    },
-    "atomicValue": {
-      "type": ["object", "null"],
-      "description": "Atomic value with source reference. NO formula stored - formulas live in kpi-calculations.ts",
-      "properties": {
-        "value": { "type": ["number", "null"] },
-        "formatted": { "type": ["string", "null"] },
-        "source": { "type": ["string", "null"] },
-        "source_reference": { "$comment": "See sourceReference structure" }
-      }
-    },
-    "metric": {
-      "type": ["object", "null"],
-      "description": "Full metric with all metadata",
-      "properties": {
-        "value": { "type": ["number", "string", "null"] },
-        "formatted": { "type": ["string", "null"] },
-        "unit": { "type": ["string", "null"] },
-        "source": { "type": ["string", "null"] },
-        "source_reference": { "$comment": "See sourceReference structure" },
-        "tie_out_status": { "type": ["string", "null"] },
-        "last_updated": { "type": ["string", "null"] },
-        "availability": { "type": ["string", "null"] },
-        "unavailable_reason": { "type": ["string", "null"] },
-        "confidence": { "type": ["number", "null"], "description": "Legacy - use data_quality instead" },
-        "data_quality": { "$comment": "See dataQuality structure" },
-        "decision_context": { "$comment": "See decisionContext structure" },
-        "definition": { "$comment": "See metricDefinition structure" }
+        "coverage": { "type": ["number", "null"] },
+        "auditability": { "type": ["number", "null"] },
+        "freshness_days": { "type": ["number", "null"] }
       }
     }
-  }
+  },
+  "additionalProperties": true
 }
