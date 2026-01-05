@@ -1,28 +1,31 @@
 import { InvestorDashboard } from "@/lib/investor-schema";
-import { TrendingUp, TrendingDown, Minus, Target, BarChart3, ExternalLink } from "lucide-react";
+import { calcGuidanceGap, CalculatedKPI } from "@/lib/kpi-calculations";
+import { TrendingUp, TrendingDown, Minus, Target, BarChart3, ExternalLink, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 
 interface MarketExpectationsPanelProps {
   data: InvestorDashboard;
 }
 
-// Helper to extract value from traceable value or number
-function getTraceableValue(val: any): number | null {
+// Helper to extract atomic value from schema
+function getAtomicValue(val: any): number | null {
   if (val == null) return null;
   if (typeof val === "number") return val;
   if (typeof val === "object" && val.value != null) return val.value;
   return null;
 }
 
-function getTraceableFormatted(val: any): string | null {
+function getAtomicFormatted(val: any): string | null {
   if (val == null) return null;
   if (typeof val === "object" && val.formatted) return val.formatted;
   return null;
 }
 
-function getTraceableSource(val: any): { source?: string; source_reference?: any } | null {
+// Get source reference from schema (the only thing schema should store besides atomic values)
+function getSourceRef(val: any): { url?: string; document_type?: string; excerpt?: string } | null {
   if (val == null || typeof val !== "object") return null;
-  return { source: val.source, source_reference: val.source_reference };
+  return val.source_reference || null;
 }
 
 function formatCurrency(value: number | null | undefined): string {
@@ -32,7 +35,7 @@ function formatCurrency(value: number | null | undefined): string {
   return `$${value.toLocaleString()}`;
 }
 
-function SourceLink({ sourceRef }: { sourceRef?: { url?: string; document_type?: string } }) {
+function SourceLink({ sourceRef }: { sourceRef?: { url?: string; document_type?: string } | null }) {
   if (!sourceRef?.url) return null;
   return (
     <a
@@ -47,7 +50,47 @@ function SourceLink({ sourceRef }: { sourceRef?: { url?: string; document_type?:
   );
 }
 
-function TraceableMetric({ 
+// Shows formula from kpi-calculations (NOT from schema)
+function FormulaTooltip({ kpi }: { kpi: CalculatedKPI }) {
+  if (!kpi.formula) return null;
+
+  return (
+    <TooltipProvider>
+      <Tooltip delayDuration={0}>
+        <TooltipTrigger asChild>
+          <button className="text-muted-foreground hover:text-foreground transition-colors ml-1">
+            <Info className="w-3 h-3" />
+          </button>
+        </TooltipTrigger>
+        <TooltipContent side="top" align="end" className="max-w-sm bg-card border border-border p-3">
+          <div className="space-y-2">
+            <div>
+              <div className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1">Formula</div>
+              <code className="text-xs font-mono bg-secondary px-2 py-1 block">{kpi.formula}</code>
+            </div>
+            {kpi.inputs && kpi.inputs.length > 0 && (
+              <div>
+                <div className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1">Inputs</div>
+                {kpi.inputs.map((input, i) => (
+                  <div key={i} className="flex justify-between text-xs gap-4">
+                    <span className="text-muted-foreground">{input.name}</span>
+                    <span className="font-mono">{input.formatted}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="pt-2 border-t border-border text-[10px] text-muted-foreground">
+              Calculated by: kpi-calculations.ts
+            </div>
+          </div>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+}
+
+// Displays atomic value from schema with source reference
+function AtomicMetric({ 
   label, 
   val, 
   showSource = true 
@@ -56,29 +99,29 @@ function TraceableMetric({
   val: any;
   showSource?: boolean;
 }) {
-  const value = getTraceableValue(val);
-  const formatted = getTraceableFormatted(val);
-  const sourceInfo = getTraceableSource(val);
+  const value = getAtomicValue(val);
+  const formatted = getAtomicFormatted(val);
+  const sourceRef = getSourceRef(val);
 
   return (
     <div>
       <span className="text-micro text-muted-foreground block mb-1">{label}</span>
       <span className="font-mono text-lg">{formatted || formatCurrency(value)}</span>
-      {showSource && sourceInfo?.source_reference && (
+      {showSource && sourceRef && (
         <div className="mt-1">
-          <SourceLink sourceRef={sourceInfo.source_reference} />
+          <SourceLink sourceRef={sourceRef} />
         </div>
       )}
     </div>
   );
 }
 
-function GuidanceBridge({ data }: { data: InvestorDashboard["guidance_bridge"] }) {
+function GuidanceBridge({ data, gapKPI }: { data: InvestorDashboard["guidance_bridge"]; gapKPI: CalculatedKPI }) {
   if (!data) return null;
 
-  const { low, high, current_consensus, gap_percent, source, source_reference } = data;
+  const { low, high, current_consensus, source, source_reference } = data;
   
-  const gapValue = getTraceableValue(gap_percent);
+  const gapValue = gapKPI.value;
   const gapIsPositive = (gapValue ?? 0) > 0;
   const gapIsNeutral = (gapValue ?? 0) === 0;
 
@@ -92,9 +135,9 @@ function GuidanceBridge({ data }: { data: InvestorDashboard["guidance_bridge"] }
       </div>
 
       <div className="grid grid-cols-3 gap-4 mb-4">
-        <TraceableMetric label="Guidance Low" val={low} />
-        <TraceableMetric label="Guidance High" val={high} />
-        <TraceableMetric label="Current Consensus" val={current_consensus} />
+        <AtomicMetric label="Guidance Low" val={low} />
+        <AtomicMetric label="Guidance High" val={high} />
+        <AtomicMetric label="Current Consensus" val={current_consensus} />
       </div>
 
       <div className="flex items-center justify-between pt-3 border-t border-border">
@@ -105,7 +148,7 @@ function GuidanceBridge({ data }: { data: InvestorDashboard["guidance_bridge"] }
             gapIsPositive ? "text-emerald-600 dark:text-emerald-400" : 
             gapIsNeutral ? "text-muted-foreground" : "text-rose-600 dark:text-rose-400"
           )}>
-            {gapIsPositive ? "+" : ""}{gapValue?.toFixed(1) ?? "—"}%
+            {gapKPI.formatted}
           </span>
           {gapIsPositive ? (
             <TrendingUp className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
@@ -114,6 +157,7 @@ function GuidanceBridge({ data }: { data: InvestorDashboard["guidance_bridge"] }
           ) : (
             <TrendingDown className="w-3 h-3 text-rose-600 dark:text-rose-400" />
           )}
+          <FormulaTooltip kpi={gapKPI} />
         </div>
         <div className="flex items-center gap-2">
           <span className="text-micro text-muted-foreground">Source: {source ?? "—"}</span>
@@ -131,8 +175,10 @@ function RevisionsMomentum({ data }: { data: InvestorDashboard["revisions_moment
   const isUp = direction === "up";
   const isDown = direction === "down";
   
-  const magnitudeFormatted = getTraceableFormatted(magnitude);
-  const magnitudeValue = getTraceableValue(magnitude);
+  // magnitude is an atomic value from schema (not calculated)
+  const magnitudeFormatted = getAtomicFormatted(magnitude);
+  const magnitudeValue = getAtomicValue(magnitude);
+  const magnitudeSourceRef = getSourceRef(magnitude);
 
   return (
     <div className="border border-border p-4">
@@ -172,9 +218,9 @@ function RevisionsMomentum({ data }: { data: InvestorDashboard["revisions_moment
           )}>
             {magnitudeFormatted || (magnitudeValue != null ? `${magnitudeValue > 0 ? '+' : ''}${magnitudeValue}%` : "—")}
           </span>
-          {getTraceableSource(magnitude)?.source_reference && (
+          {magnitudeSourceRef && (
             <div className="mt-1">
-              <SourceLink sourceRef={getTraceableSource(magnitude)?.source_reference} />
+              <SourceLink sourceRef={magnitudeSourceRef} />
             </div>
           )}
         </div>
@@ -204,6 +250,13 @@ export function MarketExpectationsPanel({ data }: MarketExpectationsPanelProps) 
 
   if (!hasGuidance && !hasRevisions) return null;
 
+  // Calculate gap using kpi-calculations (NOT from schema)
+  const gapKPI = calcGuidanceGap(
+    getAtomicValue(data.guidance_bridge?.low),
+    getAtomicValue(data.guidance_bridge?.high),
+    getAtomicValue(data.guidance_bridge?.current_consensus)
+  );
+
   return (
     <section className="py-8 border-b border-border animate-fade-in">
       <div className="px-6">
@@ -212,10 +265,13 @@ export function MarketExpectationsPanel({ data }: MarketExpectationsPanelProps) 
           <h2 className="text-micro uppercase tracking-ultra-wide text-muted-foreground font-sans">
             Market Expectations
           </h2>
+          <span className="text-micro text-muted-foreground ml-auto">
+            Calculated via: kpi-calculations.ts
+          </span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {hasGuidance && <GuidanceBridge data={data.guidance_bridge} />}
+          {hasGuidance && <GuidanceBridge data={data.guidance_bridge} gapKPI={gapKPI} />}
           {hasRevisions && <RevisionsMomentum data={data.revisions_momentum} />}
         </div>
       </div>

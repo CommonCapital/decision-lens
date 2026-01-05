@@ -500,6 +500,61 @@ export function calcImpliedUpside(data: InvestorDashboard): CalculatedKPI {
   };
 }
 
+// === MARKET EXPECTATIONS CALCULATIONS ===
+
+export function calcGuidanceGap(
+  guidanceLow: number | null | undefined,
+  guidanceHigh: number | null | undefined,
+  consensus: number | null | undefined
+): CalculatedKPI {
+  if (!guidanceLow || !guidanceHigh || !consensus) {
+    return {
+      value: null,
+      formatted: "—",
+      formula: "(Consensus − Guidance Midpoint) ÷ Guidance Midpoint × 100",
+      inputs: []
+    };
+  }
+  
+  const midpoint = (guidanceLow + guidanceHigh) / 2;
+  const value = ((consensus - midpoint) / midpoint) * 100;
+  
+  return {
+    value,
+    formatted: `${value >= 0 ? '+' : ''}${value.toFixed(1)}%`,
+    formula: "(Consensus − Guidance Midpoint) ÷ Guidance Midpoint × 100",
+    inputs: [
+      { name: "Guidance Low", value: guidanceLow, formatted: formatCurrency(guidanceLow) },
+      { name: "Guidance High", value: guidanceHigh, formatted: formatCurrency(guidanceHigh) },
+      { name: "Guidance Midpoint", value: midpoint, formatted: formatCurrency(midpoint) },
+      { name: "Consensus", value: consensus, formatted: formatCurrency(consensus) },
+    ]
+  };
+}
+
+export function calcValuationMidpoint(low: number | null | undefined, high: number | null | undefined): CalculatedKPI {
+  if (!low || !high) {
+    return {
+      value: null,
+      formatted: "—",
+      formula: "(Valuation Low + Valuation High) ÷ 2",
+      inputs: []
+    };
+  }
+  
+  const value = (low + high) / 2;
+  
+  return {
+    value,
+    formatted: formatCurrency(value),
+    formula: "(Valuation Low + Valuation High) ÷ 2",
+    inputs: [
+      { name: "Valuation Low", value: low, formatted: formatCurrency(low) },
+      { name: "Valuation High", value: high, formatted: formatCurrency(high) },
+    ]
+  };
+}
+
 // === SCENARIO CALCULATIONS ===
 
 export interface ScenarioCalculationInputs {

@@ -76,7 +76,7 @@ export function InvestorDashboard({ data }: InvestorDashboardProps) {
           <MarketExpectationsPanel data={data} />
         )}
         
-        <ValuationSection valuation={data.valuation} />
+        <ValuationSection data={data} />
         
         <EventsTimeline events={data.events} />
         
