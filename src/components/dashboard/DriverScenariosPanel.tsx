@@ -74,19 +74,28 @@ export function DriverScenariosPanel({ scenarios }: DriverScenariosPanelProps) {
     return null;
   }
 
-  const valuations = availableScenarios
-    .filter(s => s.scenario?.outputs?.valuation?.value != null)
-    .map((s) => s.scenario.outputs?.valuation?.value as number);
-  const minVal = valuations.length > 0 ? Math.min(...valuations) : 0;
-  const maxVal = valuations.length > 0 ? Math.max(...valuations) : 0;
+  // Extract valuation values from each scenario
+  const getValuation = (scenario: SingleScenario | null | undefined): number => {
+    return (scenario?.outputs?.valuation?.value as number) || 0;
+  };
+  
+  const baseVal = getValuation(scenarios.base);
+  const downsideVal = getValuation(scenarios.downside);
+  const upsideVal = getValuation(scenarios.upside);
+  
+  // Calculate min/max range across all scenarios with valid valuations
+  const validValuations = [baseVal, downsideVal, upsideVal].filter(v => v > 0);
+  const minVal = validValuations.length > 0 ? Math.min(...validValuations) : 0;
+  const maxVal = validValuations.length > 0 ? Math.max(...validValuations) : 0;
   const range = maxVal - minVal;
 
-  // Calculate expected value
-  const expectedValue = availableScenarios.reduce((acc, s) => {
-    const val = s.scenario?.outputs?.valuation?.value as number || 0;
-    const prob = s.scenario?.probability || 0;
-    return acc + val * prob;
-  }, 0);
+  // Calculate probability-weighted expected value
+  // EV = (Base × w_base) + (Downside × w_downside) + (Upside × w_upside)
+  const baseProb = scenarios.base?.probability || 0;
+  const downsideProb = scenarios.downside?.probability || 0;
+  const upsideProb = scenarios.upside?.probability || 0;
+  
+  const expectedValue = (baseVal * baseProb) + (downsideVal * downsideProb) + (upsideVal * upsideProb);
 
   return (
     <section className="py-8 border-b border-border animate-fade-in">
@@ -135,16 +144,21 @@ export function DriverScenariosPanel({ scenarios }: DriverScenariosPanelProps) {
               <div className="text-right">
                 <span className="text-micro text-muted-foreground block">Range</span>
                 <span className="font-mono">
-                  {scenarios.downside?.outputs?.valuation?.formatted || "N/A"} — {scenarios.upside?.outputs?.valuation?.formatted || "N/A"}
+                  {minVal > 0 ? `$${(minVal / 1e9).toFixed(1)}B` : "N/A"} — {maxVal > 0 ? `$${(maxVal / 1e9).toFixed(1)}B` : "N/A"}
                 </span>
               </div>
               <div className="text-right">
                 <span className="text-micro text-muted-foreground block">Expected Value</span>
                 <span className="font-mono text-xl">
-                  ${(expectedValue / 1e9).toFixed(1)}B
+                  {expectedValue > 0 ? `$${(expectedValue / 1e9).toFixed(1)}B` : "N/A"}
                 </span>
               </div>
             </div>
+          </div>
+          
+          {/* Formula tooltip */}
+          <div className="text-[10px] text-muted-foreground mb-3">
+            EV = (Base × {(baseProb * 100).toFixed(0)}%) + (Downside × {(downsideProb * 100).toFixed(0)}%) + (Upside × {(upsideProb * 100).toFixed(0)}%)
           </div>
           
           {/* Visual range */}
