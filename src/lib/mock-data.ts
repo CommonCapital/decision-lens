@@ -176,9 +176,9 @@ export const mockDashboardData: InvestorDashboard = {
     why_range_exists: "Multiple scenarios based on margin trajectory and terminal growth assumptions",
     dcf: { 
       terminal_growth_rate: { value: 2.5, formatted: "2.5%", source: "Management guidance", source_reference: { url: "https://sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=MHC&type=10-K", document_type: "10-K MD&A", excerpt: "Long-term growth expectation of 2-3%", accessed_at: "2024-12-14T06:00:00Z" } },
-      wacc: { value: 8.2, formatted: "8.2%", source: "Internal Model", formula: "Risk-free rate + Beta × Equity Risk Premium + Size Premium", formula_inputs: [{ name: "Risk-free rate", value: 4.2, source: "10Y Treasury" }, { name: "Beta", value: 1.1, source: "Bloomberg" }, { name: "ERP", value: 5.5, source: "Duff & Phelps" }] },
-      implied_value: { value: 14500000000, formatted: "$14.5B", source: "DCF Model", formula: "Sum of discounted FCFs + Terminal Value" },
-      implied_value_per_share: { value: 145.00, formatted: "$145.00", source: "DCF Model", formula: "Implied EV / Shares Outstanding" },
+      wacc: { value: 8.2, formatted: "8.2%", source: "Internal Model", source_reference: { url: "https://internal.model/dcf/MHC", document_type: "Valuation Model", excerpt: "WACC: Risk-free (4.2%) + Beta (1.1) × ERP (5.5%) + Size Premium", accessed_at: "2024-12-14T09:00:00Z" } },
+      implied_value: { value: 14500000000, formatted: "$14.5B", source: "DCF Model", source_reference: { url: "https://internal.model/dcf/MHC", document_type: "Valuation Model", excerpt: "Sum of discounted FCFs + Terminal Value", accessed_at: "2024-12-14T09:00:00Z" } },
+      implied_value_per_share: { value: 145.00, formatted: "$145.00", source: "DCF Model", source_reference: { url: "https://internal.model/dcf/MHC", document_type: "Valuation Model", excerpt: "Implied EV / Shares Outstanding", accessed_at: "2024-12-14T09:00:00Z" } },
       source: "Internal DCF Model",
       source_reference: { url: "https://internal.model/dcf/MHC", document_type: "Valuation Model", excerpt: "5-year DCF with terminal value", accessed_at: "2024-12-14T09:00:00Z" },
       methodology: "5-year explicit forecast with terminal value using Gordon Growth"
@@ -365,7 +365,7 @@ export const mockDashboardData: InvestorDashboard = {
     low: { value: 3400000000, formatted: "$3.40B", source: "Company Guidance", source_reference: { url: "https://sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=MHC&type=8-K", document_type: "8-K Filing", excerpt: "FY24 Revenue Guidance: $3.40B - $3.60B", accessed_at: "2024-12-12T16:00:00Z" } },
     high: { value: 3600000000, formatted: "$3.60B", source: "Company Guidance", source_reference: { url: "https://sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=MHC&type=8-K", document_type: "8-K Filing", excerpt: "FY24 Revenue Guidance: $3.40B - $3.60B", accessed_at: "2024-12-12T16:00:00Z" } },
     current_consensus: { value: 3520000000, formatted: "$3.52B", source: "FactSet Consensus", source_reference: { url: "https://factset.com/consensus/MHC", document_type: "Consensus Estimates", excerpt: "Street Consensus Revenue: $3.52B (14 analysts)", accessed_at: "2024-12-14T08:30:00Z" } },
-    gap_percent: { value: 1.4, formatted: "+1.4%", source: "Calculated", formula: "(Consensus - Guidance Midpoint) / Guidance Midpoint × 100", formula_inputs: [{ name: "Consensus", value: 3520000000, source: "FactSet" }, { name: "Guidance Midpoint", value: 3500000000, source: "Company" }] },
+    gap_percent: { value: 1.4, formatted: "+1.4%", source: "Calculated", source_reference: { url: "https://factset.com/consensus/MHC", document_type: "Consensus Estimates", excerpt: "(Consensus - Guidance Midpoint) / Midpoint = (3.52B - 3.50B) / 3.50B = +1.4%", accessed_at: "2024-12-14T08:30:00Z" } },
     source: "FactSet Consensus",
     source_reference: { url: "https://factset.com/consensus/MHC", document_type: "Consensus Estimates", excerpt: "FY24 Revenue Guidance: $3.40B - $3.60B; Street Consensus: $3.52B", accessed_at: "2024-12-14T08:30:00Z" },
     last_updated: "2024-12-14T08:30:00Z",
@@ -452,12 +452,7 @@ export const mockDashboardData: InvestorDashboard = {
         document_type: "Unit Economics Model", 
         excerpt: "CAC = Total S&M Spend / New Customers Acquired = $134M / 2,978 = $45K",
         accessed_at: "2024-12-14T09:00:00Z"
-      },
-      formula: "Total S&M Spend / New Customers Acquired",
-      formula_inputs: [
-        { name: "S&M Spend", value: 134000000, source: "10-Q" },
-        { name: "New Customers", value: 2978, source: "CRM Data" }
-      ]
+      }
     },
     ltv: { 
       value: 180000, 
@@ -468,33 +463,29 @@ export const mockDashboardData: InvestorDashboard = {
         document_type: "Unit Economics Model", 
         excerpt: "LTV = ARPA × Gross Margin % × Avg Customer Lifespan = $4,500 × 12 × 50% × 4 years = $180K",
         accessed_at: "2024-12-14T09:00:00Z"
-      },
-      formula: "ARPA × 12 × Gross Margin % × Avg Customer Lifespan (years)",
-      formula_inputs: [
-        { name: "ARPA (monthly)", value: 4500, source: "Billing Data" },
-        { name: "Gross Margin", value: 50, source: "10-Q" },
-        { name: "Avg Lifespan (years)", value: 4, source: "Cohort Analysis" }
-      ]
+      }
     },
     ltv_cac_ratio: { 
       value: 4.0, 
       formatted: "4.0x", 
       source: "Calculated",
-      formula: "LTV / CAC",
-      formula_inputs: [
-        { name: "LTV", value: 180000, source: "Model" },
-        { name: "CAC", value: 45000, source: "Model" }
-      ]
+      source_reference: { 
+        url: "https://internal.model/unit-economics", 
+        document_type: "Unit Economics Model", 
+        excerpt: "LTV / CAC = $180K / $45K = 4.0x",
+        accessed_at: "2024-12-14T09:00:00Z"
+      }
     },
     payback_period_months: { 
       value: 20, 
       formatted: "20 months", 
       source: "Calculated",
-      formula: "CAC / (ARPA × Gross Margin %)",
-      formula_inputs: [
-        { name: "CAC", value: 45000, source: "Model" },
-        { name: "Monthly Contribution", value: 2250, source: "ARPA × GM%" }
-      ]
+      source_reference: { 
+        url: "https://internal.model/unit-economics", 
+        document_type: "Unit Economics Model", 
+        excerpt: "CAC / (ARPA × Gross Margin %) = $45K / $2,250 = 20 months",
+        accessed_at: "2024-12-14T09:00:00Z"
+      }
     },
     investor_context: {
       ltv_cac_interpretation: "LTV/CAC of 4.0x indicates strong unit economics. Industry benchmark is 3.0x minimum for sustainable growth. Company earns $4 for every $1 spent acquiring customers, providing significant margin of safety for continued S&M investment.",

@@ -282,20 +282,17 @@ const killSwitchSchema = z.object({
   conditions: z.array(z.string()).nullable().optional(),
 }).nullable().optional();
 
-// === TRACEABLE METRIC (value with source/formula) ===
+// === ATOMIC VALUE (value + source only, formulas live in kpi-calculations.ts) ===
 
-const traceableValueSchema = z.object({
+const atomicValueSchema = z.object({
   value: z.number().nullable().optional(),
   formatted: z.string().nullable().optional(),
   source: z.string().nullable().optional(),
   source_reference: sourceReferenceSchema,
-  formula: z.string().nullable().optional(),
-  formula_inputs: z.array(z.object({
-    name: z.string().nullable().optional(),
-    value: z.number().nullable().optional(),
-    source: z.string().nullable().optional(),
-  })).nullable().optional(),
 }).nullable().optional();
+
+// Alias for backward compatibility during refactor
+const traceableValueSchema = atomicValueSchema;
 
 // === VALUATION ===
 
