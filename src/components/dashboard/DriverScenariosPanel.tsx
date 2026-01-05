@@ -252,14 +252,23 @@ export function DriverScenariosPanel({ scenarios }: DriverScenariosPanelProps) {
               </div>
               
               {driverNameList.map((driverName, i) => {
-                const meta = getDriverMeta(baseDrivers, driverName) || 
-                             getDriverMeta(downsideDrivers, driverName) || 
-                             getDriverMeta(upsideDrivers, driverName);
-                const downsideValue = getDriverValue(downsideDrivers, driverName);
-                const baseValue = getDriverValue(baseDrivers, driverName);
-                const upsideValue = getDriverValue(upsideDrivers, driverName);
-                const source = meta.source || "";
-                const category = meta.category || "";
+                const getDriverFull = (drivers: typeof baseDrivers, name: string) => {
+                  return drivers.find(d => d?.name === name);
+                };
+                
+                const baseFull = getDriverFull(baseDrivers, driverName);
+                const downsideFull = getDriverFull(downsideDrivers, driverName);
+                const upsideFull = getDriverFull(upsideDrivers, driverName);
+                const meta = baseFull || downsideFull || upsideFull;
+                
+                const downsideValue = downsideFull?.value || "N/A";
+                const baseValue = baseFull?.value || "N/A";
+                const upsideValue = upsideFull?.value || "N/A";
+                const source = meta?.source || "";
+                const category = meta?.category || "";
+                
+                // Get source reference for tooltip
+                const sourceRef = baseFull?.source_reference || downsideFull?.source_reference || upsideFull?.source_reference;
                 
                 return (
                   <div key={i} className="grid grid-cols-5 gap-px bg-border">
@@ -302,10 +311,20 @@ export function DriverScenariosPanel({ scenarios }: DriverScenariosPanelProps) {
                               {source}
                             </span>
                           </TooltipTrigger>
-                          <TooltipContent>
-                            {source === "fact" 
-                              ? "Source-linked assumption from filings or verified data" 
-                              : "Judgment call - not source-linked"}
+                          <TooltipContent className="max-w-sm">
+                            <div className="text-xs space-y-1">
+                              <p className="font-medium">
+                                {source === "fact" 
+                                  ? "Source-linked assumption" 
+                                  : "Judgment call - analyst estimate"}
+                              </p>
+                              {sourceRef?.excerpt && (
+                                <p className="text-muted-foreground italic">"{sourceRef.excerpt}"</p>
+                              )}
+                              {sourceRef?.document_type && (
+                                <p className="text-muted-foreground">Source: {sourceRef.document_type}</p>
+                              )}
+                            </div>
                           </TooltipContent>
                         </Tooltip>
                       )}
@@ -359,6 +378,13 @@ export function DriverScenariosPanel({ scenarios }: DriverScenariosPanelProps) {
                 <span className="ml-2 text-[10px] bg-secondary px-2 py-0.5">{current.outputs.revenue.period}</span>
               )}
             </h3>
+            <div className="bg-secondary/30 border border-border p-3 mb-4">
+              <p className="text-[10px] text-muted-foreground">
+                <strong>Note:</strong> Scenario outputs are <strong>annual projections (FY25E)</strong> based on TTM FY24 Revenue of $3.26B 
+                (sum of Q1: $795M + Q2: $834M + Q3: $868M + Q4: $892M). 
+                Quarterly Analysis shows individual quarter values (e.g., Q4: $892M Revenue, $224M EBITDA).
+              </p>
+            </div>
             <div className="grid grid-cols-2 gap-px bg-border">
               {/* Revenue */}
               <div className="bg-card p-4">

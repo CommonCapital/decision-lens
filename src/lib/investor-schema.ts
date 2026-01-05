@@ -156,6 +156,7 @@ const scenarioDriverSchema = z.object({
   value: z.string().nullable().optional(),
   unit: z.string().nullable().optional(),
   source: z.string().nullable().optional(),
+  source_reference: sourceReferenceSchema,
 }).nullable().optional();
 
 // Formula input for scenario traceability
@@ -183,12 +184,16 @@ const scenarioOutputsSchema = z.object({
   valuation: scenarioOutputMetricSchema,
 }).nullable().optional();
 
+const scenarioAssumptionSchema = z.object({
+  key: z.string().nullable().optional(),
+  value: z.string().nullable().optional(),
+  source: z.string().nullable().optional(),
+  source_reference: sourceReferenceSchema,
+}).nullable().optional();
+
 const singleScenarioSchema = z.object({
   probability: z.number().nullable().optional(),
-  assumptions: z.array(z.object({
-    key: z.string().nullable().optional(),
-    value: z.string().nullable().optional(),
-  })).nullable().optional(),
+  assumptions: z.array(scenarioAssumptionSchema).nullable().optional(),
   drivers: z.array(scenarioDriverSchema).nullable().optional(),
   outputs: scenarioOutputsSchema,
 }).nullable().optional();

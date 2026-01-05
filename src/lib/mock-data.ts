@@ -216,28 +216,37 @@ export const mockDashboardData: InvestorDashboard = {
   scenarios: {
     base: { 
       probability: 0.6, 
-      assumptions: [{ key: "Revenue Growth", value: "9%" }, { key: "EBITDA Margin", value: "25.5%" }], 
+      assumptions: [
+        { key: "Revenue Growth", value: "9%", source: "Management guidance + historical growth", source_reference: { url: "https://sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=MHC&type=8-K", document_type: "8-K Filing", excerpt: "Management expects 8-10% organic growth in FY25", accessed_at: "2024-12-14T06:00:00Z" } },
+        { key: "EBITDA Margin", value: "25.5%", source: "Historical margin + operating leverage", source_reference: { url: "https://sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=MHC&type=10-K", document_type: "10-K MD&A", excerpt: "EBITDA margin of 25.1% in FY24 with continued operating leverage expected", accessed_at: "2024-12-14T06:00:00Z" } }
+      ], 
+      drivers: [
+        { name: "Revenue Growth", category: "growth", value: "9%", unit: "percent", source: "fact", source_reference: { url: "https://sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=MHC&type=8-K", document_type: "8-K Filing", excerpt: "Management expects 8-10% organic growth", accessed_at: "2024-12-14T06:00:00Z" } },
+        { name: "EBITDA Margin", category: "margin", value: "25.5%", unit: "percent", source: "fact", source_reference: { url: "https://sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=MHC&type=10-K", document_type: "10-K MD&A", excerpt: "Historical margin trajectory supports 25-26% target", accessed_at: "2024-12-14T06:00:00Z" } },
+        { name: "Units Sold", category: "volume", value: "2.8M", unit: "units", source: "fact" },
+        { name: "ASP", category: "pricing", value: "$1,165", unit: "usd", source: "judgment" }
+      ],
       outputs: { 
         revenue: { 
           value: 3553400000, 
-          formatted: "$3.55B", 
+          formatted: "$3.55B (TTM FY25E)", 
           source: "Model Projection",
-          period: "FY25E",
+          period: "FY25E (Annual)",
           formula: "Revenue TTM × (1 + Growth Rate)",
           formula_inputs: [
-            { name: "Revenue TTM", value: 3260000000, source: "SEC Filings", source_reference: { url: "https://sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=MHC&type=10-K", document_type: "10-K Filing", excerpt: "Total Revenue: $3.26B", accessed_at: "2024-12-14T06:00:00Z" } },
-            { name: "Growth Rate", value: 0.09, source: "Base Case Assumption" }
+            { name: "Revenue TTM (Q1-Q4 FY24)", value: 3260000000, source: "SEC Filings - Sum of quarterly", source_reference: { url: "https://sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=MHC&type=10-K", document_type: "10-K Filing", excerpt: "Total Revenue FY24: $3.26B (Q1: $795M + Q2: $834M + Q3: $868M + Q4: $892M)", accessed_at: "2024-12-14T06:00:00Z" } },
+            { name: "Growth Rate", value: 0.09, source: "Base Case - 9%", source_reference: { url: "https://sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=MHC&type=8-K", document_type: "8-K Filing", excerpt: "Management expects 8-10% organic growth in FY25", accessed_at: "2024-12-14T06:00:00Z" } }
           ]
         }, 
         ebitda: { 
           value: 906117000, 
-          formatted: "$906M", 
+          formatted: "$906M (TTM FY25E)", 
           source: "Model Projection",
-          period: "FY25E",
+          period: "FY25E (Annual)",
           formula: "Projected Revenue × EBITDA Margin",
           formula_inputs: [
-            { name: "Projected Revenue", value: 3553400000, source: "Calculated" },
-            { name: "EBITDA Margin", value: 0.255, source: "Base Case Assumption" }
+            { name: "Projected Revenue FY25E", value: 3553400000, source: "Calculated from TTM + Growth" },
+            { name: "EBITDA Margin", value: 0.255, source: "Base Case - 25.5%", source_reference: { url: "https://sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=MHC&type=10-K", document_type: "10-K MD&A", excerpt: "EBITDA margin expansion from 25.1% to target 25.5%", accessed_at: "2024-12-14T06:00:00Z" } }
           ]
         }, 
         valuation: { 
@@ -255,28 +264,37 @@ export const mockDashboardData: InvestorDashboard = {
     },
     downside: { 
       probability: 0.25, 
-      assumptions: [{ key: "Revenue Growth", value: "5%" }, { key: "EBITDA Margin", value: "22%" }], 
+      assumptions: [
+        { key: "Revenue Growth", value: "5%", source: "Conservative: macro headwinds", source_reference: { url: "https://bernstein.com/research/industrials", document_type: "Analyst Report", excerpt: "Industrial sector growth may slow to 4-6% in recessionary scenario", accessed_at: "2024-12-10T14:00:00Z" } },
+        { key: "EBITDA Margin", value: "22%", source: "Margin compression from input costs", source_reference: { url: "https://sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=MHC&type=10-Q", document_type: "10-Q Filing", excerpt: "Raw material costs increased 12% YoY", accessed_at: "2024-12-14T06:00:00Z" } }
+      ],
+      drivers: [
+        { name: "Revenue Growth", category: "growth", value: "5%", unit: "percent", source: "judgment", source_reference: { url: "https://bernstein.com/research/industrials", document_type: "Analyst Report", excerpt: "Recessionary scenario: 4-6% growth", accessed_at: "2024-12-10T14:00:00Z" } },
+        { name: "EBITDA Margin", category: "margin", value: "22%", unit: "percent", source: "judgment", source_reference: { url: "https://sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=MHC&type=10-Q", document_type: "10-Q Filing", excerpt: "Input cost inflation pressure on margins", accessed_at: "2024-12-14T06:00:00Z" } },
+        { name: "Units Sold", category: "volume", value: "2.5M", unit: "units", source: "judgment" },
+        { name: "ASP", category: "pricing", value: "$1,140", unit: "usd", source: "judgment" }
+      ],
       outputs: { 
         revenue: { 
           value: 3423000000, 
-          formatted: "$3.42B", 
+          formatted: "$3.42B (TTM FY25E)", 
           source: "Model Projection",
-          period: "FY25E",
+          period: "FY25E (Annual)",
           formula: "Revenue TTM × (1 + Growth Rate)",
           formula_inputs: [
-            { name: "Revenue TTM", value: 3260000000, source: "SEC Filings", source_reference: { url: "https://sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=MHC&type=10-K", document_type: "10-K Filing", excerpt: "Total Revenue: $3.26B", accessed_at: "2024-12-14T06:00:00Z" } },
-            { name: "Growth Rate", value: 0.05, source: "Downside Assumption" }
+            { name: "Revenue TTM (Q1-Q4 FY24)", value: 3260000000, source: "SEC Filings - Sum of quarterly", source_reference: { url: "https://sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=MHC&type=10-K", document_type: "10-K Filing", excerpt: "Total Revenue FY24: $3.26B", accessed_at: "2024-12-14T06:00:00Z" } },
+            { name: "Growth Rate", value: 0.05, source: "Downside - 5%", source_reference: { url: "https://bernstein.com/research/industrials", document_type: "Analyst Report", excerpt: "Recessionary scenario: 4-6% growth", accessed_at: "2024-12-10T14:00:00Z" } }
           ]
         }, 
         ebitda: { 
           value: 753060000, 
-          formatted: "$753M", 
+          formatted: "$753M (TTM FY25E)", 
           source: "Model Projection",
-          period: "FY25E",
+          period: "FY25E (Annual)",
           formula: "Projected Revenue × EBITDA Margin",
           formula_inputs: [
-            { name: "Projected Revenue", value: 3423000000, source: "Calculated" },
-            { name: "EBITDA Margin", value: 0.22, source: "Downside Assumption" }
+            { name: "Projected Revenue FY25E", value: 3423000000, source: "Calculated from TTM + Growth" },
+            { name: "EBITDA Margin", value: 0.22, source: "Downside - 22%", source_reference: { url: "https://sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=MHC&type=10-Q", document_type: "10-Q Filing", excerpt: "Margin pressure from 12% input cost inflation", accessed_at: "2024-12-14T06:00:00Z" } }
           ]
         }, 
         valuation: { 
@@ -294,28 +312,37 @@ export const mockDashboardData: InvestorDashboard = {
     },
     upside: { 
       probability: 0.15, 
-      assumptions: [{ key: "Revenue Growth", value: "14%" }, { key: "EBITDA Margin", value: "27%" }], 
+      assumptions: [
+        { key: "Revenue Growth", value: "14%", source: "Market share gains + new products", source_reference: { url: "https://sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=MHC&type=8-K", document_type: "8-K Filing", excerpt: "New product launch expected to add $300M+ revenue in FY25", accessed_at: "2024-12-14T06:00:00Z" } },
+        { key: "EBITDA Margin", value: "27%", source: "Operating leverage + competitor exit", source_reference: { url: "https://bernstein.com/research/industrials/MHC-competitive-analysis", document_type: "Analyst Report", excerpt: "Competitor exit creates pricing power; margin upside to 27%+", accessed_at: "2024-12-10T14:00:00Z" } }
+      ],
+      drivers: [
+        { name: "Revenue Growth", category: "growth", value: "14%", unit: "percent", source: "fact", source_reference: { url: "https://sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=MHC&type=8-K", document_type: "8-K Filing", excerpt: "New product launch + market share gains", accessed_at: "2024-12-14T06:00:00Z" } },
+        { name: "EBITDA Margin", category: "margin", value: "27%", unit: "percent", source: "judgment", source_reference: { url: "https://bernstein.com/research/industrials/MHC-competitive-analysis", document_type: "Analyst Report", excerpt: "Competitor exit creates margin upside", accessed_at: "2024-12-10T14:00:00Z" } },
+        { name: "Units Sold", category: "volume", value: "3.1M", unit: "units", source: "judgment" },
+        { name: "ASP", category: "pricing", value: "$1,200", unit: "usd", source: "judgment" }
+      ],
       outputs: { 
         revenue: { 
           value: 3716400000, 
-          formatted: "$3.72B", 
+          formatted: "$3.72B (TTM FY25E)", 
           source: "Model Projection",
-          period: "FY25E",
+          period: "FY25E (Annual)",
           formula: "Revenue TTM × (1 + Growth Rate)",
           formula_inputs: [
-            { name: "Revenue TTM", value: 3260000000, source: "SEC Filings", source_reference: { url: "https://sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=MHC&type=10-K", document_type: "10-K Filing", excerpt: "Total Revenue: $3.26B", accessed_at: "2024-12-14T06:00:00Z" } },
-            { name: "Growth Rate", value: 0.14, source: "Upside Assumption" }
+            { name: "Revenue TTM (Q1-Q4 FY24)", value: 3260000000, source: "SEC Filings - Sum of quarterly", source_reference: { url: "https://sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=MHC&type=10-K", document_type: "10-K Filing", excerpt: "Total Revenue FY24: $3.26B", accessed_at: "2024-12-14T06:00:00Z" } },
+            { name: "Growth Rate", value: 0.14, source: "Upside - 14%", source_reference: { url: "https://sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=MHC&type=8-K", document_type: "8-K Filing", excerpt: "New product launch + market share gains to drive 14% growth", accessed_at: "2024-12-14T06:00:00Z" } }
           ]
         }, 
         ebitda: { 
           value: 1003428000, 
-          formatted: "$1.00B", 
+          formatted: "$1.00B (TTM FY25E)", 
           source: "Model Projection",
-          period: "FY25E",
+          period: "FY25E (Annual)",
           formula: "Projected Revenue × EBITDA Margin",
           formula_inputs: [
-            { name: "Projected Revenue", value: 3716400000, source: "Calculated" },
-            { name: "EBITDA Margin", value: 0.27, source: "Upside Assumption" }
+            { name: "Projected Revenue FY25E", value: 3716400000, source: "Calculated from TTM + Growth" },
+            { name: "EBITDA Margin", value: 0.27, source: "Upside - 27%", source_reference: { url: "https://bernstein.com/research/industrials/MHC-competitive-analysis", document_type: "Analyst Report", excerpt: "Competitor exit + operating leverage supports 27% margin", accessed_at: "2024-12-10T14:00:00Z" } }
           ]
         }, 
         valuation: { 

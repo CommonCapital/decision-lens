@@ -100,21 +100,11 @@ export function TimeSeriesSection({
                 isTransitioning={isTransitioning}
               />
             )}
-            {volumeStats && (
-              <QuarterlyChart
-                horizonStats={volumeStats}
-                horizon={horizon}
-                label="Volume"
-                currentValue={null}
-                currentFormatted={null}
-                isTransitioning={isTransitioning}
-              />
-            )}
             {revenueStats && (
               <QuarterlyChart
                 horizonStats={revenueStats}
                 horizon={horizon}
-                label="Revenue"
+                label="Revenue (Quarterly)"
                 currentValue={data.base_metrics?.revenue ?? null}
                 currentFormatted={`$${((data.base_metrics?.revenue ?? 0) / 1e6).toFixed(0)}M`}
                 isTransitioning={isTransitioning}
@@ -124,9 +114,19 @@ export function TimeSeriesSection({
               <QuarterlyChart
                 horizonStats={ebitdaStats}
                 horizon={horizon}
-                label="EBITDA"
+                label="EBITDA (Quarterly)"
                 currentValue={data.base_metrics?.ebitda_reported ?? null}
                 currentFormatted={`$${((data.base_metrics?.ebitda_reported ?? 0) / 1e6).toFixed(0)}M`}
+                isTransitioning={isTransitioning}
+              />
+            )}
+            {volumeStats && (
+              <QuarterlyChart
+                horizonStats={volumeStats}
+                horizon={horizon}
+                label="Volume"
+                currentValue={null}
+                currentFormatted={null}
                 isTransitioning={isTransitioning}
               />
             )}

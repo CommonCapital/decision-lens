@@ -117,7 +117,7 @@ export function ValuationSection({ valuation }: ValuationSectionProps) {
           </h2>
         </div>
 
-        {/* Summary Range */}
+        {/* Summary Range with Traceability */}
         {hasRange && (
           <div className="bg-card border border-border p-6 mb-6">
             <div className="flex items-center justify-between mb-4">
@@ -140,6 +140,34 @@ export function ValuationSection({ valuation }: ValuationSectionProps) {
                   </span>
                 )}
               </div>
+            </div>
+
+            {/* Derivation Traceability */}
+            <div className="border-t border-border pt-4 mt-4">
+              <span className="text-micro uppercase tracking-wide text-muted-foreground block mb-3">
+                Range Derivation
+              </span>
+              <div className="grid grid-cols-3 gap-4 text-sm">
+                <div className="bg-secondary/30 p-3">
+                  <span className="text-[10px] text-muted-foreground block mb-1">DCF</span>
+                  <span className="font-mono">{valuation.dcf ? (getTraceableFormatted(valuation.dcf.implied_value) || formatValue(getTraceableValue(valuation.dcf.implied_value))) : "—"}</span>
+                </div>
+                <div className="bg-secondary/30 p-3">
+                  <span className="text-[10px] text-muted-foreground block mb-1">Trading Comps</span>
+                  <span className="font-mono">
+                    {valuation.trading_comps ? `${getTraceableFormatted(valuation.trading_comps.implied_value_range_low) || formatValue(getTraceableValue(valuation.trading_comps.implied_value_range_low))} - ${getTraceableFormatted(valuation.trading_comps.implied_value_range_high) || formatValue(getTraceableValue(valuation.trading_comps.implied_value_range_high))}` : "—"}
+                  </span>
+                </div>
+                <div className="bg-secondary/30 p-3">
+                  <span className="text-[10px] text-muted-foreground block mb-1">Precedents</span>
+                  <span className="font-mono">
+                    {valuation.precedent_transactions ? `${getTraceableFormatted(valuation.precedent_transactions.implied_value_range_low) || formatValue(getTraceableValue(valuation.precedent_transactions.implied_value_range_low))} - ${getTraceableFormatted(valuation.precedent_transactions.implied_value_range_high) || formatValue(getTraceableValue(valuation.precedent_transactions.implied_value_range_high))}` : "—"}
+                  </span>
+                </div>
+              </div>
+              <p className="text-[10px] text-muted-foreground mt-3">
+                Range = min({formatValue(valuation.valuation_range_low)}) to max({formatValue(valuation.valuation_range_high)}) across all methodologies
+              </p>
             </div>
 
             {valuation.why_range_exists && (
