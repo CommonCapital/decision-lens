@@ -50,7 +50,7 @@ export function DriverScenariosPanel({ scenarios, baseMetrics }: DriverScenarios
       const scenario = scenarios?.[name];
       if (!scenario) continue;
       
-      // Extract growth rate and EBITDA margin from drivers
+      // Extract growth rate and EBITDA margin from drivers WITH source references
       const growthDriver = scenario.drivers?.find(d => d?.name === "Revenue Growth");
       const marginDriver = scenario.drivers?.find(d => d?.name === "EBITDA Margin");
       
@@ -61,6 +61,14 @@ export function DriverScenariosPanel({ scenarios, baseMetrics }: DriverScenarios
       
       const params = defaultScenarioParams[name];
       
+      // Build source description from driver
+      const growthSource = growthDriver?.source === "fact" 
+        ? growthDriver?.source_reference?.document_type || "Source-linked"
+        : "Analyst judgment";
+      const marginSource = marginDriver?.source === "fact"
+        ? marginDriver?.source_reference?.document_type || "Source-linked"
+        : "Analyst judgment";
+      
       results[name] = calcScenarioOutputs({
         revenueTTM: baseMetrics.revenue_ttm,
         ebitdaTTM: baseMetrics.ebitda_ttm,
@@ -68,6 +76,10 @@ export function DriverScenariosPanel({ scenarios, baseMetrics }: DriverScenarios
         ebitdaMargin,
         exitMultiple: params.exitMultiple,
         wacc: params.wacc,
+        growthRateSource: growthSource,
+        growthRateSourceRef: growthDriver?.source_reference,
+        ebitdaMarginSource: marginSource,
+        ebitdaMarginSourceRef: marginDriver?.source_reference,
       });
     }
     
@@ -451,18 +463,37 @@ export function DriverScenariosPanel({ scenarios, baseMetrics }: DriverScenarios
                         {currentCalc.revenue.formula}
                       </p>
                     </TooltipTrigger>
-                    <TooltipContent className="max-w-xs">
-                      <div className="text-xs space-y-1">
-                        <p className="font-medium mb-2">Calculated Inputs:</p>
+                    <TooltipContent className="max-w-md">
+                      <div className="text-xs space-y-2">
+                        <p className="font-medium">Calculation Breakdown:</p>
                         {currentCalc.revenue.inputs?.map((input, i) => (
-                          <div key={i} className="flex justify-between gap-4">
-                            <span>{input.name}:</span>
-                            <span className="font-mono">{input.formatted}</span>
+                          <div key={i} className="border-b border-border pb-2">
+                            <div className="flex justify-between gap-4">
+                              <span className="font-medium">{input.name}:</span>
+                              <span className="font-mono">{input.formatted}</span>
+                            </div>
+                            {input.source && (
+                              <p className="text-muted-foreground text-[10px] mt-1">
+                                Source: {input.source}
+                              </p>
+                            )}
+                            {input.sourceReference?.excerpt && (
+                              <p className="text-muted-foreground text-[10px] mt-1 italic">
+                                &quot;{input.sourceReference.excerpt}&quot;
+                              </p>
+                            )}
+                            {input.sourceReference?.url && (
+                              <a 
+                                href={input.sourceReference.url} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-[10px] text-primary underline mt-1 block"
+                              >
+                                View source →
+                              </a>
+                            )}
                           </div>
                         ))}
-                        <div className="border-t border-border pt-2 mt-2">
-                          <p className="text-muted-foreground">Source: base_metrics.revenue_ttm + scenario.drivers</p>
-                        </div>
                       </div>
                     </TooltipContent>
                   </Tooltip>
@@ -482,18 +513,37 @@ export function DriverScenariosPanel({ scenarios, baseMetrics }: DriverScenarios
                         {currentCalc.ebitda.formula}
                       </p>
                     </TooltipTrigger>
-                    <TooltipContent className="max-w-xs">
-                      <div className="text-xs space-y-1">
-                        <p className="font-medium mb-2">Calculated Inputs:</p>
+                    <TooltipContent className="max-w-md">
+                      <div className="text-xs space-y-2">
+                        <p className="font-medium">Calculation Breakdown:</p>
                         {currentCalc.ebitda.inputs?.map((input, i) => (
-                          <div key={i} className="flex justify-between gap-4">
-                            <span>{input.name}:</span>
-                            <span className="font-mono">{input.formatted}</span>
+                          <div key={i} className="border-b border-border pb-2">
+                            <div className="flex justify-between gap-4">
+                              <span className="font-medium">{input.name}:</span>
+                              <span className="font-mono">{input.formatted}</span>
+                            </div>
+                            {input.source && (
+                              <p className="text-muted-foreground text-[10px] mt-1">
+                                Source: {input.source}
+                              </p>
+                            )}
+                            {input.sourceReference?.excerpt && (
+                              <p className="text-muted-foreground text-[10px] mt-1 italic">
+                                &quot;{input.sourceReference.excerpt}&quot;
+                              </p>
+                            )}
+                            {input.sourceReference?.url && (
+                              <a 
+                                href={input.sourceReference.url} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-[10px] text-primary underline mt-1 block"
+                              >
+                                View source →
+                              </a>
+                            )}
                           </div>
                         ))}
-                        <div className="border-t border-border pt-2 mt-2">
-                          <p className="text-muted-foreground">Source: Projected Revenue × EBITDA Margin driver</p>
-                        </div>
                       </div>
                     </TooltipContent>
                   </Tooltip>
