@@ -351,29 +351,106 @@ export function DriverScenariosPanel({ scenarios }: DriverScenariosPanelProps) {
             </div>
           </div>
 
-          {/* Outputs with FCF */}
+          {/* Outputs with Traceability */}
           <div>
             <h3 className="text-micro uppercase tracking-ultra-wide text-muted-foreground font-sans mb-4 border-b border-border pb-2">
               {scenarioLabels[activeScenario]} Outputs
+              {current?.outputs?.revenue?.period && (
+                <span className="ml-2 text-[10px] bg-secondary px-2 py-0.5">{current.outputs.revenue.period}</span>
+              )}
             </h3>
             <div className="grid grid-cols-2 gap-px bg-border">
+              {/* Revenue */}
               <div className="bg-card p-4">
                 <span className="text-micro uppercase tracking-ultra-wide text-muted-foreground block mb-1">
                   Revenue
                 </span>
                 <span className="font-mono text-xl">{current?.outputs?.revenue?.formatted || "N/A"}</span>
+                {current?.outputs?.revenue?.formula && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <p className="text-[10px] text-muted-foreground mt-1 cursor-help underline decoration-dashed">
+                        {current.outputs.revenue.formula}
+                      </p>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <div className="text-xs space-y-1">
+                        {current.outputs.revenue.formula_inputs?.map((input, i) => (
+                          <div key={i} className="flex justify-between gap-4">
+                            <span>{input?.name}:</span>
+                            <span className="font-mono">
+                              {typeof input?.value === 'number' 
+                                ? (input.value >= 1e9 ? `$${(input.value / 1e9).toFixed(2)}B` : input.value >= 1e6 ? `$${(input.value / 1e6).toFixed(0)}M` : `${(input.value * 100).toFixed(0)}%`)
+                                : input?.value}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
               </div>
+              
+              {/* EBITDA */}
               <div className="bg-card p-4">
                 <span className="text-micro uppercase tracking-ultra-wide text-muted-foreground block mb-1">
                   EBITDA
                 </span>
                 <span className="font-mono text-xl">{current?.outputs?.ebitda?.formatted || "N/A"}</span>
+                {current?.outputs?.ebitda?.formula && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <p className="text-[10px] text-muted-foreground mt-1 cursor-help underline decoration-dashed">
+                        {current.outputs.ebitda.formula}
+                      </p>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <div className="text-xs space-y-1">
+                        {current.outputs.ebitda.formula_inputs?.map((input, i) => (
+                          <div key={i} className="flex justify-between gap-4">
+                            <span>{input?.name}:</span>
+                            <span className="font-mono">
+                              {typeof input?.value === 'number' 
+                                ? (input.value >= 1e9 ? `$${(input.value / 1e9).toFixed(2)}B` : input.value >= 1e6 ? `$${(input.value / 1e6).toFixed(0)}M` : `${(input.value * 100).toFixed(0)}%`)
+                                : input?.value}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
               </div>
-              <div className="bg-card p-4">
+              
+              {/* Implied Valuation */}
+              <div className="bg-card p-4 col-span-2">
                 <span className="text-micro uppercase tracking-ultra-wide text-muted-foreground block mb-1">
                   Implied Valuation
                 </span>
                 <span className="font-mono text-2xl">{current?.outputs?.valuation?.formatted || "N/A"}</span>
+                {current?.outputs?.valuation?.formula && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <p className="text-[10px] text-muted-foreground mt-1 cursor-help underline decoration-dashed">
+                        {current.outputs.valuation.formula}
+                      </p>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <div className="text-xs space-y-1">
+                        {current.outputs.valuation.formula_inputs?.map((input, i) => (
+                          <div key={i} className="flex justify-between gap-4">
+                            <span>{input?.name}:</span>
+                            <span className="font-mono">
+                              {typeof input?.value === 'number' 
+                                ? (input.value >= 1e9 ? `$${(input.value / 1e9).toFixed(2)}B` : input.value >= 1e6 ? `$${(input.value / 1e6).toFixed(0)}M` : `${input.value}`)
+                                : input?.value}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
               </div>
             </div>
           </div>

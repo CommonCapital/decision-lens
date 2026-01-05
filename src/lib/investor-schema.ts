@@ -158,10 +158,29 @@ const scenarioDriverSchema = z.object({
   source: z.string().nullable().optional(),
 }).nullable().optional();
 
+// Formula input for scenario traceability
+const formulaInputSchema = z.object({
+  name: z.string().nullable().optional(),
+  value: z.union([z.number(), z.string()]).nullable().optional(),
+  source: z.string().nullable().optional(),
+  source_reference: sourceReferenceSchema,
+}).nullable().optional();
+
+// Scenario output metric with formula traceability
+const scenarioOutputMetricSchema = z.object({
+  value: z.union([z.number(), z.string()]).nullable().optional(),
+  formatted: z.string().nullable().optional(),
+  source: z.string().nullable().optional(),
+  formula: z.string().nullable().optional(),
+  formula_inputs: z.array(formulaInputSchema).nullable().optional(),
+  period: z.string().nullable().optional(), // e.g., "FY24E", "NTM"
+  source_reference: sourceReferenceSchema,
+}).nullable().optional();
+
 const scenarioOutputsSchema = z.object({
-  revenue: metricSchema,
-  ebitda: metricSchema,
-  valuation: metricSchema,
+  revenue: scenarioOutputMetricSchema,
+  ebitda: scenarioOutputMetricSchema,
+  valuation: scenarioOutputMetricSchema,
 }).nullable().optional();
 
 const singleScenarioSchema = z.object({
@@ -333,13 +352,19 @@ const baseMetricsSchema = z.object({
   current_liabilities: z.number().nullable().optional(),
   accounts_receivable: z.number().nullable().optional(),
   
-  // Income Statement
+  // Income Statement (Quarterly)
   revenue: z.number().nullable().optional(),
   revenue_prior: z.number().nullable().optional(),
   gross_profit: z.number().nullable().optional(),
   operating_income: z.number().nullable().optional(),
   depreciation_amortization: z.number().nullable().optional(),
   interest_expense: z.number().nullable().optional(),
+  
+  // Income Statement (TTM - Trailing Twelve Months)
+  revenue_ttm: z.number().nullable().optional(),
+  ebitda_ttm: z.number().nullable().optional(),
+  gross_profit_ttm: z.number().nullable().optional(),
+  operating_income_ttm: z.number().nullable().optional(),
   
   // EBITDA (dual structure)
   ebitda_reported: z.number().nullable().optional(),
